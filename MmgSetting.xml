@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="1.8.0_181" class="java.beans.XMLDecoder">
+ <object class="jp.ac.numazu_ct.d14122.fx.MmgSetting">
+  <void property="frequency">
+   <boolean>true</boolean>
+  </void>
+  <void property="samplingNumber">
+   <int>256</int>
+  </void>
+ </object>
+</java>
