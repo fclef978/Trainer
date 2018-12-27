@@ -10,22 +10,24 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import nitnc.kotanilab.trainer.util.Saver;
+import nitnc.kotanilab.trainer.fx.setting.UserSetting;
+import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
+import nitnc.kotanilab.trainer.fx.setting.Saver;
 
 import java.util.function.Consumer;
 
-public class UserSetting extends Stage {
+public class UserSettingStage extends Stage {
     private Scene scene;
-    private UserData userData;
+    private UserSetting userSetting;
     private TextField nameField = new TextField("noname");
     private PositiveIntField ageField = new PositiveIntField("20");
     private VBox root = new VBox(1);
-    private Consumer<UserData> finishAction;
+    private Consumer<UserSetting> finishAction;
     private Button enter = new Button("Enter");
 
-    public UserSetting(Consumer<UserData> finishAction) {
+    public UserSettingStage(Consumer<UserSetting> finishAction) {
         this.finishAction = finishAction;
-        userData = (UserData) Saver.load("UserData");
+        userSetting = (UserSetting) Saver.load("UserSetting");
         VBox wrapper = new VBox(1);
         wrapper.getChildren().addAll(createColumn("Name", nameField), createColumn("Age", ageField));
         ageField.setOnKeyPressed(event -> {
@@ -35,11 +37,11 @@ public class UserSetting extends Stage {
         });
         enter.setOnMouseClicked(event -> finish());
         root.getChildren().addAll(wrapper, enter);
-        if (userData != null) {
-            nameField.setText(userData.getName());
-            ageField.setText(String.valueOf(userData.getAge()));
+        if (userSetting != null) {
+            nameField.setText(userSetting.getName());
+            ageField.setText(String.valueOf(userSetting.getAge()));
         } else {
-            userData = new UserData();
+            userSetting = new UserSetting();
         }
         scene = new Scene(root, 320, 240);
         setScene(scene);
@@ -54,10 +56,10 @@ public class UserSetting extends Stage {
     }
 
     public void finish() {
-        finishAction.accept(new UserData(nameField.getText(), ageField.getValueAsInt()));
-        userData.setName(nameField.getText());
-        userData.setAge(ageField.getValueAsInt());
-        Saver.save("UserData", userData);
+        finishAction.accept(new UserSetting(nameField.getText(), ageField.getValueAsInt()));
+        userSetting.setName(nameField.getText());
+        userSetting.setAge(ageField.getValueAsInt());
+        Saver.save("UserSetting", userSetting);
         this.close();
     }
 

@@ -69,6 +69,19 @@ public class LineGraph extends StackPane {
         children.addAll(gideLine, gideLineLabel);
     }
 
+    public void setGideLine(String label, double value) {
+        double y = yAxis.scale(value);
+        gideLineMap.get(label).setVector(y, false);
+        gideLineLabelMap.get(label).setVector(new Vector(-0.95, y));
+    }
+
+    public void clearGideLine() {
+        getChildren().removeAll(gideLineMap.values());
+        getChildren().removeAll(gideLineLabelMap.values());
+        gideLineMap.clear();
+        gideLineLabelMap.clear();
+    }
+
     protected Vector createVector(Point point) {
         return new Vector(xAxis.scale(point.getX()), yAxis.scale(point.getY()));
     }

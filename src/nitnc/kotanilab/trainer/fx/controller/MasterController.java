@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.controller;
 
 import javafx.collections.FXCollections;
 import javafx.scene.control.*;
@@ -9,6 +9,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
+import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
+import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
 import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
 import nitnc.kotanilab.trainer.math.FunctionGenerator;
@@ -43,7 +45,7 @@ public class MasterController {
     private ADConverter adc;
     private SamplingSetting setting;
     private List<WaveBuffer> buffers;
-    private UserData userData;
+    private UserSetting userSetting;
 
     public MasterController() {
         adc = Utl.doByOS(
@@ -122,7 +124,7 @@ public class MasterController {
                         break;
                     case "HR":
                         HrAnalyzer hrAnalyzer = new HrAnalyzer(masterPane);
-                        hrAnalyzer.setHRGideLine(userData.getAge());
+                        hrAnalyzer.setAge(userSetting.getAge());
                         controller = new HrController(hrAnalyzer);
                         break;
                     case "":
@@ -214,8 +216,8 @@ public class MasterController {
         return root;
     }
 
-    public void setUserData(UserData userData) {
-        this.userData = userData;
+    public void setUserSetting(UserSetting userSetting) {
+        this.userSetting = userSetting;
     }
 
     public class Channel {

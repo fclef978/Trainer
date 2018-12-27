@@ -1,8 +1,10 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.controller;
 
 import javafx.scene.control.Label;
+import nitnc.kotanilab.trainer.fx.setting.MmgSetting;
+import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
 import nitnc.kotanilab.trainer.math.analysis.MmgAnalyzer;
-import nitnc.kotanilab.trainer.util.Saver;
+import nitnc.kotanilab.trainer.fx.setting.Saver;
 
 public class MmgController extends Controller {
     private PositiveIntField samplingNumber = new PositiveIntField("256");

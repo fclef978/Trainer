@@ -97,6 +97,11 @@ public class Window extends StackPane implements GLEventListener {
     }
 
     @Override
+    public Window getRoot() {
+        return this;
+    }
+
+    @Override
     public void init(GLAutoDrawable drawable) {
         bg.init(drawable);
     }

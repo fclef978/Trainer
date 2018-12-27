@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.setting;
 
 
 import java.io.Serializable;

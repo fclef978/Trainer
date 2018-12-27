@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.setting;
 
 public class MmgSetting {
     private static final long serialVersionUID = 1L;

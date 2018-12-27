@@ -19,13 +19,23 @@ public class Line extends Child {
     private float thick;
 
     public Line(Vector startPoint, Vector endPoint, Color color, double thick) {
-        this.startPoint = startPoint;
-        this.endPoint = endPoint;
+        setVector(startPoint, endPoint);
         this.color = color;
         this.thick = (float) thick;
     }
 
     public Line(double position, boolean vertical, Color color, double thick) {
+        setVector(position, vertical);
+        this.color = color;
+        this.thick = (float) thick;
+    }
+
+    public void setVector(Vector startPoint, Vector endPoint) {
+        this.startPoint = startPoint;
+        this.endPoint = endPoint;
+    }
+
+    public void setVector(double position, boolean vertical) {
         if (vertical) {
             startPoint = new Vector(position, -1.0);
             endPoint = new Vector(position, 1.0);
@@ -33,8 +43,6 @@ public class Line extends Child {
             startPoint = new Vector(-1.0, position);
             endPoint = new Vector(1.0, position);
         }
-        this.color = color;
-        this.thick = (float) thick;
     }
 
     @Override

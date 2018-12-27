@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.controller;
 
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.HBox;

@@ -6,9 +6,12 @@ import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.series.*;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
 public class HrAnalyzer extends Analyzer {
     private LineGraph waveGraph;
@@ -25,6 +28,9 @@ public class HrAnalyzer extends Analyzer {
     private boolean debugVisible = false;
     private double thresholdLower = 0.0;
     private double thresholdHigher = 0.0;
+    private DoubleConsumer hrEvent = value -> {};
+    private int age = 20;
+    private double optMET = 0.7;
 
     private ShiftedSeries<Point> heartRate = new ShiftedSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"), 60.0);
 
@@ -57,23 +63,31 @@ public class HrAnalyzer extends Analyzer {
         }
         if (debugVisible) {
             masterPane.getChildren().add(diffPane);
+            diffGraph.putGideLine("Low", thresholdLower, Color.BLUE);
+            diffGraph.putGideLine("High", thresholdHigher, Color.RED);
         }
         if (hrVisible) {
             masterPane.getChildren().add(hrPane);
+            hrGraph.putGideLine("Maximal", getMaxHR(age), Color.RED);
+            hrGraph.putGideLine("Optimal", getMaxHR(age) * optMET, Color.GREEN);
         }
         updatePreviousTime();
     }
 
     @Override
     public void stop() {
+        if (hrVisible) {
+            hrGraph.clearGideLine();
+        }
+        if (debugVisible) {
+            diffGraph.clearGideLine();
+        }
         clearVectorList(waveGraph);
         clearVectorList(diffGraph);
         clearVectorList(hrGraph);
         super.stop();
         heartRate.clear();
     }
-
-    private double previousX = 0.0;
 
     @Override
     public void execute() {
@@ -97,11 +111,17 @@ public class HrAnalyzer extends Analyzer {
             diff.forEach(stateMachine::run);
             if (debugVisible) {
                 diffGraph.getVectorList("State").set(stateMachine.wave.getXList(), stateMachine.wave.getYList());
+                diffGraph.setGideLine("Low", thresholdLower);
+                diffGraph.setGideLine("High", thresholdHigher);
             }
 
             if (hrVisible) {
-                heartRate.add(new Point(diff.getStartTime(), 60.0 / stateMachine.getDelta()));
+                double hr = 60.0 / stateMachine.getDelta();
+                heartRate.add(new Point(diff.getStartTime(), hr));
                 hrGraph.getVectorList("HR").set(heartRate.getXList(), heartRate.getYList());
+                hrGraph.setGideLine("Maximal", getMaxHR(age));
+                hrGraph.setGideLine("Optimal", getMaxHR(age) * optMET);
+                hrEvent.accept(hr);
             }
 
             updatePreviousTime();
@@ -116,11 +136,6 @@ public class HrAnalyzer extends Analyzer {
         return this;
     }
 
-    public void setHRGideLine(int age) {
-        hrGraph.putGideLine("Maximal", getMaxHR(age), Color.RED);
-        hrGraph.putGideLine("Optimal", getMaxHR(age) * 0.7, Color.GREEN);
-    }
-
     private static double getMaxHR(int age) {
         return 220 - age;
     }
@@ -131,6 +146,14 @@ public class HrAnalyzer extends Analyzer {
 
     public void setThresholdHigher(double thresholdHigher) {
         this.thresholdHigher = thresholdHigher;
+    }
+
+    public void setHrEvent(DoubleConsumer hrEvent) {
+        this.hrEvent = hrEvent;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 
     private class StateMachine {

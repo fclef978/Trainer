@@ -118,4 +118,8 @@ public class Text extends Child {
     public void setString(String str) {
         this.str = str;
     }
+
+    public void setVector(Vector vector) {
+        this.vector = vector;
+    }
 }

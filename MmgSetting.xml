@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="1.8.0_181" class="java.beans.XMLDecoder">
- <object class="nitnc.kotanilab.trainer.fx.MmgSetting">
+ <object class="nitnc.kotanilab.trainer.fx.setting.MmgSetting">
   <void property="frequency">
    <boolean>true</boolean>
   </void>
   <void property="samplingNumber">
    <int>256</int>
+  </void>
+  <void property="spectrum">
+   <boolean>true</boolean>
+  </void>
+  <void property="wave">
+   <boolean>true</boolean>
   </void>
  </object>
 </java>

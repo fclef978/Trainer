@@ -51,6 +51,16 @@ public abstract class Parent extends Node {
         public Position getPosition() {
             throw new IllegalArgumentException("ダミーです");
         }
+
+        @Override
+        public Object getLock() {
+            throw new IllegalArgumentException("ダミーです");
+        }
+
+        @Override
+        public Window getRoot() {
+            throw new IllegalArgumentException("ダミーです");
+        }
     };
 
 }

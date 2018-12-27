@@ -1,6 +1,5 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.util;
 
-import java.util.function.DoubleUnaryOperator;
 import java.util.regex.Pattern;
 
 public class PositiveIntField extends LimitedField {

@@ -1,13 +1,13 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.setting;
 
-public class UserData {
+public class UserSetting {
     private int age;
     private String name;
 
-    public UserData() {
+    public UserSetting() {
     }
 
-    public UserData(String name, int age) {
+    public UserSetting(String name, int age) {
         this.age = age;
         this.name = name;
     }

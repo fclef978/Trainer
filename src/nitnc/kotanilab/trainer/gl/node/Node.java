@@ -44,7 +44,11 @@ public abstract class Node {
      * @return 描画中かどうかのロック
      */
     public Object getLock() {
-        return getParent().getLock();
+        return getRoot().getLock();
+    }
+
+    public Window getRoot() {
+        return parent.getRoot();
     }
 
     public void setParent(Parent parent) {

@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.util;
+package nitnc.kotanilab.trainer.fx.setting;
 
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;

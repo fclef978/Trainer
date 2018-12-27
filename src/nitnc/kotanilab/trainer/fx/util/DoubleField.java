@@ -1,11 +1,6 @@
-package nitnc.kotanilab.trainer.fx;
-
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
+package nitnc.kotanilab.trainer.fx.util;
 
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 public class DoubleField extends LimitedField {

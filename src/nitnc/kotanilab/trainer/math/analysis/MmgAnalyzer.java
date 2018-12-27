@@ -133,6 +133,12 @@ public class MmgAnalyzer extends Analyzer {
                 freqGraph.getVectorList("Median").set(median.getXList(), median.getYList());
                 freqGraph.getVectorList("Peek").set(peek.getXList(), peek.getYList());
             }
+
+            Wave rmsWave = source.getWave(1.0);
+            double sqAve = rmsWave.stream().replaceY(x -> (x - 2.5) / 1.0).replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
+            double rms = Math.sqrt(sqAve);
+            Dbg.p(rms);
+
             updatePreviousTime();
         }
     }

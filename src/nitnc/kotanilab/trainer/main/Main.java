@@ -5,10 +5,10 @@ import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import nitnc.kotanilab.trainer.fx.*;
+import nitnc.kotanilab.trainer.fx.controller.MasterController;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HEnumPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 /**
  * メイン
@@ -42,8 +42,8 @@ public class Main extends Application {
         window.launch();
         System.out.println("ウィンドウスタート");
 
-        new UserSetting(userData -> {
-            masterController.setUserData(userData);
+        new UserSettingStage(userData -> {
+            masterController.setUserSetting(userData);
             primaryStage.show();
         });
     }

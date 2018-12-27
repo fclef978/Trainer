@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.util;
 
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;

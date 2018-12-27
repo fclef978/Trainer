@@ -89,4 +89,7 @@ public class Children {
         return nodes.stream();
     }
 
+    public Parent getParent() {
+        return parent;
+    }
 }
