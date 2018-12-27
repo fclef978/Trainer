@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: jp.ac.numazu_ct.d14122.main.Main
+Main-Class: nitnc.kotanilab.trainer.main.Main
 
