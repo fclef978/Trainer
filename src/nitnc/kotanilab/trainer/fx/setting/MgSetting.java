@@ -1,14 +1,24 @@
 package nitnc.kotanilab.trainer.fx.setting;
 
-public class MmgSetting {
+public class MgSetting {
     private static final long serialVersionUID = 1L;
 
+    private int channel;
     private int samplingNumber;
     private boolean wave;
     private boolean spectrum;
     private boolean frequency;
+    private boolean rms;
 
-    public MmgSetting() {
+    public MgSetting() {
+    }
+
+    public int getChannel() {
+        return channel;
+    }
+
+    public void setChannel(int channel) {
+        this.channel = channel;
     }
 
     public int getSamplingNumber() {
@@ -41,5 +51,13 @@ public class MmgSetting {
 
     public void setFrequency(boolean frequency) {
         this.frequency = frequency;
+    }
+
+    public boolean getRms() {
+        return rms;
+    }
+
+    public void setRms(boolean rms) {
+        this.rms = rms;
     }
 }

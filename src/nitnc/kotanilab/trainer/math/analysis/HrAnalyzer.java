@@ -1,9 +1,13 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
+import nitnc.kotanilab.trainer.fft.wrapper.Fft;
+import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
+import nitnc.kotanilab.trainer.fx.controller.HrController;
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
 import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.Dbg;
@@ -12,6 +16,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+import java.util.logging.Filter;
 
 public class HrAnalyzer extends Analyzer {
     private LineGraph waveGraph;
@@ -23,14 +28,16 @@ public class HrAnalyzer extends Analyzer {
     private LineGraph hrGraph;
     private Chart hrChart;
     private Pane hrPane;
+    private Fft fft;
+    private int hrCalcLength = 512;
     private boolean waveVisible = false;
     private boolean hrVisible = false;
     private boolean debugVisible = false;
     private double thresholdLower = 0.0;
     private double thresholdHigher = 0.0;
-    private DoubleConsumer hrEvent = value -> {};
+    private DoubleConsumer hrEvent = value -> {
+    };
     private int age = 20;
-    private double optMET = 0.7;
 
     private ShiftedSeries<Point> heartRate = new ShiftedSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"), 60.0);
 
@@ -56,8 +63,10 @@ public class HrAnalyzer extends Analyzer {
 
     @Override
     public void start(double fs, int n, double waveXMax, double waveYMax) {
-        super.start(fs, n, waveXMax, waveYMax);
-        source.setXMax(6.0);
+        source.setXMax(10.0);
+        source.setDecimationNumber(16);
+        super.start(source.getSamplingFrequency(), n, waveXMax, waveYMax);
+        source.addCallback(IirFilter.execute("lpf0.01.txt"));
         if (waveVisible) {
             masterPane.getChildren().addAll(wavePane);
         }
@@ -68,9 +77,10 @@ public class HrAnalyzer extends Analyzer {
         }
         if (hrVisible) {
             masterPane.getChildren().add(hrPane);
-            hrGraph.putGideLine("Maximal", getMaxHR(age), Color.RED);
-            hrGraph.putGideLine("Optimal", getMaxHR(age) * optMET, Color.GREEN);
+            hrGraph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED);
+            hrGraph.putGideLine("Optimal", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN);
         }
+        fft = new OouraFft(hrCalcLength);
         updatePreviousTime();
     }
 
@@ -97,30 +107,26 @@ public class HrAnalyzer extends Analyzer {
             waveGraph.getVectorList("Wave").set(wave1.getXList(), wave1.getYList()); // グラフ登録
         }
 
-        if (source.available(6.0) && isPassedInterval(1.0)) {
-            Wave diff = source.getWave(6.0);
+        if (source.available(hrCalcLength) && isPassedInterval(1.0)) {
+            Wave diff = source.getWave(hrCalcLength);
             diff = diff.stream().to(diff::from);
             if (debugVisible) {
                 diffGraph.getVectorList("Wave").set(diff.getXList(), diff.getYList());
             }
+            /*
             StateMachine stateMachine = new StateMachine(thresholdLower, thresholdHigher);
             diff = diff.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10.0).to(diff::from);
             if (debugVisible) {
                 diffGraph.getVectorList("Differential").set(diff.getXList(), diff.getYList());
             }
-            diff.forEach(stateMachine::run);
-            if (debugVisible) {
-                diffGraph.getVectorList("State").set(stateMachine.wave.getXList(), stateMachine.wave.getYList());
-                diffGraph.setGideLine("Low", thresholdLower);
-                diffGraph.setGideLine("High", thresholdHigher);
-            }
+            */
 
             if (hrVisible) {
-                double hr = 60.0 / stateMachine.getDelta();
+                double hr = diff.getSamplingFrequency() / ACF.wienerKhinchin(fft, diff.getYList()) * 60.0;
                 heartRate.add(new Point(diff.getStartTime(), hr));
                 hrGraph.getVectorList("HR").set(heartRate.getXList(), heartRate.getYList());
-                hrGraph.setGideLine("Maximal", getMaxHR(age));
-                hrGraph.setGideLine("Optimal", getMaxHR(age) * optMET);
+                hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
+                hrGraph.setGideLine("Optimal", HrController.getMaxHR(age) * HrController.OPT_MET);
                 hrEvent.accept(hr);
             }
 
@@ -134,10 +140,6 @@ public class HrAnalyzer extends Analyzer {
         hrVisible = visible[1];
         debugVisible = visible[2];
         return this;
-    }
-
-    private static double getMaxHR(int age) {
-        return 220 - age;
     }
 
     public void setThresholdLower(double thresholdLower) {

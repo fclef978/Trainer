@@ -22,4 +22,8 @@ public class Utl {
             e.printStackTrace();
         }
     }
+
+    public static double ceil(double x) {
+        return x > 0 ? Math.ceil(x) : Math.floor(x);
+    }
 }

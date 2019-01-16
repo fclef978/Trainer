@@ -13,11 +13,9 @@ import nitnc.kotanilab.trainer.math.point.PointOfWave;
 import nitnc.kotanilab.trainer.math.series.Unit;
 import nitnc.kotanilab.trainer.math.series.Wave;
 import nitnc.kotanilab.trainer.gpg3100.jnaNative.*;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
@@ -36,6 +34,7 @@ public class GPG3100 implements ADConverter {
 
     /**
      * 指定したデバイス番号で作成します。
+     *
      * @param deviceNumber デバイス番号です。
      */
     public GPG3100(int deviceNumber) {
@@ -58,7 +57,7 @@ public class GPG3100 implements ADConverter {
     @Override
     public void setSamplingSetting(SamplingSetting samplingSetting) {
         this.samplingSetting.setAll(
-                samplingSetting.getChCount(),
+                samplingSetting.getChannelList(),
                 samplingSetting.getSamplingNumber(),
                 samplingSetting.getSamplingFrequency()
         );
@@ -69,7 +68,7 @@ public class GPG3100 implements ADConverter {
 
     @Override
     public List<Wave> convertContinuously() {
-        int size = samplingSetting.getSamplingNumber(), ch = samplingSetting.getChCount();
+        int size = samplingSetting.getSamplingNumber(), ch = samplingSetting.getChannelList().size();
         double fs = samplingSetting.getSamplingFrequency();
         List<Wave> waveList = new ArrayList<>(ch);
         LongByReference num = new LongByReference(size);
@@ -102,9 +101,9 @@ public class GPG3100 implements ADConverter {
     @Override
     public List<WaveBuffer> convertEternally() {
         final List<WaveBuffer> list = new CopyOnWriteArrayList<>();
-        int ch = samplingSetting.getChCount();
+        int ch = samplingSetting.getChannelList().size();
 
-        for (int i = 0; i < samplingSetting.getChCount(); i++)
+        for (int i = 0; i < samplingSetting.getChannelList().size(); i++)
             list.add(new WaveBuffer(converterSpec.getRange(), -converterSpec.getRange(), Unit.v(), samplingSetting.getSamplingFrequency()));
 
         LongByReference status = new LongByReference(0);
@@ -197,6 +196,7 @@ public class GPG3100 implements ADConverter {
 
     /**
      * CSVに出力します。
+     *
      * @param fileName CSVのファイルネームです。
      */
     public void convertToCsv(String fileName) {

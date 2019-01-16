@@ -1,5 +1,7 @@
 package nitnc.kotanilab.trainer.adConverter;
 
+import java.util.List;
+
 /**
  * サンプリング時の設定を表すクラスです。
  * 使用する機器に合わせて継承してください。
@@ -7,9 +9,9 @@ package nitnc.kotanilab.trainer.adConverter;
 public class SamplingSetting {
 
     /**
-     * サンプリングするチャンネル数です。
+     * サンプリングするチャンネルのリストです。
      */
-    protected int chCount;
+    protected List<Integer> channelList;
     /**
      * サンプリング数です。
      */
@@ -23,30 +25,33 @@ public class SamplingSetting {
      */
     protected double samplingFrequency;
 
-    public SamplingSetting(int chCount, int samplingNumber, double samplingFrequency) {
-        this.chCount = chCount;
+    public SamplingSetting() {
+    }
+
+    public SamplingSetting(List<Integer> channelList, int samplingNumber, double samplingFrequency) {
+        this.channelList = channelList;
         this.samplingNumber = samplingNumber;
         this.samplingTime = numberToTime(samplingNumber);
         this.samplingFrequency = samplingFrequency;
     }
 
-    public SamplingSetting(int chCount, double samplingTime, double samplingFrequency) {
-        this.chCount = chCount;
+    public SamplingSetting(List<Integer> channelList, double samplingTime, double samplingFrequency) {
+        this.channelList = channelList;
         this.samplingNumber = timeToNumber(samplingTime);
         this.samplingTime = samplingTime;
         this.samplingFrequency = samplingFrequency;
     }
 
     protected double numberToTime(int num) {
-        return (double)num / samplingFrequency * 1000.0;
+        return (double) num / samplingFrequency * 1000.0;
     }
 
     protected int timeToNumber(double time) {
-        return (int)(time * samplingFrequency / 1000.0);
+        return (int) (time * samplingFrequency / 1000.0);
     }
 
-    public int getChCount() {
-        return chCount;
+    public List<Integer> getChannelList() {
+        return channelList;
     }
 
     public int getSamplingNumber() {
@@ -57,18 +62,18 @@ public class SamplingSetting {
         return samplingFrequency;
     }
 
-    public void setAll(int chCount, int samplingNumber, double samplingFrequency) {
-        setChCount(chCount);
+    public void setAll(List<Integer> channelList, int samplingNumber, double samplingFrequency) {
+        setChannelList(channelList);
         setSamplingNumber(samplingNumber);
         setSamplingFrequency(samplingFrequency);
     }
 
-    public void setAll(int chCount, double mSec, double samplingFrequency) {
-        setAll(chCount, timeToNumber(mSec), samplingFrequency);
+    public void setAll(List<Integer> channelList, double mSec, double samplingFrequency) {
+        setAll(channelList, timeToNumber(mSec), samplingFrequency);
     }
 
-    public void setChCount(int chCount) {
-        this.chCount = chCount;
+    public void setChannelList(List<Integer> channelList) {
+        this.channelList = channelList;
     }
 
     public void setSamplingNumber(int samplingNumber) {

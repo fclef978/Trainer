@@ -13,7 +13,7 @@ public interface Fft {
      * @param signal 入力波形です。
      * @return 出力スペクトルです。
      */
-    public Complex[] cdft(Complex[] signal);
+    public Complex[] dft(Complex[] signal);
 
     /**
      * 実離散フーリエ変換です。
@@ -21,7 +21,15 @@ public interface Fft {
      * @param wave 入力波形です。
      * @return 出力スペクトルです。
      */
-    public Spectrum rdft(Wave wave);
+    public Spectrum dft(Wave wave);
+
+    /**
+     * 逆離散フーリエ変換です。
+     *
+     * @param signal 入力スペクトラムです。
+     * @return 出力スペクトルです。
+     */
+    public Complex[] idft(Complex[] signal);
 
     /**
      * FFTの長さを返します。

@@ -1,6 +1,7 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
 import nitnc.kotanilab.trainer.gl.chart.Axis;
+import nitnc.kotanilab.trainer.gl.chart.GraphContext;
 import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.chart.LogAxis;
 import nitnc.kotanilab.trainer.gl.pane.HEnumPane;
@@ -13,7 +14,9 @@ import nitnc.kotanilab.trainer.math.series.Unit;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Analyzer {
     protected Pane masterPane;
@@ -21,6 +24,7 @@ public abstract class Analyzer {
     protected List<Pane> panes = new ArrayList<>();
     protected String borderStyle;
     protected String title;
+    protected Map<String, GraphContext> graphContextMap = new HashMap<>();
 
     protected Analyzer(Pane masterPane, String title) {
         this.masterPane = masterPane;
@@ -112,7 +116,7 @@ public abstract class Analyzer {
         return createGraph(xAxis, yAxis, lines);
     }
 
-    protected static LineGraph createSpctrumGraph(double xMin, double xMax, Axis yAxis, String... lines) {
+    protected static LineGraph createSpectrumGraph(double xMin, double xMax, Axis yAxis, String... lines) {
         return createGraph(
                 new LogAxis("Frequency[Hz]", xMin, xMax, 0.1),
                 yAxis, lines);

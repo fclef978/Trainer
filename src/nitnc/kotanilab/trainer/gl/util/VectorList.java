@@ -1,5 +1,7 @@
 package nitnc.kotanilab.trainer.gl.util;
 
+import nitnc.kotanilab.trainer.util.Dbg;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,20 +34,15 @@ public class VectorList {
 
     public void add(Vector vector) {
         synchronized (lock) {
-            if (vector.getX() <= 1.0 && vector.getX() >= -1.0 && vector.getY() <= 1.0 && vector.getY() >= -1.0)
+            if (vector.getY() > 1.0) vector.setY(1.0);
+            else if (vector.getY() < -1.0) vector.setY(-1.0);
+            if (vector.getX() <= 1.0 && vector.getX() >= -1.0)
                 list.add(vector);
         }
     }
 
     public void add(double x, double y) {
         this.add(new Vector(sign * xConverter.apply(x), yConverter.apply(y)));
-    }
-
-    public void set(Collection<Vector> c) {
-        synchronized (lock) {
-            list.clear();
-            list.addAll(c);
-        }
     }
 
     /**

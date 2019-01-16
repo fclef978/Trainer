@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="1.8.0_181" class="java.beans.XMLDecoder">
- <object class="nitnc.kotanilab.trainer.fx.setting.HrSetting">
+ <object class="nitnc.kotanilab.trainer.fx.setting.MgSetting">
   <void property="channel">
-   <int>1</int>
+   <int>2</int>
   </void>
-  <void property="hr">
+  <void property="frequency">
    <boolean>true</boolean>
   </void>
-  <void property="thHigh">
-   <double>1.1</double>
+  <void property="samplingNumber">
+   <int>1024</int>
   </void>
-  <void property="thLow">
-   <double>-0.3</double>
+  <void property="spectrum">
+   <boolean>true</boolean>
   </void>
   <void property="wave">
    <boolean>true</boolean>

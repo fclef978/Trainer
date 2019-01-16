@@ -6,6 +6,7 @@ import java.io.Serializable;
 public class HrSetting implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private int channel;
     private double thLow;
     private double thHigh;
     private boolean wave;
@@ -13,6 +14,14 @@ public class HrSetting implements Serializable {
     private boolean debug;
 
     public HrSetting() {
+    }
+
+    public int getChannel() {
+        return channel;
+    }
+
+    public void setChannel(int channel) {
+        this.channel = channel;
     }
 
     public double getThLow() {

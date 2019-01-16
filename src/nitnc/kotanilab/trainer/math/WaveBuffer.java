@@ -8,6 +8,7 @@ import nitnc.kotanilab.trainer.util.Dbg;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * 波形を保持するバッファです。
@@ -16,15 +17,17 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class WaveBuffer {
 
-    private double xMax = 10;
+    private double xMax = 11;
 
-    protected Unit yUnit;
+    private Unit yUnit;
+    private int decimationNumber = 1; // 間引き量
     private double samplingFrequency;
     private double yMax;
     private double yMin;
     private BlockingDeque<Double> queue = new LinkedBlockingDeque<>();
     private long totalCount = 0;
     private boolean isStart = false;
+    private List<DoubleUnaryOperator> callbacks = new ArrayList<>();
 
     /**
      * コンストラクタです。
@@ -104,6 +107,16 @@ public class WaveBuffer {
         return wave;
     }
 
+    public void addCallback(DoubleUnaryOperator callback) {
+        callbacks.add(callback);
+    }
+
+    public void addCallback(DoubleUnaryOperator... callbacks) {
+        this.callbacks.addAll(Arrays.asList(callbacks));
+    }
+
+    private int decimationCounter = 0;
+
     /**
      * キューにデータを挿入します。
      *
@@ -111,7 +124,14 @@ public class WaveBuffer {
      * @throws InterruptedException もしかしたらスレッド衝突するかもしれない
      */
     public void put(Double val) throws InterruptedException {
-        if (isStart) queue.put(val);
+        if (!isStart) return;
+        for (DoubleUnaryOperator callback : callbacks) {
+            val = callback.applyAsDouble(val);
+        }
+        if (decimationCounter % decimationNumber == 0) {
+            queue.put(val);
+        }
+        decimationCounter++;
     }
 
     /**
@@ -145,12 +165,18 @@ public class WaveBuffer {
 
     public void start() {
         isStart = true;
+        decimationCounter = 0;
     }
 
     public void stop() {
         isStart = false;
         totalCount = 0;
         queue.clear();
+    }
+
+    public void setDecimationNumber(int decimationNumber) {
+        this.decimationNumber = decimationNumber;
+        this.samplingFrequency /= decimationNumber;
     }
 
     public double getSamplingFrequency() {

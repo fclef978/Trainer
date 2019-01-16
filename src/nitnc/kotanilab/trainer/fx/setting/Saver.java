@@ -5,7 +5,7 @@ import java.beans.XMLEncoder;
 import java.io.*;
 
 public class Saver {
-    private static String suffix = ".xml";
+    private static final String suffix = ".xml";
 
     public static void save(String name, Object o) {
         try {

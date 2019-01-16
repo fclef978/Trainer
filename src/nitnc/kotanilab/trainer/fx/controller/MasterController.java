@@ -6,9 +6,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
+import nitnc.kotanilab.trainer.fx.setting.MasterSetting;
+import nitnc.kotanilab.trainer.fx.setting.Saver;
 import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
@@ -16,10 +17,10 @@ import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
 import nitnc.kotanilab.trainer.math.FunctionGenerator;
 import nitnc.kotanilab.trainer.math.VirtualADC;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
-import nitnc.kotanilab.trainer.math.analysis.HrAnalyzer;
-import nitnc.kotanilab.trainer.math.analysis.MmgAnalyzer;
+import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -30,7 +31,7 @@ public class MasterController {
     private Pane root = new VBox();
     private HBox first = new HBox(0);
     private HBox second = new HBox(0);
-    private TextField smplFreq = new TextField("100");
+    private TextField samplingFreq = new TextField("100");
     private Button startBtn = new Button("Start");
     private Button stopBtn = new Button("Stop");
     private Button setBtn = new Button("Set");
@@ -38,26 +39,35 @@ public class MasterController {
     private Button upBtn = new Button("↑");
     private Button downBtn = new Button("↓");
     private ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(
-            "MMG", "HR"
+            "MMG", "MMG(mic.)", "EMG", "HR"
     ));
-    private TableView<Channel> tableView = new TableView<>();
+    private TableView<Controller> tableView = new TableView<>();
     private PeriodicTask analysisTask = new PeriodicTask(10);
     private ADConverter adc;
-    private SamplingSetting setting;
+    private SamplingSetting samplingSetting;
+    private MasterSetting setting;
     private List<WaveBuffer> buffers;
     private UserSetting userSetting;
 
     public MasterController() {
+        setting = (MasterSetting) Saver.load("MasterSetting");
+        if (setting != null) {
+            samplingFreq.setText(String.valueOf(setting.getSamplingFrequency()));
+        } else {
+            setting = new MasterSetting();
+        }
         adc = Utl.doByOS(
                 () -> new VirtualADC(5, -5,
                         FunctionGenerator.csv("source.csv"),
-                        FunctionGenerator.cosSin(5, 2, 2.5)
+                        FunctionGenerator.white(0 , 2, 2.0, 2.5),
+                        FunctionGenerator.sin(10, 2.0, 2.5)
                 ),
-                () -> new GPG3100(1));
-        setting = adc.getSamplingSetting();
+                () -> new GPG3100(1)
+        );
+        samplingSetting = adc.getSamplingSetting();
 
         Label labelSF = new Label("Sampling Frequency");
-        smplFreq.setStyle("-fx-max-width: 50px");
+        samplingFreq.setStyle("-fx-max-width: 50px");
         Label labelCH = new Label("Channel");
         setColumns();
 
@@ -73,7 +83,7 @@ public class MasterController {
         downBtn.setOnMouseClicked(event -> {
             downElement(tableView.getItems(), tableView.getSelectionModel().getSelectedItem());
         });
-        first.getChildren().addAll(labelSF, smplFreq, startBtn, stopBtn);
+        first.getChildren().addAll(labelSF, samplingFreq, startBtn, stopBtn);
         second.getChildren().addAll(labelCH, comboBox, setBtn, deleteBtn, upBtn, downBtn);
         root.getChildren().addAll(first, second, tableView);
         analysisTask.setCallback(count -> {
@@ -83,31 +93,41 @@ public class MasterController {
 
     @SuppressWarnings("unchecked")
     private void setColumns() {
-        TableColumn<Channel, Text> chCol = new TableColumn<>("Channel");
-        chCol.setMinWidth(100);
-        chCol.setCellValueFactory(new PropertyValueFactory<>("channel"));
-        TableColumn<Channel, Controller> ctrlCol = new TableColumn<>("Controller");
-        ctrlCol.setMinWidth(540);
-        ctrlCol.setCellValueFactory(new PropertyValueFactory<>("controller"));
-        tableView.getColumns().addAll(chCol, ctrlCol);
+        TableColumn<Controller, Label> nameCol = new TableColumn<>("Name");
+        nameCol.setMinWidth(80);
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<Controller, ? extends TextField> chCol = new TableColumn<>("Channel");
+        chCol.setMinWidth(60);
+        chCol.setCellValueFactory(new PropertyValueFactory<>("channelField"));
+
+        TableColumn<Controller, ? extends Pane> ctrlCol = new TableColumn<>("Operator");
+        ctrlCol.setMinWidth(400);
+        ctrlCol.setCellValueFactory(new PropertyValueFactory<>("operator"));
+
+        TableColumn<Controller, ? extends Pane> indicatorCol = new TableColumn<>("Indicator");
+        indicatorCol.setMinWidth(180);
+        indicatorCol.setCellValueFactory(new PropertyValueFactory<>("indicator"));
+
+        tableView.getColumns().addAll(nameCol, chCol, ctrlCol, indicatorCol);
     }
 
-    private static void upElement(List<Channel> list, Channel target) {
+    private static void upElement(List<Controller> list, Controller target) {
         shiftElement(list, target, 0, -1);
     }
 
-    private static void downElement(List<Channel> list, Channel target) {
+    private static void downElement(List<Controller> list, Controller target) {
         shiftElement(list, target, -1, 1);
     }
 
-    private static void shiftElement(List<Channel> list, Channel target, int limit, int quantity) {
+    private static void shiftElement(List<Controller> list, Controller target, int limit, int quantity) {
         int pos = list.indexOf(target);
         if (pos == -1 || pos == (limit < 0 ? list.size() + limit : limit)) return;
-        Channel tmp1 = list.get(pos);
-        Channel tmp2 = list.get(pos + quantity);
-        Controller tmp = tmp1.controller;
-        tmp1.setController(tmp2.controller);
-        tmp2.setController(tmp);
+        Controller tmp1 = list.get(pos);
+        Controller tmp2 = list.get(pos + quantity);
+        Controller tmp = tmp1;
+        tmp1 = tmp2;
+        tmp2 = tmp;
         list.set(pos, tmp1);
         list.set(pos + quantity, tmp2);
     }
@@ -119,13 +139,16 @@ public class MasterController {
             if (str != null) {
                 switch (str) {
                     case "MMG":
-                        MmgAnalyzer mmgAnalyzer = new MmgAnalyzer(masterPane);
-                        controller = new MmgController(mmgAnalyzer);
+                        controller = new MmgController(masterPane, userSetting);
+                        break;
+                    case "MMG(mic.)":
+                        controller = new MmgMicController(masterPane, userSetting);
+                        break;
+                    case "EMG":
+                        controller = new EmgController(masterPane, userSetting);
                         break;
                     case "HR":
-                        HrAnalyzer hrAnalyzer = new HrAnalyzer(masterPane);
-                        hrAnalyzer.setAge(userSetting.getAge());
-                        controller = new HrController(hrAnalyzer);
+                        controller = new HrController(masterPane, userSetting);
                         break;
                     case "":
                         break;
@@ -133,10 +156,9 @@ public class MasterController {
                         throw new IllegalArgumentException("不明な選択です");
                 }
                 if (controller != null) {
-                    Channel channel = new Channel(getCh() + 1, controller);
-                    tableView.getItems().add(channel);
+                    tableView.getItems().add(controller);
                 }
-                action.accept(getCh());
+                action.accept(getChannelNumber());
             }
         });
     }
@@ -152,25 +174,24 @@ public class MasterController {
 
     public void setStartEvent(BiConsumer<Integer, Double> action) {
         startBtn.setOnMouseClicked(event -> {
-            int ch = getCh();
+            List<Integer> channelList = getChannelList();
             double fs = getFs();
-            if (getCh() == 0) return;
+            if (channelList.size() == 0) return;
 
-            setting.setAll(ch, fs, fs);
-            adc.setSamplingSetting(setting);
+            samplingSetting.setAll(channelList, fs, fs);
+            adc.setSamplingSetting(samplingSetting);
             buffers = adc.convertEternally();
-            tableView.getItems().forEach(channel -> {
-                int chNum = channel.getChNum() - 1;
-                WaveBuffer waveBuffer = buffers.get(chNum);
-                channel.getController().getAnalyzer().setSource(waveBuffer);
-                // getControllers().get(chNum).getAnalyzer().setSource(waveBuffer);
-            });
+            for (int i = 0; i < buffers.size(); i++) {
+                Controller controller = tableView.getItems().get(i);
+                WaveBuffer waveBuffer = buffers.get(i);
+                controller.getAnalyzer().setSource(waveBuffer);
+            }
             buffers.forEach(WaveBuffer::start);
 
             startBtn.setDisable(true);
             setSecondButton(button -> button.setDisable(true));
             setBtn.setDisable(true);
-            action.accept(getCh(), fs);
+            action.accept(channelList.size(), fs);
             getControllers().forEach(controller -> controller.start(fs));
             stopBtn.setDisable(false);
             analysisTask.start();
@@ -180,7 +201,7 @@ public class MasterController {
     public void setStopEvent(Consumer<Object> action) {
         // eventはnullの可能性もある
         stopBtn.setOnMouseClicked(event -> {
-            if (getCh() == 0) return;
+            if (getChannelNumber() == 0) return;
             analysisTask.stop();
             adc.stop();
             buffers.forEach(WaveBuffer::stop);
@@ -189,6 +210,9 @@ public class MasterController {
             getControllers().forEach(Controller::stop);
             startBtn.setDisable(false);
             setSecondButton(button -> button.setDisable(false));
+
+            setting.setSamplingFrequency(samplingSetting.getSamplingFrequency());
+            Saver.save("MasterSetting", setting);
         });
     }
 
@@ -200,16 +224,20 @@ public class MasterController {
         getControllers().parallelStream().forEach(controller -> controller.getAnalyzer().execute());
     }
 
-    public int getCh() {
-        return tableView.getItems().stream().mapToInt(Channel::getChNum).max().orElse(0);
+    public List<Integer> getChannelList() {
+        return tableView.getItems().stream().map(Controller::getChannel).collect(Collectors.toList());
+    }
+
+    public int getChannelNumber() {
+        return tableView.getItems().size();
     }
 
     public double getFs() {
-        return Double.parseDouble(smplFreq.getText());
+        return Double.parseDouble(samplingFreq.getText());
     }
 
     public List<Controller> getControllers() {
-        return tableView.getItems().stream().map(Channel::getController).collect(Collectors.toList());
+        return new ArrayList<>(tableView.getItems());
     }
 
     public Pane getRoot() {

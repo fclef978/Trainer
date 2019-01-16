@@ -6,6 +6,7 @@ package nitnc.kotanilab.trainer.math;
 
 
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -56,6 +57,80 @@ public class FunctionGenerator {
      */
     public static UnaryOperator<Double> cosSin(double freq, double amp, double bias) {
         return t -> amp * Math.sin(2.0 * Math.PI * freq * t) * Math.cos(2.0 * Math.PI * freq / 5.0 * t) + bias;
+    }
+
+    /**
+     * 任意の振幅、切片で時間[s]を引数とするランダム波オブジェクトを生成します。
+     *
+     * @param amp  振幅
+     * @param bias 切片
+     * @return 矩形波
+     */
+    public static UnaryOperator<Double> rand(double amp, double bias) {
+        return t -> amp * 2.0 * (Math.random() - 0.5) + bias;
+    }
+
+    /**
+     * 任意の振幅、切片で時間[s]を引数とするホワイトノイズオブジェクトを生成します。
+     *
+     * @param amp  振幅
+     * @param bias 切片
+     * @return 矩形波
+     */
+    public static UnaryOperator<Double> white(double amp, double bias) {
+        return t -> {
+            double z = Math.sqrt(-2.0 * Math.log(Math.random())) * Math.sin(2.0 * Math.PI * Math.random());
+            return bias + amp / 3.0 * z;
+        };
+    }
+
+    /**
+     * 任意の振幅、切片で時間[s]を引数とするホワイトノイズオブジェクトを生成します。
+     *
+     * @param amp  振幅
+     * @param bias 切片
+     * @return 矩形波
+     */
+    public static UnaryOperator<Double> white(double freq, int num, double amp, double bias) {
+        double[] phase = new double[num];
+        for (int i = 0; i < phase.length; i++) {
+            phase[i] = 2 * Math.PI * Math.random();
+        }
+        return t -> {
+            double y = 0;
+            for (int i = 0; i < num; i++) {
+                double f = freq * (double) i / (double) num;
+                y += Math.sin(2.0 * Math.PI * f * t + phase[i]);
+            }
+            return amp * y / num + bias;
+        };
+    }
+
+    /**
+     * 任意の振幅、切片で時間[s]を引数とするホワイトノイズオブジェクトを生成します。
+     *
+     * @param amp  振幅
+     * @param bias 切片
+     * @return 矩形波
+     */
+    public static UnaryOperator<Double> white(int min, int max, double amp, double bias) {
+        int n = 10 * (max - min);
+        double[] phase = new double[n];
+        for (int i = 0; i < phase.length; i++) {
+            phase[i] = 2 * Math.PI * Math.random();
+        }
+        return t -> {
+            double y = 0;
+            int k = 0;
+            for (int i = min; i < max; i++) {
+                for (int j = 1; j < 10; j++) {
+                    double f = j * Math.pow(10, i);
+                    y += Math.sin(2.0 * Math.PI * f * t + phase[k]);
+                    k++;
+                }
+            }
+            return amp * y / n + bias;
+        };
     }
 
     public static UnaryOperator<Double> csv(String filename) {

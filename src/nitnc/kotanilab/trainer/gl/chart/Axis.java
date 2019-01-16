@@ -67,7 +67,7 @@ public class Axis {
     }
 
     public double scale(double val) {
-        return (val - getIntermediate()) / getHalf();
+        return  (val - getIntermediate()) / getHalf();
     }
 
     protected double restrict(double val) {

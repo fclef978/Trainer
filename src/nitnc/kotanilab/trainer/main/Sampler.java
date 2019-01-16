@@ -9,6 +9,7 @@ import java.awt.image.SampleModel;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Sampler {
@@ -17,7 +18,7 @@ public class Sampler {
 
     public Sampler() {
         try {
-            setting.setAll(1, 1200000.0, 1000);
+            setting.setAll(Arrays.asList(1), 1200000.0, 1000);
             adc.setSamplingSetting(setting);
             Scanner scanner = new Scanner(System.in);
             System.out.println("Stand By...");

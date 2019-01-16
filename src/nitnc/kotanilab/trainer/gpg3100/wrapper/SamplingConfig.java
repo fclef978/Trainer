@@ -3,6 +3,9 @@ package nitnc.kotanilab.trainer.gpg3100.wrapper;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.gpg3100.jnaNative.AdSamplingRequest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * ADSMPLREQ構造体のラッパです。
  * SamplingSettingクラスとして振舞えます。
@@ -16,7 +19,7 @@ public class SamplingConfig extends SamplingSetting {
      * @param entity 機器デフォルトのADSMPLREQ構造体です。
      */
     public SamplingConfig(AdSamplingRequest entity) {
-        super((int)entity.chCount, entity.samplingNumber, entity.samplingFrequency);
+        super(new ArrayList<>(), entity.samplingNumber, entity.samplingFrequency);
         this.entity = entity;
     }
 
@@ -25,12 +28,12 @@ public class SamplingConfig extends SamplingSetting {
     }
 
     @Override
-    public void setChCount(int chCount) {
-        entity.chCount = chCount;
-        for (int i = 0; i < chCount; i++) {
-            entity.samplingChRequests[i].chNumber = i + 1;
+    public void setChannelList(List<Integer> channelList) {
+        entity.chCount = channelList.size();
+        for (Integer channel : channelList) {
+            entity.samplingChRequests[channel - 1].chNumber = channel;
         }
-        super.setChCount(chCount);
+        super.setChannelList(channelList);
     }
 
     @Override
@@ -46,15 +49,15 @@ public class SamplingConfig extends SamplingSetting {
     }
 
     @Override
-    public void setAll(int chCount, int samplingNumber, double samplingFrequency) {
-        setChCount(chCount);
+    public void setAll(List<Integer> channelList, int samplingNumber, double samplingFrequency) {
+        setChannelList(channelList);
         setSamplingNumber(samplingNumber);
         setSamplingFrequency(samplingFrequency);
     }
 
     @Override
-    public void setAll(int chCount, double mSec, double samplingFrequency) {
-        setChCount(chCount);
+    public void setAll(List<Integer> channelList, double mSec, double samplingFrequency) {
+        setChannelList(channelList);
         setSamplingNumber(timeToNumber(mSec));
         setSamplingFrequency(samplingFrequency);
     }

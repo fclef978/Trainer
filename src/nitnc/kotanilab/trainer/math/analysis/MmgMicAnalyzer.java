@@ -10,37 +10,31 @@ import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;
 import nitnc.kotanilab.trainer.math.series.*;
-import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
 import java.util.Arrays;
 
-public class MmgAnalyzer extends Analyzer {
+public class MmgMicAnalyzer extends Analyzer {
 
-    private LineGraph waveGraph;
-    private Chart waveChart;
+    private LineGraph freqGraph;
+    private Chart freqChart;
     private Pane wavePane;
     private LineGraph spectrumGraph;
     private Chart spectrumChart;
     private Pane spectrumPane;
-    private LineGraph freqGraph;
-    private Chart freqChart;
+    private LineGraph waveGraph;
+    private Chart waveChart;
     private Pane freqPane;
-    private LineGraph rmsGraph;
-    private Chart rmsChart;
-    private Pane rmsPane;
     private RealSeries<Point> median;
     private RealSeries<Point> peek;
-    private RealSeries<Point> rms;
     private Fft fft;
     private int number;
     private boolean waveVisible = false;
     private boolean spectrumVisible = false;
     private boolean freqVisible = false;
-    private boolean rmsVisible = false;
 
-    public MmgAnalyzer(Pane masterPane) {
-        super(masterPane, "MMG");
+    public MmgMicAnalyzer(Pane masterPane) {
+        super(masterPane, "MMG(mic.)");
 
         freqGraph = createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0, 0.1), "Median", "Peek");
         freqChart = new Chart("Median and Peek Frequency", freqGraph);
@@ -54,17 +48,12 @@ public class MmgAnalyzer extends Analyzer {
         spectrumPane.getChildren().add(spectrumChart);
 
 
-        waveGraph = createWaveGraph(1, new Unit("Acceleration", "m/s/s"), 5, "Wave");
+        waveGraph = createWaveGraph(1, Unit.v(), 1, "Wave");
         waveChart = new Chart("Wave", waveGraph);
         wavePane = createWrapperPane(1);
         wavePane.getChildren().add(waveChart);
 
-        rmsGraph = createWaveGraph(10, Unit.v(), 0, 5, "RMS");
-        rmsChart = new Chart("RMS", rmsGraph);
-        rmsPane = createWrapperPane(1);
-        rmsPane.getChildren().add(rmsChart);
-
-        panes.addAll(Arrays.asList(wavePane, spectrumPane, freqPane, rmsPane));
+        panes.addAll(Arrays.asList(wavePane, spectrumPane, freqPane));
     }
 
     @Override
@@ -72,7 +61,6 @@ public class MmgAnalyzer extends Analyzer {
         waveVisible = visible[0];
         spectrumVisible = visible[1];
         freqVisible = visible[2];
-        rmsVisible = visible[3];
         return this;
     }
 
@@ -87,8 +75,8 @@ public class MmgAnalyzer extends Analyzer {
         );
         if (waveVisible) {
             waveGraph.getXAxis().setMax(waveXMax);
-            waveGraph.getYAxis().setMax(waveYMax);
-            waveGraph.getYAxis().setMin(-waveYMax);
+            waveGraph.getYAxis().setMax(0.5);
+            waveGraph.getYAxis().setMin(-0.5);
             waveChart.setGraph();
             masterPane.getChildren().addAll(wavePane);
         }
@@ -103,13 +91,9 @@ public class MmgAnalyzer extends Analyzer {
             freqChart.setGraph();
             masterPane.getChildren().addAll(freqPane);
         }
-        if (rmsVisible) {
-            masterPane.getChildren().addAll(rmsPane);
-        }
 
         median = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
         peek = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
-        rms = new ShiftedSeries<>(5.0, 0.0, Unit.sec(), Unit.v(), 10);
 
         number = n;
         fft = new OouraFft(n);
@@ -121,7 +105,6 @@ public class MmgAnalyzer extends Analyzer {
         clearVectorList(waveGraph);
         clearVectorList(spectrumGraph);
         clearVectorList(freqGraph);
-        clearVectorList(rmsGraph);
         super.stop();
         median.clear();
         peek.clear();
@@ -144,7 +127,7 @@ public class MmgAnalyzer extends Analyzer {
             Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
             Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
             // スペクトラムのdB化
-            Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::toLogY);
+            Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, 1.0), spectrum::toLogY);
             if (spectrumVisible) {
                 spectrumGraph.getVectorList("Spectrum").set(powerSpectrum.getXList(), powerSpectrum.getYList());
             }
@@ -157,14 +140,10 @@ public class MmgAnalyzer extends Analyzer {
                 freqGraph.getVectorList("Peek").set(peek.getXList(), peek.getYList());
             }
 
-            if (rmsVisible) {
-                Wave rmsWave = source.getWave(3.0);
-                double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
-                double rms = Math.sqrt(sqAve);
-                this.rms.add(new Point(rmsWave.getStartTime(), rms));
-                rmsGraph.getVectorList("RMS").set(this.rms.getXList(), this.rms.getYList());
-            }
-
+            Wave rmsWave = source.getWave(1.0);
+            double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
+            double rms = Math.sqrt(sqAve);
+            // Dbg.p("RMS=", rms);
 
             updatePreviousTime();
         }

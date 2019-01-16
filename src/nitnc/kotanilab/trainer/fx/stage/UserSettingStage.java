@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx;
+package nitnc.kotanilab.trainer.fx.stage;
 
 import javafx.scene.Node;
 import javafx.scene.Scene;

@@ -1,9 +1,13 @@
 package nitnc.kotanilab.trainer.fft.wrapper;
 
+import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.point.PointOfSpectrum;
 import nitnc.kotanilab.trainer.math.series.Spectrum;
 import nitnc.kotanilab.trainer.math.series.Wave;
 import nitnc.kotanilab.trainer.fft.jnaNative.OouraFftLibrary;
+import nitnc.kotanilab.trainer.util.Dbg;
+
+import java.util.Arrays;
 
 /**
  * 大浦版FFTライブラリのラッパクラスです。
@@ -20,6 +24,7 @@ public class OouraFft implements Fft {
 
     /**
      * 指定されたデータ長でFFTの準備を行います。
+     *
      * @param length データ長です。
      */
     public OouraFft(int length) {
@@ -35,7 +40,7 @@ public class OouraFft implements Fft {
     }
 
     @Override
-    public Complex[] cdft(Complex[] signal) {
+    public Complex[] dft(Complex[] signal) {
         if (signal.length < length)
             throw new IllegalArgumentException("信号の長さが足りません " + signal.length + " 必要数 " + length);
         double[] input = new double[n];
@@ -49,15 +54,14 @@ public class OouraFft implements Fft {
         instance.cdft(length * 2, -1, input, work, tri);
 
         for (int i = 0; i < length; i++) {
-            output[i].re = input[2 * i];
-            output[i].im = input[2 * i + 1];
+            output[i] = new Complex(input[2 * i], input[2 * i + 1]);
         }
 
         return output;
     }
 
     @Override
-    public Spectrum rdft(Wave wave) {
+    public Spectrum dft(Wave wave) {
         if (wave.size() < length) throw new IllegalArgumentException("信号の長さが足りません");
         double[] input = new double[n];
         Spectrum output = new Spectrum(wave, length);
@@ -71,7 +75,7 @@ public class OouraFft implements Fft {
         instance.cdft(length * 2, -1, input, work, tri);
 
         double maxFrequency = wave.getSamplingFrequency() / 2.0;
-        for (int i = 1; i < spectrumLength + 1; i++) {
+        for (int i = 0; i < spectrumLength + 1; i++) {
             output.add(
                     new PointOfSpectrum(
                             i * maxFrequency / (spectrumLength),
@@ -84,16 +88,71 @@ public class OouraFft implements Fft {
     }
 
     @Override
+    public Complex[] idft(Complex[] signal) {
+        if (signal.length != n / 2)
+            throw new IllegalArgumentException("信号の長さが不正です " + signal.length + " 必要数 " + length);
+        double[] input = new double[n];
+        Complex[] output = new Complex[length];
+
+        for (int i = 0; i < length; i++) {
+            input[2 * i] = signal[i].re;
+            input[2 * i + 1] = signal[i].im;
+        }
+
+        instance.cdft(length * 2, 1, input, work, tri);
+
+        for (int i = 0; i < length; i++) {
+            output[i] = new Complex(input[2 * i] / 2, input[2 * i + 1] / 2);
+        }
+
+        return output;
+    }
+
+    @Override
     public int getLength() {
-        return n;
+        return length;
     }
 
     /**
      * 2の累乗であるか確認します。
+     *
      * @param x 対象
      * @return 2の累乗だったらtrue
      */
     private static boolean isPowerOf2(int x) {
         return (x & (x - 1)) == 0;
     }
+
+    public static double sin(double fs, double f, double t) {
+        return Math.sin(2.0 * Math.PI * f / fs * t);
+    }
+
+    public static double sqr(double fs, double f, double t) {
+        return Math.sin(2.0 * Math.PI * f / fs * t) >= 0 ? 1.0 : -1.0;
+    }
+
+    static int l = 512;
+    static double f = 12 * Math.random();
+
+    public static double func(double t) {
+        return sqr(l, f, t) + sqr(l, 2 * f, t) / 2.0 + sqr(l, 3 * f, t) / 3.0;
+    }
+
+    public static void main(String... args) {
+        Double[] a = new Double[l];
+        for (int i = 0; i < a.length; i++) {
+            a[i] = func(i);
+        }
+        Fft fft = new OouraFft(l);
+        Dbg.start();
+        int i = ACF.wienerKhinchin(fft, Arrays.asList(a));
+        Dbg.stop();
+        Dbg.p(f, (double) l / i);
+
+        Dbg.start();
+        i = ACF.acf(Arrays.asList(a));
+        Dbg.stop();
+        Dbg.p(f, (double) l / i);
+    }
+
 }

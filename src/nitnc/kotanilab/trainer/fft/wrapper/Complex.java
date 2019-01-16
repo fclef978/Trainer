@@ -61,6 +61,10 @@ public class Complex implements Cloneable, Comparable<Complex> {
         return Math.hypot(re, im);
     }
 
+    public double getPower() {
+        return Math.pow(getAbs(), 2.0);
+    }
+
     public double getRe() {
         return re;
     }

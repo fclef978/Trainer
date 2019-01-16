@@ -1,5 +1,7 @@
 package nitnc.kotanilab.trainer.util;
 
+import java.util.Arrays;
+
 public class Dbg {
     private static long startTime = 0;
 
@@ -16,18 +18,27 @@ public class Dbg {
     }
 
     public static void p(Object o) {
-        System.out.println(o);
+        System.out.println(o.toString());
     }
 
-    public static void p(Object... os){
+    public static void p(double[] o) {
+        System.out.println(Arrays.toString(o));
+    }
+
+    public static void p(Object... os) {
+        p(" ", os);
+    }
+
+    public static void p(String separator, Object... os) {
         StringBuilder str = new StringBuilder();
-        for (Object o : os) {
-            str.append(o).append(" ");
+        for (int i = 0; i < os.length; i++) {
+            if (i == os.length - 1) str.append(os[i]);
+            else str.append(os[i]).append(separator);
         }
         p(str);
     }
 
     public static void nc(Object o) {
-        if(o == null) throw new NullPointerException("ぬるぽ！！！！！！！！！！");
+        if (o == null) throw new NullPointerException("ぬるぽ！！！！！！！！！！");
     }
 }
