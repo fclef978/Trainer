@@ -4,19 +4,15 @@ import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.GraphContext;
 import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.chart.LogAxis;
-import nitnc.kotanilab.trainer.gl.pane.HEnumPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
-import nitnc.kotanilab.trainer.gl.shape.Text;
-import nitnc.kotanilab.trainer.gl.util.Vector;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
 import nitnc.kotanilab.trainer.math.series.Unit;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class Analyzer {
     protected Pane masterPane;
@@ -24,7 +20,7 @@ public abstract class Analyzer {
     protected List<Pane> panes = new ArrayList<>();
     protected String borderStyle;
     protected String title;
-    protected Map<String, GraphContext> graphContextMap = new HashMap<>();
+    protected Map<String, GraphContext> graphContextMap = new LinkedHashMap<>();
 
     protected Analyzer(Pane masterPane, String title) {
         this.masterPane = masterPane;
@@ -37,14 +33,16 @@ public abstract class Analyzer {
         borderStyle = "border:" + colorCode + ";";
     }
 
-    public void start(double fs, int n, double waveXMax, double waveYMax) {
-    }
+    public abstract void start(double fs, int n);
 
     public void stop() {
         masterPane.getChildren().removeAll(panes);
     }
 
-    public abstract Analyzer setVisible(boolean... visible);
+    public Analyzer setVisible(Map<String, Boolean> visible) {
+        visible.keySet().forEach(key -> graphContextMap.get(key).setVisible(visible.get(key)));
+        return this;
+    }
 
     public abstract void execute();
 
@@ -52,12 +50,20 @@ public abstract class Analyzer {
         this.source = source;
     }
 
-    protected Pane createWrapperPane(int size) {
+    public Pane createWrapperPane(int size) {
         int width = 25 * size;
-        Pane ret =  new StackPane("height:100%;margin-x:0;margin-y:0;");
+        Pane ret = new StackPane("height:100%;margin-x:0;margin-y:0;");
         ret.getStyle().put("width", width + "%");
         ret.getStyle().put(borderStyle);
         return ret;
+    }
+
+    protected List<Pane> getGraphWrappers() {
+        return graphContextMap.values().stream().map(GraphContext::getWrapper).collect(Collectors.toList());
+    }
+
+    protected List<LineGraph> getGraphs() {
+        return graphContextMap.values().stream().map(GraphContext::getGraph).collect(Collectors.toList());
     }
 
     protected void clearVectorList(LineGraph lineGraph) {
@@ -69,9 +75,11 @@ public abstract class Analyzer {
     }
 
     protected double previousX = 0.0;
+
     protected boolean isPassedInterval(double interval) {
         return getTime() - previousX > interval;
     }
+
     protected void updatePreviousTime() {
         previousX = getTime();
     }
@@ -101,13 +109,13 @@ public abstract class Analyzer {
     protected static LineGraph createWaveGraph(double xMax, Unit yUnit, double yMin, double yMax, String... lines) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         xAxis.setReverse(true);
-        return createGraph(xAxis, new Axis(yUnit.toString(), yMin, yMax, (yMax - yMin) / 5.0), lines);
+        return createGraph(xAxis, new Axis(yUnit.toString(), yMin, yMax, (yMax - yMin) / 10.0), lines);
     }
 
     protected static LineGraph createWaveGraph(double xMax, Unit yUnit, double yRange, String... lines) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         xAxis.setReverse(true);
-        return createGraph(xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 5.0), lines);
+        return createGraph(xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 10.0), lines);
     }
 
     protected static LineGraph createTimeSeriesGraph(double xMax, Axis yAxis, String... lines) {

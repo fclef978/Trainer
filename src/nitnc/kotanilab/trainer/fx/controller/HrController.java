@@ -13,9 +13,6 @@ import nitnc.kotanilab.trainer.fx.setting.Saver;
 
 public class HrController extends Controller<HrAnalyzer> {
     public static final double OPT_MET = 0.7;
-
-    private DoubleField thLowField = new DoubleField("-1.0");
-    private DoubleField thHighField = new DoubleField("1.0");
     private HRField hr = new HRField();
     private HrSetting setting;
 
@@ -23,19 +20,11 @@ public class HrController extends Controller<HrAnalyzer> {
         super("HR", new HrAnalyzer(masterPane), userSetting);
         analyzer.setAge(userSetting.getAge());
         setting = (HrSetting) Saver.load("HrSetting");
-        thLowField.setStyle("-fx-max-width: 50px;");
-        thLowField.setOnAction(event -> analyzer.setThresholdLower(thLowField.getValueAsDouble()));
-        thHighField.setStyle("-fx-max-width: 50px;");
-        thHighField.setOnAction(event -> analyzer.setThresholdHigher(thHighField.getValueAsDouble()));
-        operator.getChildren().addAll(new Label("Low"), thLowField, new Label("High"), thHighField);
-        setVisible("Wave", "HR", "Debug");
+        setVisible("Wave", "HR");
         if (setting != null) {
             channel.setValueAsInt(setting.getChannel());
-            thLowField.setText(String.valueOf(setting.getThLow()));
-            thHighField.setText(String.valueOf(setting.getThHigh()));
             visible.get("Wave").setSelected(setting.getWave());
             visible.get("HR").setSelected(setting.getHr());
-            visible.get("Debug").setSelected(setting.getDebug());
         } else {
             setting = new HrSetting();
         }
@@ -45,19 +34,14 @@ public class HrController extends Controller<HrAnalyzer> {
 
     public void start(double fs) {
         super.start(fs);
-        analyzer.setThresholdLower(thLowField.getValueAsDouble());
-        analyzer.setThresholdHigher(thHighField.getValueAsDouble());
-        analyzer.start(fs, 0, 2, 2.0);
+        analyzer.start(fs, 0);
     }
 
     public void stop() {
         analyzer.stop();
         setting.setChannel(channel.getValueAsInt());
-        setting.setThHigh(thHighField.getValueAsDouble());
-        setting.setThLow(thLowField.getValueAsDouble());
         setting.setWave(visible.get("Wave").isSelected());
         setting.setHr(visible.get("HR").isSelected());
-        setting.setDebug(visible.get("Debug").isSelected());
         Saver.save("HrSetting", setting);
     }
 

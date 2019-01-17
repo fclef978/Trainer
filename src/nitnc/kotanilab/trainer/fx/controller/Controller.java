@@ -11,6 +11,7 @@ import nitnc.kotanilab.trainer.math.analysis.Analyzer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 
 public abstract class Controller<T extends Analyzer> {
     protected T analyzer;
@@ -39,9 +40,7 @@ public abstract class Controller<T extends Analyzer> {
     }
 
     public void start(double fs) {
-        boolean[] tmp = new boolean[this.visible.size()];
-        int[] i = {0};
-        this.visible.values().stream().map(CheckBox::isSelected).forEach(bool -> tmp[i[0]++] = bool);
+        Map<String, Boolean> tmp = visible.keySet().stream().collect(Collectors.toMap(key -> key, key -> visible.get(key).isSelected()));
         analyzer.setVisible(tmp);
     }
 

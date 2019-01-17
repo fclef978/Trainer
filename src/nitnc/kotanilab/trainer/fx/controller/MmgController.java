@@ -9,12 +9,18 @@ import nitnc.kotanilab.trainer.math.analysis.MmgAnalyzer;
 import nitnc.kotanilab.trainer.fx.setting.Saver;
 
 public class MmgController extends Controller<MmgAnalyzer> {
-    private PositiveIntField samplingNumber = new PositiveIntField("256");
+    private PositiveIntField samplingNumber = new PositiveIntField(256);
     private MgSetting setting;
+    private String settingName;
 
     public MmgController(Pane masterPane, UserSetting userSetting) {
-        super("MMG", new MmgAnalyzer(masterPane), userSetting);
-        setting = (MgSetting) Saver.load("MgSetting");
+        this(userSetting, new MmgAnalyzer(masterPane), "MMG", "MmgSetting");
+    }
+
+    protected MmgController(UserSetting userSetting, MmgAnalyzer analyzer, String name, String settingName) {
+        super(name, analyzer, userSetting);
+        this.settingName = settingName;
+        setting = (MgSetting) Saver.load(settingName);
         Label label = new Label("Sampling Number");
         operator.getChildren().addAll(label, samplingNumber);
         samplingNumber.setStyle("-fx-max-width: 50px");
@@ -34,7 +40,7 @@ public class MmgController extends Controller<MmgAnalyzer> {
     @Override
     public void start(double fs) {
         super.start(fs);
-        analyzer.start(fs, samplingNumber.getValueAsInt(), 1, 2.0);
+        analyzer.start(fs, samplingNumber.getValueAsInt());
     }
 
     @Override
@@ -46,6 +52,6 @@ public class MmgController extends Controller<MmgAnalyzer> {
         setting.setSpectrum(visible.get("Spectrum").isSelected());
         setting.setFrequency(visible.get("Frequency").isSelected());
         setting.setRms(visible.get("RMS").isSelected());
-        Saver.save("MgSetting", setting);
+        Saver.save(settingName, setting);
     }
 }

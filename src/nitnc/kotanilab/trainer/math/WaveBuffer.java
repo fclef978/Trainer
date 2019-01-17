@@ -115,6 +115,10 @@ public class WaveBuffer {
         this.callbacks.addAll(Arrays.asList(callbacks));
     }
 
+    public void addCallback(List<DoubleUnaryOperator> callbacks) {
+        this.callbacks.addAll(callbacks);
+    }
+
     private int decimationCounter = 0;
 
     /**

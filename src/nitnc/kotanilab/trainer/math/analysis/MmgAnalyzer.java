@@ -2,110 +2,83 @@ package nitnc.kotanilab.trainer.math.analysis;
 
 import nitnc.kotanilab.trainer.fft.wrapper.Fft;
 import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
-import nitnc.kotanilab.trainer.gl.chart.Axis;
-import nitnc.kotanilab.trainer.gl.chart.Chart;
-import nitnc.kotanilab.trainer.gl.chart.LineGraph;
-import nitnc.kotanilab.trainer.gl.chart.LogAxis;
+import nitnc.kotanilab.trainer.gl.chart.*;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;
 import nitnc.kotanilab.trainer.math.series.*;
-import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.DoubleUnaryOperator;
 
 public class MmgAnalyzer extends Analyzer {
 
-    private LineGraph waveGraph;
-    private Chart waveChart;
-    private Pane wavePane;
-    private LineGraph spectrumGraph;
-    private Chart spectrumChart;
-    private Pane spectrumPane;
-    private LineGraph freqGraph;
-    private Chart freqChart;
-    private Pane freqPane;
-    private LineGraph rmsGraph;
-    private Chart rmsChart;
-    private Pane rmsPane;
-    private RealSeries<Point> median;
-    private RealSeries<Point> peek;
-    private RealSeries<Point> rms;
-    private Fft fft;
-    private int number;
-    private boolean waveVisible = false;
-    private boolean spectrumVisible = false;
-    private boolean freqVisible = false;
-    private boolean rmsVisible = false;
+    protected RealSeries<Point> median;
+    protected RealSeries<Point> peek;
+    protected RealSeries<Point> rms;
+    protected Fft fft;
+    protected int number;
+    protected double waveXMax;
+    protected double waveYMax;
+    protected double waveYMin;
+    List<DoubleUnaryOperator> filters = new ArrayList<>();
 
     public MmgAnalyzer(Pane masterPane) {
-        super(masterPane, "MMG");
-
-        freqGraph = createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0, 0.1), "Median", "Peek");
-        freqChart = new Chart("Median and Peek Frequency", freqGraph);
-        freqPane = createWrapperPane(1);
-        freqPane.getChildren().add(freqChart);
-
-
-        spectrumGraph = createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -100, 0, 10), "Spectrum");
-        spectrumChart = new Chart("Spectrum", spectrumGraph);
-        spectrumPane = createWrapperPane(1);
-        spectrumPane.getChildren().add(spectrumChart);
-
-
-        waveGraph = createWaveGraph(1, new Unit("Acceleration", "m/s/s"), 5, "Wave");
-        waveChart = new Chart("Wave", waveGraph);
-        wavePane = createWrapperPane(1);
-        wavePane.getChildren().add(waveChart);
-
-        rmsGraph = createWaveGraph(10, Unit.v(), 0, 5, "RMS");
-        rmsChart = new Chart("RMS", rmsGraph);
-        rmsPane = createWrapperPane(1);
-        rmsPane.getChildren().add(rmsChart);
-
-        panes.addAll(Arrays.asList(wavePane, spectrumPane, freqPane, rmsPane));
-    }
-
-    @Override
-    public Analyzer setVisible(boolean... visible) {
-        waveVisible = visible[0];
-        spectrumVisible = visible[1];
-        freqVisible = visible[2];
-        rmsVisible = visible[3];
-        return this;
-    }
-
-    @Override
-    public void start(double fs, int n, double waveXMax, double waveYMax) {
-        super.start(fs, n, waveXMax, waveYMax);
-        source.setXMax(fs * n);
-        source.addCallback(
+        this(masterPane, "MMG",
+                createWaveGraph(1, new Unit("Acceleration", "m/s/s"), 5, "Wave"),
+                createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -100, 0, 10), "Spectrum"),
+                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0, 0.1), "Median", "Peek"),
+                createWaveGraph(10, Unit.v(), 0, 5, "RMS")
+        );
+        filters.addAll(Arrays.asList(
                 x -> (x - 2.5) / 1.0,
                 IirFilter.execute("bpf0.001-0.2.txt"),
                 IirFilter.execute("bef0.048-0.052.txt")
-        );
-        if (waveVisible) {
-            waveGraph.getXAxis().setMax(waveXMax);
-            waveGraph.getYAxis().setMax(waveYMax);
-            waveGraph.getYAxis().setMin(-waveYMax);
-            waveChart.setGraph();
-            masterPane.getChildren().addAll(wavePane);
-        }
-        if (spectrumVisible) {
-            spectrumGraph.getXAxis().setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
-            spectrumGraph.getXAxis().setMax(fs / 2.0);
-            spectrumChart.setGraph();
-            masterPane.getChildren().addAll(spectrumPane);
-        }
-        if (freqVisible) {
-            freqGraph.getYAxis().setMax(fs / 2.0);
-            freqChart.setGraph();
-            masterPane.getChildren().addAll(freqPane);
-        }
-        if (rmsVisible) {
-            masterPane.getChildren().addAll(rmsPane);
-        }
+        ));
+    }
+
+    protected MmgAnalyzer(Pane masterPane, String name, LineGraph waveGraph, LineGraph spectrumGraph, LineGraph freqGraph, LineGraph rmsGraph) {
+        super(masterPane, name);
+
+        Chart waveChart = new Chart("Wave", waveGraph);
+        graphContextMap.put("Wave", new GraphContext(waveGraph, waveChart, createWrapperPane(1), false));
+
+        Chart spectrumChart = new Chart("Spectrum", spectrumGraph);
+        graphContextMap.put("Spectrum", new GraphContext(spectrumGraph, spectrumChart, createWrapperPane(1), false));
+
+        Chart freqChart = new Chart("Median and Peek Frequency", freqGraph);
+        graphContextMap.put("Frequency", new GraphContext(freqGraph, freqChart, createWrapperPane(1), false));
+
+        Chart rmsChart = new Chart("RMS", rmsGraph);
+        graphContextMap.put("RMS", new GraphContext(rmsGraph, rmsChart, createWrapperPane(1), false));
+
+        panes.addAll(getGraphWrappers());
+
+        waveXMax = 1.0;
+        waveYMax = 3.0;
+        waveYMin = -waveYMax;
+    }
+
+    @Override
+    public void start(double fs, int n) {
+        source.setXMax(fs * n);
+        source.addCallback(filters);
+        graphContextMap.get("Wave").setGraphSetter(graph -> {
+            graph.getXAxis().setMax(waveXMax);
+            graph.getYAxis().setMax(waveYMax);
+            graph.getYAxis().setMin(waveYMin);
+        });
+        graphContextMap.get("Spectrum").setGraphSetter(graph -> {
+            graph.getXAxis().setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
+            graph.getXAxis().setMax(fs / 2.0);
+        });
+        graphContextMap.get("Frequency").setGraphSetter(graph -> {
+            graph.getYAxis().setMax(fs / 2.0);
+        });
+        graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
 
         median = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
         peek = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
@@ -118,10 +91,7 @@ public class MmgAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
-        clearVectorList(waveGraph);
-        clearVectorList(spectrumGraph);
-        clearVectorList(freqGraph);
-        clearVectorList(rmsGraph);
+        getGraphs().forEach(this::clearVectorList);
         super.stop();
         median.clear();
         peek.clear();
@@ -129,11 +99,12 @@ public class MmgAnalyzer extends Analyzer {
 
     @Override
     public void execute() {
-        if (waveVisible) {
+        if (graphContextMap.get("Wave").isVisible()) {
             Wave tmpWave = source.getWave(1.0);
+            LineGraph waveGraph = graphContextMap.get("Wave").getGraph();
             Wave wave = tmpWave.stream().lastCutX(waveGraph.getXAxis().getRange()).zeroX(waveGraph.getXAxis().getMax())
                     .to(tmpWave::from);
-            waveGraph.getVectorList("Wave").set(wave.getXList(), wave.getYList()); // グラフ登録
+            graphContextMap.get("Wave").update("Wave", wave.getXList(), wave.getYList());
         }
         if (source.available(number) && isPassedInterval(1.0)) {
             Wave tmpWave = source.getWave(number);
@@ -145,25 +116,19 @@ public class MmgAnalyzer extends Analyzer {
             Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
             // スペクトラムのdB化
             Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::toLogY);
-            if (spectrumVisible) {
-                spectrumGraph.getVectorList("Spectrum").set(powerSpectrum.getXList(), powerSpectrum.getYList());
-            }
+            graphContextMap.get("Spectrum").update("Spectrum", powerSpectrum.getXList(), powerSpectrum.getYList());
 
             median.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX()));
             peek.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
-            if (freqVisible) {
-                freqGraph.getVectorList("Median").set(median.getXList(), median.getYList());
-                freqGraph.getVectorList("Peek").set(peek.getXList(), peek.getYList());
-            }
+            graphContextMap.get("Frequency").update("Median", median.getXList(), median.getYList());
+            graphContextMap.get("Frequency").update("Peek", peek.getXList(), peek.getYList());
 
-            if (rmsVisible) {
-                Wave rmsWave = source.getWave(3.0);
-                double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
-                double rms = Math.sqrt(sqAve);
-                this.rms.add(new Point(rmsWave.getStartTime(), rms));
-                rmsGraph.getVectorList("RMS").set(this.rms.getXList(), this.rms.getYList());
-            }
+            Wave rmsWave = source.getWave(3.0);
+            double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
+            double rms = Math.sqrt(sqAve);
+            this.rms.add(new Point(rmsWave.getStartTime(), rms));
+            graphContextMap.get("RMS").update("RMS", this.rms.getXList(), this.rms.getYList());
 
 
             updatePreviousTime();

@@ -8,7 +8,7 @@
    <boolean>true</boolean>
   </void>
   <void property="samplingNumber">
-   <int>512</int>
+   <int>1024</int>
   </void>
   <void property="spectrum">
    <boolean>true</boolean>
