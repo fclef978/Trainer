@@ -11,6 +11,8 @@ import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.series.*;
+import nitnc.kotanilab.trainer.util.CsvLogger;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -22,6 +24,7 @@ public class HrAnalyzer extends Analyzer {
     private DoubleConsumer hrEvent = value -> {
     };
     private int age = 20;
+    private CsvLogger logger;
 
     private ShiftedSeries<Point> heartRate = new ShiftedSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"), 60.0);
 
@@ -31,7 +34,7 @@ public class HrAnalyzer extends Analyzer {
         Chart waveChart = new Chart("Wave", waveGraph);
         graphContextMap.put("Wave", new GraphContext(waveGraph, waveChart, createWrapperPane(1), false));
 
-        LineGraph hrGraph = createTimeSeriesGraph(60, new Axis("HR", 50.0, 210.0, 20), "HR");
+        LineGraph hrGraph = createTimeSeriesGraph(60, new Axis("HR[bpm]", 50.0, 210.0, 20), "HR");
         Chart hrChart = new Chart("Heart Rate", hrGraph);
         graphContextMap.put("HR", new GraphContext(hrGraph, hrChart, createWrapperPane(1), false));
 
@@ -49,6 +52,7 @@ public class HrAnalyzer extends Analyzer {
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
         fft = new OouraFft(hrCalcLength);
+        logger = new CsvLogger("HR.csv");
         updatePreviousTime();
     }
 
@@ -58,6 +62,7 @@ public class HrAnalyzer extends Analyzer {
         getGraphs().forEach(this::clearVectorList);
         super.stop();
         heartRate.clear();
+        logger.close();
     }
 
     @Override
@@ -75,7 +80,9 @@ public class HrAnalyzer extends Analyzer {
 
             if (graphContextMap.get("HR").isVisible()) {
                 double hr = diff.getSamplingFrequency() / ACF.wienerKhinchin(fft, diff.getYList()) * 60.0;
-                heartRate.add(new Point(diff.getStartTime(), hr));
+                Point hrPoint = new Point(diff.getStartTime(), hr);
+                logger.print(hrPoint);
+                heartRate.add(hrPoint);
                 LineGraph hrGraph = graphContextMap.get("HR").getGraph();
                 graphContextMap.get("HR").update("HR", heartRate.getXList(), heartRate.getYList());
                 hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
