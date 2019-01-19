@@ -6,15 +6,15 @@ import nitnc.kotanilab.trainer.gl.util.Position;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HEnumPane extends Pane {
+public class VPane extends Pane {
 
     private int count = 0;
     private List<Position> list = new ArrayList<>();
 
-    public HEnumPane() {
+    public VPane() {
     }
 
-    public HEnumPane(String style) {
+    public VPane(String style) {
         super(style);
     }
 
@@ -22,22 +22,19 @@ public class HEnumPane extends Pane {
     public void drawingProcess() {
         count = 0;
         list.clear();
-        double totalWidth = children.stream().mapToDouble(Node::getWidth).sum();
-        final double[] previousWidth = {0};
+        double totalHeight = children.stream().mapToDouble(Node::getHeight).sum();
+        final double[] previousHeight = {0};
         children.each(child -> {
-            double center = child.getWidth() / 2.0;
-            double left = previousWidth[0] + center;
-            double right = totalWidth - previousWidth[0] - center;
+            double center = child.getHeight() / 2.0;
+            double bottom = previousHeight[0] + center;
+            double top = totalHeight - previousHeight[0] - center;
             Position curr = new Position(getStyle());
-            curr.setXOffset(left - right);
+            curr.setYOffset(top - bottom);
             Position position = new Position(parent.getPosition(), curr);
             list.add(position);
-            previousWidth[0] += center * 2;
+            previousHeight[0] += center * 2;
         });
         children.each(Node::draw);
-
-        // this.position = new Position(parent.getPosition(), getStyle());
-
     }
 
     @Override

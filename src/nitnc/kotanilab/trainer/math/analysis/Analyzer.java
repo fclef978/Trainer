@@ -4,6 +4,7 @@ import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.GraphContext;
 import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.chart.LogAxis;
+import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
@@ -115,7 +116,7 @@ public abstract class Analyzer {
     protected static LineGraph createWaveGraph(double xMax, Unit yUnit, double yRange, String... lines) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         xAxis.setReverse(true);
-        return createGraph(xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 10.0), lines);
+        return createGraph(xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 5.0), lines);
     }
 
     protected static LineGraph createTimeSeriesGraph(double xMax, Axis yAxis, String... lines) {

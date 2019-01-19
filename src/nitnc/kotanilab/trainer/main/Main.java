@@ -7,8 +7,9 @@ import javafx.stage.Stage;
 import nitnc.kotanilab.trainer.fx.controller.MasterController;
 import nitnc.kotanilab.trainer.fx.stage.UserSettingStage;
 import nitnc.kotanilab.trainer.gl.node.Window;
-import nitnc.kotanilab.trainer.gl.pane.HEnumPane;
+import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.gl.pane.VPane;
 
 /**
  * メイン
@@ -35,7 +36,7 @@ public class Main extends Application {
 
         System.out.println("ウィンドウセットアップ");
         window = new Window("Chart", 1600, 500);
-        masterPane = new HEnumPane("size:100% 100%;margin:0 0;");
+        masterPane = new HPane("size:100% 100%;margin:0 0;");
         window.getChildren().add(masterPane);
 
 
@@ -66,9 +67,9 @@ public class Main extends Application {
 
         masterController.setStopEvent((o) -> {
         });
-        Scene scene = new Scene(root, 720, 480);
+        Scene scene = new Scene(root, 720, 300);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Chart");
+        primaryStage.setTitle("Panel");
 
     }
 

@@ -1,6 +1,8 @@
 package nitnc.kotanilab.trainer.fx.controller;
 
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import nitnc.kotanilab.trainer.fx.setting.MgSetting;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
@@ -11,6 +13,7 @@ import nitnc.kotanilab.trainer.fx.setting.Saver;
 public class MmgController extends Controller<MmgAnalyzer> {
     private PositiveIntField samplingNumber = new PositiveIntField(256);
     private MgSetting setting;
+    protected MmgField filed;
     private String settingName;
 
     public MmgController(Pane masterPane, UserSetting userSetting) {
@@ -35,6 +38,9 @@ public class MmgController extends Controller<MmgAnalyzer> {
         } else {
             setting = new MgSetting();
         }
+        filed = new MmgField();
+        analyzer.setMfCallback(mf -> filed.setMf(mf));
+        indicator.getChildren().add(filed.getWrapper());
     }
 
     @Override
@@ -53,5 +59,23 @@ public class MmgController extends Controller<MmgAnalyzer> {
         setting.setFrequency(visible.get("Frequency").isSelected());
         setting.setRms(visible.get("RMS").isSelected());
         Saver.save(settingName, setting);
+    }
+
+    public class MmgField {
+        private HBox wrapper = new HBox(3);
+        private Label label = new Label("中央周波数");
+        private Text mf = new Text("0");
+
+        public MmgField() {
+            wrapper.getChildren().addAll(label, mf);
+        }
+
+        public HBox getWrapper() {
+            return wrapper;
+        }
+
+        public void setMf(double mf) {
+            this.mf.setText(String.format("%.1f", mf));
+        }
     }
 }

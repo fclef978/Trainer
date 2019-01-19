@@ -43,6 +43,10 @@ public class Wave extends Signal<Double, Point> implements Regenerable<Wave, Dou
         super(initCapacity, max, min, Unit.sec(), yUnit, samplingFrequency, startTime);
     }
 
+    public Wave(Spectrum spectrum, int size) {
+        this(size, spectrum.getYMax().getAbs(), spectrum.getYMin().getAbs(), spectrum.getXUnit(), spectrum.getSamplingFrequency(), spectrum.getStartTime());
+    }
+
     public Wave from(SeriesStream<? extends Double> stream) {
         Wave wave = new Wave(stream.count(), yMax, yMin, yUnit, samplingFrequency, startTime);
         stream.each((x, y) -> wave.add(new Point(x, y)));

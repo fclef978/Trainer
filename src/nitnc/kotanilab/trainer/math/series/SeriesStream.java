@@ -164,6 +164,11 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
+    public SeriesStream<Y> cutUp(int i) {
+        end = i;
+        return this;
+    }
+
     public SeriesStream<Y> cut(double l, double b) {
         return this.cutDown(l).cutUp(b);
     }

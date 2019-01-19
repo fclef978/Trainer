@@ -7,11 +7,15 @@ import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;
 import nitnc.kotanilab.trainer.math.series.*;
+import nitnc.kotanilab.trainer.util.CsvLogger;
+import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
 
 public class MmgAnalyzer extends Analyzer {
@@ -24,7 +28,9 @@ public class MmgAnalyzer extends Analyzer {
     protected double waveXMax;
     protected double waveYMax;
     protected double waveYMin;
+    private CsvLogger logger;
     List<DoubleUnaryOperator> filters = new ArrayList<>();
+    protected DoubleConsumer mfCallback = v -> {};
 
     public MmgAnalyzer(Pane masterPane) {
         this(masterPane, "MMG",
@@ -87,6 +93,7 @@ public class MmgAnalyzer extends Analyzer {
         number = n;
         fft = new OouraFft(n);
         updatePreviousTime();
+        logger = new CsvLogger(title + ".csv");
     }
 
     @Override
@@ -95,6 +102,7 @@ public class MmgAnalyzer extends Analyzer {
         super.stop();
         median.clear();
         peek.clear();
+        logger.close();
     }
 
     @Override
@@ -108,8 +116,7 @@ public class MmgAnalyzer extends Analyzer {
         }
         if (source.available(number) && isPassedInterval(1.0)) {
             Wave tmpWave = source.getWave(number);
-            Wave wave = tmpWave.stream()
-                    .to(tmpWave::from);
+            Wave wave = tmpWave.stream().to(tmpWave::from);
             // fft処理
             tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency())/*.replaceYByIndex(Wave::hanning, (a, b) -> a * b)*/.to(wave::from);
             Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
@@ -118,7 +125,10 @@ public class MmgAnalyzer extends Analyzer {
             Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::toLogY);
             graphContextMap.get("Spectrum").update("Spectrum", powerSpectrum.getXList(), powerSpectrum.getYList());
 
-            median.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX()));
+            Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
+            logger.print(medianPoint);
+            mfCallback.accept(medianPoint.getY());
+            median.add(medianPoint);
             peek.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
             graphContextMap.get("Frequency").update("Median", median.getXList(), median.getYList());
@@ -135,4 +145,7 @@ public class MmgAnalyzer extends Analyzer {
         }
     }
 
+    public void setMfCallback(DoubleConsumer mfCallback) {
+        this.mfCallback = mfCallback;
+    }
 }

@@ -36,6 +36,24 @@ public class FunctionGenerator {
     }
 
     /**
+     * 任意の周波数、振幅、切片で時間[s]を引数とするサイン関数オブジェクトを生成します。
+     *
+     * @param freq 周波数
+     * @param amp  振幅
+     * @param bias 切片
+     * @return サイン波
+     */
+    public static UnaryOperator<Double> sin(double amp, double bias, double... freq) {
+        return t -> {
+            double ret = 0.0;
+            for (double f : freq) {
+                ret += amp * Math.sin(2.0 * Math.PI * f * t) + bias;
+            }
+            return ret;
+        };
+    }
+
+    /**
      * 任意の周波数、振幅、切片で時間[s]を引数とする矩形波オブジェクトを生成します。
      *
      * @param freq 周波数

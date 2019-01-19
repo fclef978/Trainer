@@ -26,10 +26,8 @@ public class Point extends AbstractPoint<Double, Double>{
 
     @Override
     public String toString() {
-        return "Point{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
+        return "x=" + x +
+                ", y=" + y;
     }
 
     @Override

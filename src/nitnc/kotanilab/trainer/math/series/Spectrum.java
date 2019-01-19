@@ -25,8 +25,14 @@ public class Spectrum extends Signal<Complex,ComplexPoint> {
         return ret;
     }
 
+    public Spectrum from(SeriesStream<? extends Complex> stream) {
+        Spectrum wave = new Spectrum(yMax, yMin, xUnit, yUnit, stream.count(), samplingFrequency, startTime);
+        stream.each((x, y) -> wave.add(new ComplexPoint(x, y)));
+        return wave;
+    }
+
     public Signal<Double, Point> getPowerSpectrum() {
-        List<Point> tmp = stream().toPointList((x, y) -> new Point(x, y.getAbs()));
+        List<Point> tmp = stream().cutUp(this.size() / 2 + 1).toPointList((x, y) -> new Point(x, y.getPower()));
         return new Signal<>(tmp, yMax.getAbs(), yMin.getAbs(), xUnit, yUnit, samplingFrequency, startTime);
     }
 

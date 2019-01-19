@@ -1,6 +1,6 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
-import nitnc.kotanilab.trainer.gl.pane.HEnumPane;
+import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.*;
@@ -24,7 +24,7 @@ public final class Chart extends StackPane {
 
     private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:#FFFFFF;");
     private Pane graphArea = new StackPane("size:100% 90%;margin:0 0;border:#FFFFFF;");
-    private Pane legendArea = new HEnumPane("size:100% 5%;margin:0 -95%;border:#FFFFFF;");
+    private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:#FFFFFF;");
     private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:#FFFFFF;");
     private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
     private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");

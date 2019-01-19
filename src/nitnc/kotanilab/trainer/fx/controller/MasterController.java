@@ -60,7 +60,8 @@ public class MasterController {
                 () -> new VirtualADC(5, -5,
                         FunctionGenerator.csv("source.csv"),
                         FunctionGenerator.white(0 , 2, 2.0, 2.5),
-                        FunctionGenerator.sin(10, 2.0, 2.5)
+                        FunctionGenerator.squa(60, 1.0, 0.0)
+                        //FunctionGenerator.sin(2.0, 2.5, 10, 50, 100, 300)
                 ),
                 () -> new GPG3100(1)
         );
