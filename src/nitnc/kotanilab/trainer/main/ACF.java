@@ -12,10 +12,10 @@ import java.util.List;
 
 public class ACF {
 
-    public static int wienerKhinchin(Fft fft, List<Double> x) {
+    public static double[] wienerKhinchin(Fft fft, List<Double> x) {
         int size = fft.getLength();
         Complex[] a = new Complex[size], b, c = new Complex[size], d;
-        Double[] f = new Double[size / 2];
+        double[] f = new double[size / 2];
         for (int i = 0; i < size; i++) {
             a[i] = new Complex(x.get(i), 0);
         }
@@ -27,7 +27,7 @@ public class ACF {
         for (int i = 0; i < f.length; i++) {
             f[i] = d[i].getRe();
         }
-        return pickPeek(Arrays.asList(f));
+        return f;
     }
 
     public static List<Double> acf(List<Double> a) {
@@ -58,13 +58,13 @@ public class ACF {
         */
     }
 
-    public static int pickPeek(List<Double> a) {
+    public static int pickPeekIndex(double[] a) {
         List<Integer> index = new ArrayList<>();
         List<Double> value = new ArrayList<>();
-        for (int i = 1; i < a.size() - 1; i++) {
-            if (a.get(i) > a.get(i - 1) && a.get(i) > a.get(i + 1)) {
+        for (int i = 1; i < a.length - 1; i++) {
+            if (a[i] > a[i - 1] && a[i] > a[i + 1]) {
                 index.add(i);
-                value.add(a.get(i));
+                value.add(a[i]);
             }
         }
         if (value.size() > 0) {

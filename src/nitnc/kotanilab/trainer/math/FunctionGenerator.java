@@ -46,10 +46,10 @@ public class FunctionGenerator {
     public static UnaryOperator<Double> sin(double amp, double bias, double... freq) {
         return t -> {
             double ret = 0.0;
-            for (double f : freq) {
-                ret += amp * Math.sin(2.0 * Math.PI * f * t) + bias;
+            for (int i = 0; i < freq.length; i++) {
+                ret += amp * Math.sin(2.0 * Math.PI * freq[i] * t) / (i + 1);
             }
-            return ret;
+            return ret + bias;
         };
     }
 
@@ -86,6 +86,20 @@ public class FunctionGenerator {
      */
     public static UnaryOperator<Double> rand(double amp, double bias) {
         return t -> amp * 2.0 * (Math.random() - 0.5) + bias;
+    }
+
+    public static UnaryOperator<Double> randSin(double freq, double amp, double bias) {
+        return t -> amp * (Math.sin(2.0 * Math.PI * freq * t) + (Math.random() - 0.5) / 5.0) + bias;
+    }
+
+    public static UnaryOperator<Double> noiseSin(double freq, double amp, double bias) {
+        return t -> {
+            double y = Math.sin(2.0 * Math.PI * freq * t);
+            for (int i = 0; i < 10; i++) {
+                y += Math.sin(2.0 * Math.PI * freq * (5 + i + Math.random()) * t);
+            }
+            return amp * y + bias;
+        };
     }
 
     /**

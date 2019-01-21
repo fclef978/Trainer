@@ -12,10 +12,8 @@ import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.CsvLogger;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.function.DoubleConsumer;
 
 public class HrAnalyzer extends Analyzer {
@@ -37,6 +35,16 @@ public class HrAnalyzer extends Analyzer {
         LineGraph hrGraph = createTimeSeriesGraph(60, new Axis("HR[bpm]", 50.0, 210.0, 20), "HR");
         Chart hrChart = new Chart("Heart Rate", hrGraph);
         graphContextMap.put("HR", new GraphContext(hrGraph, hrChart, createWrapperPane(1), false));
+
+        LineGraph acfGraph = createGraph(
+                new Axis("Value", 0.0, 5.0, 1.0),
+                new Axis("Value", -1.0, 1.0, 0.5),
+                "ACF"
+        );
+        addGraphContext("ACF", acfGraph);
+
+        LineGraph diffGraph = createWaveGraph(6, Unit.v(), -3, 3, "Diff");
+        addGraphContext("Diff", diffGraph);
 
         panes.addAll(getGraphWrappers());
     }
@@ -75,12 +83,25 @@ public class HrAnalyzer extends Analyzer {
         }
 
         if (source.available(hrCalcLength) && isPassedInterval(1.0)) {
-            Wave diff = source.getWave(hrCalcLength);
-            diff = diff.stream().to(diff::from);
+            Wave hrWave = source.getWave(hrCalcLength);
 
             if (graphContextMap.get("HR").isVisible()) {
-                double hr = diff.getSamplingFrequency() / ACF.wienerKhinchin(fft, diff.getYList()) * 60.0;
-                Point hrPoint = new Point(diff.getStartTime(), hr);
+                double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
+                graphContextMap.get("ACF").ifVisible(graph -> {
+                    double[] acfX = new double[acf.length];
+                    double[] acfY = new double[acf.length];
+                    for (int i = 0; i < acf.length; i++) {
+                        acfX[i] = i / hrWave.getSamplingFrequency();
+                        acfY[i] = acf[i] / acf[0];
+                    }
+                    graph.getVectorList("ACF").set(acfX, acfY);
+                });
+                graphContextMap.get("Diff").ifVisible(graph -> {
+                    Wave diffWave = hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10).to(hrWave::from);
+                    graph.getVectorList("Diff").set(diffWave.getXList(), diffWave.getYList());
+                });
+                double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0;
+                Point hrPoint = new Point(hrWave.getStartTime(), hr);
                 logger.print(hrPoint);
                 heartRate.add(hrPoint);
                 LineGraph hrGraph = graphContextMap.get("HR").getGraph();

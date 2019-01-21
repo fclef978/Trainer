@@ -20,11 +20,13 @@ public class HrController extends Controller<HrAnalyzer> {
         super("HR", new HrAnalyzer(masterPane), userSetting);
         analyzer.setAge(userSetting.getAge());
         setting = (HrSetting) Saver.load("HrSetting");
-        setVisible("Wave", "HR");
+        setVisible("Wave", "HR", "ACF", "Diff");
         if (setting != null) {
             channel.setValueAsInt(setting.getChannel());
             visible.get("Wave").setSelected(setting.getWave());
             visible.get("HR").setSelected(setting.getHr());
+            visible.get("ACF").setSelected(setting.getAcf());
+            visible.get("Diff").setSelected(setting.getDiff());
         } else {
             setting = new HrSetting();
         }
@@ -42,6 +44,8 @@ public class HrController extends Controller<HrAnalyzer> {
         setting.setChannel(channel.getValueAsInt());
         setting.setWave(visible.get("Wave").isSelected());
         setting.setHr(visible.get("HR").isSelected());
+        setting.setAcf(visible.get("ACF").isSelected());
+        setting.setDiff(visible.get("Diff").isSelected());
         Saver.save("HrSetting", setting);
     }
 

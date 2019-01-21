@@ -1,9 +1,6 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
-import nitnc.kotanilab.trainer.gl.chart.Axis;
-import nitnc.kotanilab.trainer.gl.chart.GraphContext;
-import nitnc.kotanilab.trainer.gl.chart.LineGraph;
-import nitnc.kotanilab.trainer.gl.chart.LogAxis;
+import nitnc.kotanilab.trainer.gl.chart.*;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
@@ -57,6 +54,11 @@ public abstract class Analyzer {
         ret.getStyle().put("width", width + "%");
         ret.getStyle().put(borderStyle);
         return ret;
+    }
+
+    public void addGraphContext(String title, LineGraph graph) {
+        Chart chart = new Chart(title, graph);
+        graphContextMap.put(title, new GraphContext(graph, chart, createWrapperPane(1), false));
     }
 
     protected List<Pane> getGraphWrappers() {

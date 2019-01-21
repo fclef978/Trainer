@@ -7,11 +7,10 @@ public class HrSetting implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int channel;
-    private double thLow;
-    private double thHigh;
     private boolean wave;
     private boolean hr;
-    private boolean debug;
+    private boolean acf;
+    private boolean diff;
 
     public HrSetting() {
     }
@@ -22,22 +21,6 @@ public class HrSetting implements Serializable {
 
     public void setChannel(int channel) {
         this.channel = channel;
-    }
-
-    public double getThLow() {
-        return thLow;
-    }
-
-    public void setThLow(double thLow) {
-        this.thLow = thLow;
-    }
-
-    public double getThHigh() {
-        return thHigh;
-    }
-
-    public void setThHigh(double thHigh) {
-        this.thHigh = thHigh;
     }
 
     public boolean getWave() {
@@ -56,11 +39,19 @@ public class HrSetting implements Serializable {
         this.hr = hr;
     }
 
-    public boolean getDebug() {
-        return debug;
+    public boolean getAcf() {
+        return acf;
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public void setAcf(boolean acf) {
+        this.acf = acf;
+    }
+
+    public boolean getDiff() {
+        return diff;
+    }
+
+    public void setDiff(boolean diff) {
+        this.diff = diff;
     }
 }

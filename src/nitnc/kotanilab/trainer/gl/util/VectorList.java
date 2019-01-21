@@ -51,11 +51,19 @@ public class VectorList {
      * @param xc xのコレクション
      * @param yc yのコレクション
      */
-    public void set(List<? extends Double> xc, Collection<? extends Double> yc) {
+    public void set(List<? extends Double> xc, List<? extends Double> yc) {
         synchronized (lock) {
             list.clear();
             Double[] x = xc.toArray(new Double[0]);
             Double[] y = yc.toArray(new Double[0]);
+            for (int i = 0; i < x.length; i++) {
+                this.add(x[i], i < y.length ? y[i] : 0);
+            }
+        }
+    }
+    public void set(double[] x, double[] y) {
+        synchronized (lock) {
+            list.clear();
             for (int i = 0; i < x.length; i++) {
                 this.add(x[i], i < y.length ? y[i] : 0);
             }

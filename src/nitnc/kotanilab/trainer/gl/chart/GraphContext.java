@@ -35,7 +35,13 @@ public class GraphContext {
         }
     }
 
-    public void update(String key, List<? extends Double> xc, Collection<? extends Double> yc) {
+    public void update(String key, List<? extends Double> xc, List<? extends Double> yc) {
+        if (visible) {
+            graph.getVectorList(key).set(xc, yc);
+        }
+    }
+
+    public void update(String key, double[] xc, double[] yc) {
         if (visible) {
             graph.getVectorList(key).set(xc, yc);
         }
