@@ -1,11 +1,10 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
 import nitnc.kotanilab.trainer.gl.chart.*;
-import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
-import nitnc.kotanilab.trainer.math.series.Unit;
+import nitnc.kotanilab.trainer.math.Unit;
 
 import java.awt.*;
 import java.util.*;
@@ -88,7 +87,7 @@ public abstract class Analyzer {
     }
 
     private static Color[] lineColors = {
-            Color.YELLOW, Color.MAGENTA, Color.CYAN, Color.GREEN, Color.RED, Color.BLUE
+            Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW.darker(), Color.MAGENTA.darker(), Color.CYAN.darker()
     };
 
     private static Color getLineColor(int i) {

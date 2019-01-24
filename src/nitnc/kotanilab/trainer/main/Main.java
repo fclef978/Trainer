@@ -35,7 +35,7 @@ public class Main extends Application {
         System.out.println("初期化開始");
 
         System.out.println("ウィンドウセットアップ");
-        window = new Window("Chart", 1600, 500);
+        window = new Window("Chart", 1600, 300);
         masterPane = new HPane("size:100% 100%;margin:0 0;");
         window.getChildren().add(masterPane);
 

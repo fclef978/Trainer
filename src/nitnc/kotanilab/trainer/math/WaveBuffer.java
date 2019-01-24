@@ -1,9 +1,7 @@
 package nitnc.kotanilab.trainer.math;
 
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
-import nitnc.kotanilab.trainer.math.series.Unit;
 import nitnc.kotanilab.trainer.math.series.Wave;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.*;
 import java.util.concurrent.BlockingDeque;

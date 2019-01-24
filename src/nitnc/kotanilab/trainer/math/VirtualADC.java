@@ -4,7 +4,6 @@ import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.ConverterSpec;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
-import nitnc.kotanilab.trainer.math.series.Unit;
 import nitnc.kotanilab.trainer.math.series.Wave;
 
 import java.util.ArrayList;

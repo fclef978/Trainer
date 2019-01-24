@@ -1,6 +1,7 @@
 package nitnc.kotanilab.trainer.math.series;
 
 import nitnc.kotanilab.trainer.fft.wrapper.Complex;
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.ComplexPoint;
 import nitnc.kotanilab.trainer.math.point.Point;
 

@@ -7,7 +7,7 @@ import nitnc.kotanilab.trainer.gl.util.VectorList;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.util.Dbg;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -62,7 +62,7 @@ public class LineGraph extends StackPane {
     public void putGideLine(String label, double value, Color color) {
         double y = yAxis.scale(value);
         Line gideLine = new Line(y, false, color, 1.0);
-        Text gideLineLabel = new Text(label, new Vector(-0.95, y), false);
+        Text gideLineLabel = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(-0.95, y), false);
         gideLineLabel.getStyle().put("align:left bottom;");
         gideLineMap.put(label, gideLine);
         gideLineLabelMap.put(label, gideLineLabel);

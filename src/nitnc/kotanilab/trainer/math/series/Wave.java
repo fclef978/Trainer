@@ -1,5 +1,6 @@
 package nitnc.kotanilab.trainer.math.series;
 
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
 
 import java.util.List;

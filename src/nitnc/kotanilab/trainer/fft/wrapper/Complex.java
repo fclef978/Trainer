@@ -21,6 +21,7 @@ public class Complex implements Cloneable, Comparable<Complex> {
 
     /**
      * コンストラクタです。
+     *
      * @param re 実部です。
      * @param im 虚部です。
      */
@@ -38,7 +39,7 @@ public class Complex implements Cloneable, Comparable<Complex> {
      * 実部虚部ともに0で作成します。
      */
     public Complex() {
-        this(0,0);
+        this(0, 0);
     }
 
     @Override
@@ -55,14 +56,20 @@ public class Complex implements Cloneable, Comparable<Complex> {
 
     /**
      * 絶対値を返します。
+     *
      * @return 絶対値です。
      */
     public double getAbs() {
         return Math.hypot(re, im);
     }
 
+    /**
+     * パワーを返します。
+     *
+     * @return パワーです。
+     */
     public double getPower() {
-        return Math.pow(getAbs(), 2.0);
+        return re * re + im * im;
     }
 
     public double getRe() {

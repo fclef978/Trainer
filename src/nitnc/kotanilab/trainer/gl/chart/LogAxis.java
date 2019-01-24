@@ -68,8 +68,8 @@ public class LogAxis extends Axis {
                 double num = j * Math.pow(10, i);
                 if (num > Math.pow(10, max) || num <= min) break;
                 double pos = scale(num);
-                if (j == 1) grids.add(new Line(pos, !vertical, Color.GRAY, 1.0));
-                else grids.add(new Line(pos, !vertical, Color.DARK_GRAY, 1.0));
+                if (j == 1) grids.add(new Line(pos, !vertical, Color.GRAY.darker(), 1.0));
+                else grids.add(new Line(pos, !vertical, Color.GRAY.brighter(), 1.0));
             }
         }
         return grids;

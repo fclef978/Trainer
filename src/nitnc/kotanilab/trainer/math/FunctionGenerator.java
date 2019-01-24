@@ -47,7 +47,7 @@ public class FunctionGenerator {
         return t -> {
             double ret = 0.0;
             for (int i = 0; i < freq.length; i++) {
-                ret += amp * Math.sin(2.0 * Math.PI * freq[i] * t) / (i + 1);
+                ret += amp * Math.sin(2.0 * Math.PI * freq[i] * t);
             }
             return ret + bias;
         };

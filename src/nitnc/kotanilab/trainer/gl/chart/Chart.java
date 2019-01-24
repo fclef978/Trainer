@@ -22,10 +22,10 @@ public final class Chart extends StackPane {
 
     private BackGround bg = new BackGround(Color.BLACK);
 
-    private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:#FFFFFF;");
-    private Pane graphArea = new StackPane("size:100% 90%;margin:0 0;border:#FFFFFF;");
-    private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:#FFFFFF;");
-    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:#FFFFFF;");
+    private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:#000000;");
+    private Pane graphArea = new StackPane("size:100% 90%;margin:0 0;border:#000000;");
+    private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:#000000;");
+    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:#000000;");
     private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
     private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");
 

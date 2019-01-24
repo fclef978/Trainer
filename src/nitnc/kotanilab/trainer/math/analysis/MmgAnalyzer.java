@@ -4,17 +4,16 @@ import nitnc.kotanilab.trainer.fft.wrapper.Fft;
 import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
 import nitnc.kotanilab.trainer.gl.chart.*;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;
 import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.CsvLogger;
-import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
 
@@ -35,7 +34,7 @@ public class MmgAnalyzer extends Analyzer {
     public MmgAnalyzer(Pane masterPane) {
         this(masterPane, "MMG",
                 createWaveGraph(1, new Unit("Acceleration", "m/s/s"), 5, "Wave"),
-                createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -100, 0, 10), "Spectrum"),
+                createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -200, 0, 25), "Spectrum"),
                 createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0, 0.1), "Median", "Peek"),
                 createWaveGraph(10, Unit.v(), 0, 5, "RMS")
         );
@@ -63,7 +62,7 @@ public class MmgAnalyzer extends Analyzer {
 
         panes.addAll(getGraphWrappers());
 
-        waveXMax = 1.0;
+        waveXMax = 0.1;
         waveYMax = 3.0;
         waveYMin = -waveYMax;
     }
@@ -74,6 +73,7 @@ public class MmgAnalyzer extends Analyzer {
         source.addCallback(filters);
         graphContextMap.get("Wave").setGraphSetter(graph -> {
             graph.getXAxis().setMax(waveXMax);
+            graph.getXAxis().setSize(waveXMax / 10);
             graph.getYAxis().setMax(waveYMax);
             graph.getYAxis().setMin(waveYMin);
         });
@@ -118,7 +118,7 @@ public class MmgAnalyzer extends Analyzer {
             Wave tmpWave = source.getWave(number);
             Wave wave = tmpWave.stream().to(tmpWave::from);
             // fft処理
-            tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency())/*.replaceYByIndex(Wave::hanning, (a, b) -> a * b)*/.to(wave::from);
+            tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency()).replaceYByIndex(Wave::hanning, (a, b) -> a * b).to(wave::from);
             Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
             Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
             // スペクトラムのdB化

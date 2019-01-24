@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.math.series;
+package nitnc.kotanilab.trainer.math;
 
 /**
  * 物理単位です。
@@ -6,9 +6,9 @@ package nitnc.kotanilab.trainer.math.series;
 public class Unit {
 
     private static final Unit none = new Unit("", "");
-    private static final Unit hz = new Unit("frequency", "Hz");
-    private static final Unit sec = new Unit("time", "sec");
-    private static final Unit v = new Unit("voltage", "V");
+    private static final Unit hz = new Unit("Frequency", "Hz");
+    private static final Unit sec = new Unit("Time", "sec.");
+    private static final Unit v = new Unit("Voltage", "V");
 
     public static Unit none() {
         return none;

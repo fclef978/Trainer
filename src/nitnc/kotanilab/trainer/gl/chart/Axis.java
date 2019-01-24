@@ -127,7 +127,11 @@ public class Axis {
         List<Line> grids = new ArrayList<>();
         for (double i = min + size; i < max; i += size) {
             double pos = scale(i);
-            grids.add(new Line(pos, !vertical, Color.GRAY, 1.0));
+            Color color;
+            double range = max - min;
+            if (i < range / 100 && i > -range / 100) color = Color.GRAY.darker();
+            else color = Color.GRAY.brighter();
+            grids.add(new Line(pos, !vertical, color, 1.0));
         }
         return grids;
     }
@@ -143,6 +147,6 @@ public class Axis {
     }
 
     protected Text createText(String str, Vector vector) {
-        return new Text(new Font("", Font.BOLD, 10), Color.WHITE, str, vector, vertical);
+        return new Text(new Font("", Font.PLAIN, 10), Color.BLACK, str, vector, vertical);
     }
 }

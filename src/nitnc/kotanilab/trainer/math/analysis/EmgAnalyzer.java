@@ -1,15 +1,9 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
-import nitnc.kotanilab.trainer.fft.wrapper.Fft;
-import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
 import nitnc.kotanilab.trainer.gl.chart.Axis;
-import nitnc.kotanilab.trainer.gl.chart.Chart;
-import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.chart.LogAxis;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
-import nitnc.kotanilab.trainer.math.point.Point;
-import nitnc.kotanilab.trainer.math.point.PointLogY;
-import nitnc.kotanilab.trainer.math.series.*;
+import nitnc.kotanilab.trainer.math.Unit;
 
 import java.util.Arrays;
 

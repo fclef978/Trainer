@@ -1,5 +1,6 @@
 package nitnc.kotanilab.trainer.gl.shape;
 
+import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import nitnc.kotanilab.trainer.gl.node.Child;
@@ -19,7 +20,7 @@ import java.util.function.ToDoubleFunction;
  */
 public class Text extends Child {
 
-    public static final Font DEFAULT_FONT = new Font("", Font.PLAIN, 14);
+    public static final Font DEFAULT_FONT = new Font("", Font.PLAIN, 11);
 
     protected Color color;
     protected TextRenderer tr;
@@ -31,7 +32,7 @@ public class Text extends Child {
         this.str = str;
         this.vector = vector;
         this.vertical = vertical;
-        this.color = Color.WHITE;
+        this.color = Color.decode(style.get("color").getValue());
         tr = new TextRenderer(DEFAULT_FONT, true, true);
     }
 
@@ -48,6 +49,11 @@ public class Text extends Child {
         int width = this.getWindowWidth();
         int height = this.getWindowHeight();
         Vector vector = scaleVector(this.vector);
+        //  アンチエイリアス
+        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+        gl.glEnable(GL.GL_BLEND);
+        gl.glEnable(GL.GL_LINE_SMOOTH);
+
         tr.beginRendering(width, height);
         tr.setColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1.0f);
         if (vertical) {
@@ -65,6 +71,8 @@ public class Text extends Child {
             tr.endRendering();
             tr.flush();
         }
+        gl.glDisable(GL.GL_BLEND);
+        gl.glDisable(GL.GL_LINE_SMOOTH);
     }
 
     protected void render(String str, Vector vector, int width, int height) {
@@ -83,7 +91,7 @@ public class Text extends Child {
 
     private double getShiftQuantity(String str, String align, boolean vertical) {
         if (vertical) {
-            Rectangle2D bounds = tr.getBounds(str + "|");
+            Rectangle2D bounds = tr.getBounds(str + "|qypjg");
             if (align == null || align.equals("center")) {
                 return -bounds.getCenterY();
             } else if (align.equals("top")) {

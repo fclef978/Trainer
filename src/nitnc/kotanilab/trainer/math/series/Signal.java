@@ -1,7 +1,7 @@
 package nitnc.kotanilab.trainer.math.series;
 
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.AbstractPoint;
-import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;
 
 import java.util.Collection;

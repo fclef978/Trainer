@@ -25,7 +25,7 @@ public class Style {
                 new Size("100% 100%", node),
                 new Align("center center", node),
                 new Border("none", node),
-                new Color("#FFFFFF", node)
+                new Color("#000000", node)
         );
         list.forEach(property -> property.registerToMap(map));
     }

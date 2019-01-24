@@ -9,6 +9,7 @@ import nitnc.kotanilab.trainer.gl.chart.GraphContext;
 import nitnc.kotanilab.trainer.gl.chart.LineGraph;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.main.ACF;
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.CsvLogger;
@@ -56,7 +57,7 @@ public class HrAnalyzer extends Analyzer {
         source.addCallback(IirFilter.execute("bpf0.0001-0.01.txt"));
         graphContextMap.get("HR").setGraphSetter(graph -> {
             graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED);
-            graph.putGideLine("Optimal", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN);
+            graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker());
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
         fft = new OouraFft(hrCalcLength);
@@ -107,7 +108,7 @@ public class HrAnalyzer extends Analyzer {
                 LineGraph hrGraph = graphContextMap.get("HR").getGraph();
                 graphContextMap.get("HR").update("HR", heartRate.getXList(), heartRate.getYList());
                 hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
-                hrGraph.setGideLine("Optimal", HrController.getMaxHR(age) * HrController.OPT_MET);
+                hrGraph.setGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET);
                 hrEvent.accept(hr);
             }
 

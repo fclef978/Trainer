@@ -3,10 +3,7 @@ package nitnc.kotanilab.trainer.gl.node;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.GLAutoDrawable;
-import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.Animator;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.BackGround;
@@ -22,7 +19,7 @@ public class Window extends StackPane implements GLEventListener {
 
     private GLWindow window;
     private Animator animator;
-    private BackGround bg = new BackGround(Color.BLACK);
+    private BackGround bg = new BackGround(Color.WHITE);
     private GLAutoDrawable drawable = null;
     private final Object lock = new Object();
 

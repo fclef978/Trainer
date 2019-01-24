@@ -10,7 +10,7 @@ import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
-import nitnc.kotanilab.trainer.math.series.Unit;
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.series.Wave;
 import nitnc.kotanilab.trainer.gpg3100.jnaNative.*;
 

@@ -1,11 +1,10 @@
 package nitnc.kotanilab.trainer.math.series;
 
+import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.AbstractPoint;
-import nitnc.kotanilab.trainer.math.point.Point;
 
 import java.util.Collection;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 /**
  * 二次元の系列データを表すインターフェースです。
