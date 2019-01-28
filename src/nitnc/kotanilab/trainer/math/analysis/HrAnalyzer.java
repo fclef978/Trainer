@@ -92,7 +92,7 @@ public class HrAnalyzer extends Analyzer {
                     double[] acfX = new double[acf.length];
                     double[] acfY = new double[acf.length];
                     for (int i = 0; i < acf.length; i++) {
-                        acfX[i] = i / hrWave.getSamplingFrequency();
+                        acfX[i] = hrWave.getSamplingFrequency() / i;
                         acfY[i] = acf[i] / acf[0];
                     }
                     graph.getVectorList("ACF").set(acfX, acfY);
