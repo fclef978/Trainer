@@ -57,9 +57,10 @@ public class HrController extends Controller<HrAnalyzer> {
         private HBox wrapper = new HBox(3);
         private Label label = new Label("心拍数");
         private Text hr = new Text("0");
+        private Label unit = new Label("bpm");
 
         public HRField() {
-            wrapper.getChildren().addAll(label, hr);
+            wrapper.getChildren().addAll(label, hr, unit);
         }
 
         public HBox getWrapper() {

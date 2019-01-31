@@ -7,17 +7,8 @@
   <void property="frequency">
    <boolean>true</boolean>
   </void>
-  <void property="rms">
-   <boolean>true</boolean>
-  </void>
   <void property="samplingNumber">
-   <int>1024</int>
-  </void>
-  <void property="spectrum">
-   <boolean>true</boolean>
-  </void>
-  <void property="wave">
-   <boolean>true</boolean>
+   <int>4096</int>
   </void>
  </object>
 </java>

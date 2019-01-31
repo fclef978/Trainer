@@ -39,7 +39,7 @@ public class MmgAnalyzer extends Analyzer {
                 createWaveGraph(10, Unit.v(), 0, 5, "RMS")
         );
         filters.addAll(Arrays.asList(
-                x -> (x - 2.5) / 1.0,
+                // x -> (x - 2.5) / 1.0,
                 IirFilter.execute("bpf0.001-0.2.txt"),
                 IirFilter.execute("bef0.048-0.052.txt")
         ));

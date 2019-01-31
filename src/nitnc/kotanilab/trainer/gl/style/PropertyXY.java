@@ -13,21 +13,17 @@ public class PropertyXY extends Property {
     protected Property x;
     protected Property y;
 
-    public PropertyXY(String name, String value, Node node, boolean isExtendable, Predicate<String> rule) {
-        super(name, value, node, false, isExtendable, rule);
+    public PropertyXY(String name, String value, Node node, boolean isExtendable, Predicate<String>... rules) {
+        super(name, value, node, false, isExtendable, rules);
         x = new Property(name + "-x", "", node, false, isExtendable, rule);
         y = new Property(name + "-y", "", node, true, isExtendable, rule);
-        children.add(x);
-        children.add(y);
         setValue(value);
     }
 
-    public PropertyXY(String name, String xName, String yName, String value, Node node, boolean isExtendable, Predicate<String> rule) {
-        super(name, value, node, false, isExtendable, rule);
+    public PropertyXY(String name, String xName, String yName, String value, Node node, boolean isExtendable, Predicate<String>... rules) {
+        super(name, value, node, false, isExtendable, rules);
         x = new Property(xName, "", node, false, isExtendable, rule);
         y = new Property(yName, "", node, true, isExtendable, rule);
-        children.add(x);
-        children.add(y);
         setValue(value);
     }
 
@@ -53,6 +49,13 @@ public class PropertyXY extends Property {
         super.setRule(rule);
         x.setRule(rule);
         y.setRule(rule);
+    }
+
+    @Override
+    public void registerToMap(Map<String, Property> map) {
+        super.registerToMap(map);
+        x.registerToMap(map);
+        y.registerToMap(map);
     }
 
     public Property getX() {

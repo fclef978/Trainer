@@ -1,7 +1,6 @@
 package nitnc.kotanilab.trainer.gl.node;
 
 import nitnc.kotanilab.trainer.gl.util.Position;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 public abstract class Parent extends Node {
     public Parent() {
@@ -32,13 +31,13 @@ public abstract class Parent extends Node {
 
     @Override
     public double getWidth() {
-        return style.get("width").getNumber();
+        return style.get("width").getValueAsRltNumber();
         // return children.stream().mapToDouble(Node::getWidth).sum() * style.getNum("width");
     }
 
     @Override
     public double getHeight() {
-        return style.get("height").getNumber();
+        return style.get("height").getValueAsRltNumber();
         // return children.stream().mapToDouble(Node::getHeight).sum() * style.getNum("height");
     }
 

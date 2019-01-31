@@ -2,14 +2,14 @@ package nitnc.kotanilab.trainer.gl.pane;
 
 import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.node.Parent;
-import nitnc.kotanilab.trainer.gl.shape.Square;
+import nitnc.kotanilab.trainer.gl.shape.Border;
 import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
 
 public abstract class Pane extends Parent {
 
-    Square border = new Square(1.0, 1.0, Color.WHITE, 1.0);
+    private Border border = new Border();
 
     public Pane() {
     }
@@ -28,11 +28,17 @@ public abstract class Pane extends Parent {
 
         drawingProcess();
 
-        if (!style.get("border").getValue().equals("none")) {
-            border.setColor(Color.decode(style.get("border").getValue()));
-            border.setParent(this);
-            border.draw();
-            border.removeParent();
+        for (String key : nitnc.kotanilab.trainer.gl.style.Border.positionArray) {
+            if (!style.get("border-" + key + "-style").getValue().equals("none")) {
+                border.getSettingMap().put(key, new Border.BorderSetting(
+                        style.get("border-" + key + "-style").getValue(),
+                        style.get("border-" + key + "-width").getRawValueAsNumber(),
+                        Color.decode(style.get("border-" + key + "-color").getValue()))
+                );
+            }
         }
+        border.setParent(this);
+        border.draw();
+        border.removeParent();
     }
 }

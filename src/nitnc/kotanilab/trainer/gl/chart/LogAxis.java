@@ -63,8 +63,13 @@ public class LogAxis extends Axis {
     @Override
     public List<Line> getGrids() {
         List<Line> grids = new ArrayList<>();
+        boolean first = true;
         for (double i = min; i < max; i++) {
             for (int j = 1; j < 10; j++) {
+                if (first) {
+                    first = false;
+                    continue;
+                }
                 double num = j * Math.pow(10, i);
                 if (num > Math.pow(10, max) || num <= min) break;
                 double pos = scale(num);

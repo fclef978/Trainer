@@ -18,6 +18,7 @@ public abstract class Analyzer {
     protected String borderStyle;
     protected String title;
     protected Map<String, GraphContext> graphContextMap = new LinkedHashMap<>();
+    protected boolean pause = false;
 
     protected Analyzer(Pane masterPane, String title) {
         this.masterPane = masterPane;
@@ -27,7 +28,7 @@ public abstract class Analyzer {
             String tmp = Integer.toHexString((int) Math.round(Math.random() * 0xF)).toUpperCase();
             colorCode.append(tmp);
         }
-        borderStyle = "border:" + colorCode + ";";
+        borderStyle = "border:solid 3px " + colorCode + ";";
     }
 
     public abstract void start(double fs, int n);
@@ -64,6 +65,10 @@ public abstract class Analyzer {
         return graphContextMap.values().stream().map(GraphContext::getWrapper).collect(Collectors.toList());
     }
 
+    public List<Chart> getCharts() {
+        return graphContextMap.values().stream().map(GraphContext::getChart).collect(Collectors.toList());
+    }
+
     protected List<LineGraph> getGraphs() {
         return graphContextMap.values().stream().map(GraphContext::getGraph).collect(Collectors.toList());
     }
@@ -84,6 +89,20 @@ public abstract class Analyzer {
 
     protected void updatePreviousTime() {
         previousX = getTime();
+    }
+
+    public void setPause(boolean pause) {
+        this.pause = pause;
+        graphContextMap.values().forEach(graphContext -> graphContext.setPause(pause));
+    }
+
+    public void inversePause() {
+        this.pause = !this.pause;
+        graphContextMap.values().forEach(GraphContext::inversePause);
+    }
+
+    public void shot(String filename) {
+
     }
 
     private static Color[] lineColors = {

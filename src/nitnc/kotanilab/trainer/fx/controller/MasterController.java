@@ -12,6 +12,8 @@ import nitnc.kotanilab.trainer.fx.setting.MasterSetting;
 import nitnc.kotanilab.trainer.fx.setting.Saver;
 import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
+import nitnc.kotanilab.trainer.gl.chart.Chart;
+import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
 import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
 import nitnc.kotanilab.trainer.math.FunctionGenerator;
@@ -34,6 +36,8 @@ public class MasterController {
     private TextField samplingFreq = new TextField("100");
     private Button startBtn = new Button("Start");
     private Button stopBtn = new Button("Stop");
+    private ToggleButton pauseBtn = new ToggleButton("Pause");
+    private Button ssBtn = new Button("SS");
     private Button setBtn = new Button("Set");
     private Button deleteBtn = new Button("Delete");
     private Button upBtn = new Button("↑");
@@ -49,7 +53,7 @@ public class MasterController {
     private List<WaveBuffer> buffers;
     private UserSetting userSetting;
 
-    public MasterController() {
+    public MasterController(Window glWindow) {
         setting = (MasterSetting) Saver.load("MasterSetting");
         if (setting != null) {
             samplingFreq.setText(String.valueOf(setting.getSamplingFrequency()));
@@ -86,7 +90,17 @@ public class MasterController {
         downBtn.setOnMouseClicked(event -> {
             downElement(tableView.getItems(), tableView.getSelectionModel().getSelectedItem());
         });
-        first.getChildren().addAll(labelSF, samplingFreq, startBtn, stopBtn);
+        pauseBtn.setOnMouseClicked(event -> {
+            if (!pauseBtn.isSelected()) {
+                tableView.getItems().forEach(controller -> controller.getAnalyzer().setPause(false));
+            } else {
+                tableView.getItems().forEach(controller -> controller.getAnalyzer().setPause(true));
+            }
+        });
+        ssBtn.setOnMouseClicked(event -> {
+            tableView.getItems().forEach(Controller::saveAsImage);
+        });
+        first.getChildren().addAll(labelSF, samplingFreq, startBtn, stopBtn, pauseBtn, ssBtn);
         second.getChildren().addAll(labelCH, comboBox, setBtn, deleteBtn, upBtn, downBtn);
         root.getChildren().addAll(first, second, tableView);
         analysisTask.setCallback(count -> {
@@ -98,7 +112,7 @@ public class MasterController {
     private void setColumns() {
         TableColumn<Controller, Label> nameCol = new TableColumn<>("Name");
         nameCol.setMinWidth(80);
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("nameLabel"));
 
         TableColumn<Controller, ? extends TextField> chCol = new TableColumn<>("Channel");
         chCol.setMinWidth(60);
@@ -197,6 +211,7 @@ public class MasterController {
             action.accept(channelList.size(), fs);
             getControllers().forEach(controller -> controller.start(fs));
             stopBtn.setDisable(false);
+            pauseBtn.setDisable(false);
             analysisTask.start();
         });
     }
@@ -209,6 +224,7 @@ public class MasterController {
             adc.stop();
             buffers.forEach(WaveBuffer::stop);
             stopBtn.setDisable(true);
+            pauseBtn.setDisable(true);
             action.accept(event);
             getControllers().forEach(Controller::stop);
             startBtn.setDisable(false);

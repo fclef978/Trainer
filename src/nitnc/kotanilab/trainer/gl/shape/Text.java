@@ -5,14 +5,9 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.awt.TextRenderer;
 import nitnc.kotanilab.trainer.gl.node.Child;
 import nitnc.kotanilab.trainer.gl.util.Vector;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RectangularShape;
-import java.util.function.DoubleFunction;
-import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
 
 /**
  * Created by Hirokazu SUZUKI on 2018/07/17.
@@ -48,7 +43,7 @@ public class Text extends Child {
     protected void drawingProcess() {
         int width = this.getWindowWidth();
         int height = this.getWindowHeight();
-        Vector vector = scaleVector(this.vector);
+        Vector vector = calcAbsVector(this.vector);
         //  アンチエイリアス
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
         gl.glEnable(GL.GL_BLEND);
@@ -61,7 +56,6 @@ public class Text extends Child {
             gl.glLoadIdentity();
             gl.glPushMatrix();
             gl.glRotated(90, 0.0, 0.0, 1.0);
-            // 秘伝のタレ
             render(str, vector, width, height);
             tr.endRendering();
             tr.flush();
@@ -80,18 +74,22 @@ public class Text extends Child {
         double tmpX = getShiftQuantity(str, style.get("align-x").getValue(), false);
         double tmpY = getShiftQuantity(str, style.get("align-y").getValue(), true);
         if (vertical) {
-            x = changeScale(vector.getY(), height) - tmpX;
-            y = -changeScale(vector.getX(), width) - tmpY;
+            x = calcAbsPosition(vector.getY(), height) - tmpX;
+            y = -calcAbsPosition(vector.getX(), width) - tmpY;
         } else {
-            x = changeScale(vector.getX(), width) - tmpX;
-            y = changeScale(vector.getY(), height) - tmpY;
+            x = calcAbsPosition(vector.getX(), width) - tmpX;
+            y = calcAbsPosition(vector.getY(), height) - tmpY;
         }
         render(str, x, y);
     }
 
+    private void render(String str, double x, double y) {
+        tr.draw(str, (int) Math.round(x), (int) Math.round(y));
+    }
+
     private double getShiftQuantity(String str, String align, boolean vertical) {
         if (vertical) {
-            Rectangle2D bounds = tr.getBounds(str + "|qypjg");
+            Rectangle2D bounds = tr.getBounds("|" + str + "|qypjg");
             if (align == null || align.equals("center")) {
                 return -bounds.getCenterY();
             } else if (align.equals("top")) {
@@ -113,14 +111,6 @@ public class Text extends Child {
                 return 0.0;
             }
         }
-    }
-
-    private void render(String str, double x, double y) {
-        tr.draw(str, (int) Math.round(x), (int) Math.round(y));
-    }
-
-    private static double changeScale(double a, double b) {
-        return ((a + 1.0) * b / 2.0);
     }
 
     public void setString(String str) {

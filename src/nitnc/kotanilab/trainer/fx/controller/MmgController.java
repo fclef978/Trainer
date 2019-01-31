@@ -65,9 +65,10 @@ public class MmgController extends Controller<MmgAnalyzer> {
         private HBox wrapper = new HBox(3);
         private Label label = new Label("中央周波数");
         private Text mf = new Text("0");
+        private Label unit = new Label("Hz");
 
         public MmgField() {
-            wrapper.getChildren().addAll(label, mf);
+            wrapper.getChildren().addAll(label, mf, unit);
         }
 
         public HBox getWrapper() {

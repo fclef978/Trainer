@@ -1,13 +1,17 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
+import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.*;
 import nitnc.kotanilab.trainer.gl.util.Vector;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -19,15 +23,20 @@ public final class Chart extends StackPane {
     private Text xLabel;
     private Text yLabel;
     private final Object lock = new Object();
+    private String title;
 
     private BackGround bg = new BackGround(Color.BLACK);
 
-    private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:#000000;");
-    private Pane graphArea = new StackPane("size:100% 90%;margin:0 0;border:#000000;");
-    private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:#000000;");
-    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:#000000;");
+    private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000;border-bottom:none;");
+    private Pane graphArea = new StackPane("size:100% 90%;margin:0 0;border:solid #000000;");
+    private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000;border-top:none;");
+    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
     private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
     private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");
+
+    private boolean shotFrag = false;
+    private final Object shotFragLock = new Object();
+    private String filenamePrefix;
 
     /**
      * コンストラクタです。
@@ -37,14 +46,15 @@ public final class Chart extends StackPane {
      */
     public Chart(String title, LineGraph graph) {
         getStyle().put("size:95% 95%;margin:0 0;");
+        this.title = title;
         this.graph = graph;
 
-        Font font = new Font("", Font.PLAIN, 12);
         setGraph();
         titleArea.getChildren().add(new Text(title, new Vector(0.0, 0.0), false));
 
         children.addAll(titleArea, legendArea, graphArea);
         setLegend();
+        Dbg.p(titleArea.getStyle().get("border-top-width"));
     }
 
     /**
@@ -92,6 +102,32 @@ public final class Chart extends StackPane {
         yLabel.setString(graph.getYLabel());
         synchronized (lock) {
             super.draw();
+        }
+        imaging();
+    }
+
+    public void shot(String filenamePrefix) {
+        synchronized (shotFragLock) {
+            shotFrag = true;
+            this.filenamePrefix = filenamePrefix;
+        }
+    }
+
+    private void imaging() {
+        if (shotFrag) {
+            Vector begin = calcAbsVector(new Vector(-1.0, -1.0));
+            Vector end = calcAbsVector(new Vector(1.0, 1.0));
+            StringBuilder filename = new StringBuilder(filenamePrefix.trim().replaceAll("\\.", "").replaceAll("\\s", "_"));
+            filename.append("_").append(title.replaceAll("\\s", "_")).append("_");
+            Calendar calendar = Calendar.getInstance();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS");
+            filename.append(sdf.format(calendar.getTime())).append(".png");
+            Window.imaging(filename.toString(), getDrawable(),
+                    calcPx(begin.getX(), getWindowWidth()), calcPx(begin.getY(), getWindowHeight()),
+                    calcPx(end.getX(), getWindowWidth()), calcPx(end.getY(), getWindowHeight()));
+            synchronized (shotFragLock) {
+                shotFrag = false;
+            }
         }
     }
 

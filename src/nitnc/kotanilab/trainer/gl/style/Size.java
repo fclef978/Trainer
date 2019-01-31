@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.gl.shape;
+package nitnc.kotanilab.trainer.gl.style;
 
 import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.style.Property;

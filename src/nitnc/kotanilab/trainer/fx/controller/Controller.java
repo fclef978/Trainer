@@ -5,26 +5,26 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
-import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.analysis.Analyzer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 public abstract class Controller<T extends Analyzer> {
+    protected final String name;
     protected T analyzer;
     protected UserSetting userSetting;
     protected Map<String, CheckBox> visible = new LinkedHashMap<>();
 
-    protected Label name;
+    protected Label nameLabel;
     protected PositiveIntField channel;
     protected javafx.scene.layout.Pane operator;
     protected javafx.scene.layout.Pane indicator;
 
-    public Controller(String name , T analyzer, UserSetting userSetting) {
-        this.name = new Label(name);
+    public Controller(String name, T analyzer, UserSetting userSetting) {
+        this.name = name;
+        this.nameLabel = new Label(name);
         this.channel = new PositiveIntField(0);
         operator = new HBox(2);
         indicator = new HBox(2);
@@ -33,7 +33,7 @@ public abstract class Controller<T extends Analyzer> {
     }
 
     public void setVisible(String... keys) {
-        for (String key: keys) {
+        for (String key : keys) {
             visible.put(key, new CheckBox(key));
         }
         operator.getChildren().addAll(visible.values());
@@ -46,6 +46,10 @@ public abstract class Controller<T extends Analyzer> {
 
     public abstract void stop();
 
+    public void saveAsImage() {
+        getAnalyzer().getCharts().forEach(chart -> chart.shot("images/"+userSetting.getName() + "_" + name));
+    }
+
     public T getAnalyzer() {
         return analyzer;
     }
@@ -54,12 +58,12 @@ public abstract class Controller<T extends Analyzer> {
         return channel.getValueAsInt();
     }
 
-    public Label getName() {
-        return name;
+    public Label getNameLabel() {
+        return nameLabel;
     }
 
-    public void setName(Label name) {
-        this.name = name;
+    public void setNameLabel(Label nameLabel) {
+        this.nameLabel = nameLabel;
     }
 
     public PositiveIntField getChannelField() {

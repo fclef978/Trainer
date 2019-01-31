@@ -75,15 +75,28 @@ public abstract class Node {
         gl.glColor3d(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
     }
 
-    protected Vector scaleVector(Vector vector) {
+    protected Vector calcAbsVector(Vector rltVector) {
         Position position = parent.getPosition();
-        return new Vector(vector.getX() * position.getXScale() + position.getXOffset(),
-                vector.getY() * position.getYScale() + position.getYOffset());
+        return new Vector(rltVector.getX() * position.getXScale() + position.getXOffset(),
+                rltVector.getY() * position.getYScale() + position.getYOffset());
+    }
+
+    protected static int calcPx(double pos, double max) {
+        return (int)Math.round(((pos + 1.0) * max / 2.0));
+    }
+
+    protected static double calcAbsPosition(double pos, double max) {
+        return ((pos + 1.0) * max / 2.0);
     }
 
     protected void setVertex(Vector vector) {
-        Vector scaled = scaleVector(vector);
-        gl.glVertex2d(scaled.getX(), scaled.getY());
+        Vector absVector = calcAbsVector(vector);
+        gl.glVertex2d(absVector.getX(), absVector.getY());
+    }
+
+    protected void setVertex(double x, double y) {
+        Vector absVector = calcAbsVector(new Vector(x, y));
+        gl.glVertex2d(absVector.getX(), absVector.getY());
     }
 
     protected void end() {

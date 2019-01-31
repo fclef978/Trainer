@@ -20,17 +20,17 @@ public class Position {
     }
 
     public Position(Position parent, Style style) {
-        this.xScale = style.get("width").getNumber() * parent.getXScale();
-        this.xOffset = style.get("margin-x").getNumber() * parent.getXScale() + parent.getXOffset();
-        this.yScale = style.get("height").getNumber() * parent.getYScale();
-        this.yOffset = style.get("margin-y").getNumber() * parent.getYScale() + parent.getYOffset();
+        this.xScale = style.get("width").getValueAsRltNumber() * parent.getXScale();
+        this.xOffset = style.get("margin-x").getValueAsRltNumber() * parent.getXScale() + parent.getXOffset();
+        this.yScale = style.get("height").getValueAsRltNumber() * parent.getYScale();
+        this.yOffset = style.get("margin-y").getValueAsRltNumber() * parent.getYScale() + parent.getYOffset();
     }
 
     public Position(Style style) {
-        this.xScale = style.get("width").getNumber();
-        this.xOffset = style.get("margin-x").getNumber();
-        this.yScale = style.get("height").getNumber();
-        this.yOffset = style.get("margin-y").getNumber();
+        this.xScale = style.get("width").getValueAsRltNumber();
+        this.xOffset = style.get("margin-x").getValueAsRltNumber();
+        this.yScale = style.get("height").getValueAsRltNumber();
+        this.yOffset = style.get("margin-y").getValueAsRltNumber();
     }
 
     public Position(Position parent, Position style) {

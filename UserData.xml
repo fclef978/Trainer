@@ -4,7 +4,7 @@
   <void property="age">
    <int>20</int>
   </void>
-  <void property="name">
+  <void property="nameLabel">
    <string>Hirokazu</string>
   </void>
  </object>

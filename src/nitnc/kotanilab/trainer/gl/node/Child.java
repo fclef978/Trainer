@@ -20,11 +20,11 @@ public abstract class Child extends Node {
 
     @Override
     public double getWidth() {
-        return style.get("width").getNumber();
+        return style.get("width").getValueAsRltNumber();
     }
 
     @Override
     public double getHeight() {
-        return style.get("height").getNumber();
+        return style.get("height").getValueAsRltNumber();
     }
 }

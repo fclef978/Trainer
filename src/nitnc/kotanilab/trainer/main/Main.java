@@ -56,7 +56,7 @@ public class Main extends Application {
 
         root = new VBox();
 
-        masterController = new MasterController();
+        masterController = new MasterController(window);
         root.getChildren().addAll(masterController.getRoot());
         masterController.setSetEvent(root, masterPane, ch -> {
             this.ch = ch;
@@ -67,7 +67,7 @@ public class Main extends Application {
 
         masterController.setStopEvent((o) -> {
         });
-        Scene scene = new Scene(root, 720, 300);
+        Scene scene = new Scene(root, 720, 320);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Panel");
 

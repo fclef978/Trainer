@@ -16,11 +16,23 @@ public class Property {
     }
 
     protected static boolean isPosition(String value) {
-        return value.equals("left") || value.equals("center") || value.equals("right") || value.equals("top") || value.equals("bottom");
+        return value.equals("left") || value.equals("right") || value.equals("top") || value.equals("bottom");
+    }
+
+    protected static boolean isCenter(String value) {
+        return value.equals("center");
     }
 
     protected static boolean isColor(String value) {
-        return value.startsWith("#") || value.equals("none");
+        return value.startsWith("#");
+    }
+
+    protected static boolean isNone(String value) {
+        return value.equals("none");
+    }
+
+    protected static boolean isLineStyle(String value) {
+        return value.equals("solid") || value.equals("dashed");
     }
 
     protected String name;
@@ -29,20 +41,29 @@ public class Property {
     protected boolean isVertical;
     protected boolean isExtendable;
     protected Predicate<String> rule = str -> true;
-    protected List<Property> children = new ArrayList<>();
 
-    public Property(String name, String value, Node node, boolean isVertical, boolean isExtendable, Predicate<String> rule) {
+    public Property(String name, String value, Node node, boolean isVertical, boolean isExtendable, Predicate<String>... rules) {
         this.name = name;
         this.value.set(value);
         this.node = node;
         this.isVertical = isVertical;
         this.isExtendable = isExtendable;
-        this.rule = rule;
-        children.add(this);
+        this.rule = combineByOr(rules);
+    }
+
+    @SafeVarargs
+    protected static Predicate<String> combineByOr(Predicate<String>... predicates) {
+        return s -> {
+            boolean ret = false;
+            for (Predicate<String> predicate : predicates) {
+                ret = ret || predicate.test(s);
+            }
+            return ret;
+        };
     }
 
     public void registerToMap(Map<String, Property> map) {
-        children.forEach(property -> map.put(property.getName(), property));
+        map.put(getName(), this);
     }
 
     public void setValue(String value) {
@@ -54,7 +75,13 @@ public class Property {
         return value.getValue();
     }
 
-    public double getNumber() {
+    public double getRawValueAsNumber() {
+        String tmp = value.toString().replaceAll("[^0-9+]", "");
+        if (tmp.isEmpty()) return 0.0;
+        else return Double.parseDouble(tmp);
+    }
+
+    public double getValueAsRltNumber() {
         double ret = 0.0;
         String value = this.value.getValue();
         try {
@@ -75,6 +102,10 @@ public class Property {
         return ret;
     }
 
+    public boolean getValueAsBoolean() {
+        return Boolean.parseBoolean(getValue());
+    }
+
     public String getName() {
         return name;
     }
@@ -91,7 +122,19 @@ public class Property {
         return isExtendable;
     }
 
+    public Predicate<String> getRule() {
+        return rule;
+    }
+
     public void setRule(Predicate<String> rule) {
         this.rule = rule;
+    }
+
+    @Override
+    public String toString() {
+        return "Property{" +
+                "name='" + name + '\'' +
+                ", value=" + value +
+                '}';
     }
 }

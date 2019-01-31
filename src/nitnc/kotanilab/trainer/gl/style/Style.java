@@ -1,8 +1,6 @@
 package nitnc.kotanilab.trainer.gl.style;
 
 import nitnc.kotanilab.trainer.gl.node.Node;
-import nitnc.kotanilab.trainer.gl.shape.Size;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.Arrays;
 import java.util.HashMap;

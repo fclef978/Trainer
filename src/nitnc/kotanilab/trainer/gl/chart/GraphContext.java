@@ -15,6 +15,7 @@ public class GraphContext {
     Chart chart;
     Pane wrapper;
     boolean visible;
+    protected boolean pause = false;
     Consumer<? super LineGraph> graphSetter;
 
     public GraphContext(LineGraph graph, Chart chart, Pane wrapper, boolean visible) {
@@ -36,19 +37,19 @@ public class GraphContext {
     }
 
     public void update(String key, List<? extends Double> xc, List<? extends Double> yc) {
-        if (visible) {
+        if (visible && !pause) {
             graph.getVectorList(key).set(xc, yc);
         }
     }
 
     public void update(String key, double[] xc, double[] yc) {
-        if (visible) {
+        if (visible && !pause) {
             graph.getVectorList(key).set(xc, yc);
         }
     }
 
-    public void ifVisible(Consumer<? super LineGraph> action) {
-        if (visible) action.accept(graph);
+    public void ifVisible(Consumer<? super GraphContext> action) {
+        if (visible) action.accept(this);
     }
 
     public void setGraphSetter(Consumer<? super LineGraph> graphSetter) {
@@ -85,5 +86,13 @@ public class GraphContext {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    public void setPause(boolean pause) {
+        this.pause = pause;
+    }
+
+    public void inversePause() {
+        this.pause = !this.pause;
     }
 }
