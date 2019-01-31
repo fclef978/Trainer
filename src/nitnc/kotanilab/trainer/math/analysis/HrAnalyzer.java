@@ -29,7 +29,7 @@ public class HrAnalyzer extends Analyzer {
 
     public HrAnalyzer(Pane masterPane) {
         super(masterPane, "HR");
-        LineGraph waveGraph = createWaveGraph(1, Unit.v(), -3, 3, "Wave");
+        LineGraph waveGraph = createWaveGraph(1, Unit.v(), -2, 2, "Wave");
         Chart waveChart = new Chart("Wave", waveGraph);
         graphContextMap.put("Wave", new GraphContext(waveGraph, waveChart, createWrapperPane(1), false));
 
@@ -38,7 +38,7 @@ public class HrAnalyzer extends Analyzer {
         graphContextMap.put("HR", new GraphContext(hrGraph, hrChart, createWrapperPane(1), false));
 
         LineGraph acfGraph = createGraph(
-                new Axis("Value", 0.0, 5.0, 1.0),
+                new Axis("Value", 0.0, hrCalcLength / 2, hrCalcLength / 20),
                 new Axis("Value", -1.0, 1.0, 0.5),
                 "ACF"
         );
@@ -55,6 +55,10 @@ public class HrAnalyzer extends Analyzer {
         source.setXMax(10.0);
         source.setDecimationNumber(16);
         source.addCallback(IirFilter.execute("bpf0.0001-0.01.txt"));
+        graphContextMap.get("Wave").setGraphSetter(graph -> {
+            graph.getXAxis().setMax(hrCalcLength / source.getSamplingFrequency());
+            graph.getXAxis().setSize(hrCalcLength / source.getSamplingFrequency() / 8.0);
+        });
         graphContextMap.get("HR").setGraphSetter(graph -> {
             graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED);
             graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker());
@@ -67,7 +71,7 @@ public class HrAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
-        graphContextMap.get("HR").ifVisible(LineGraph::clearGideLine);
+        graphContextMap.get("HR").ifVisible(graph->graph.getGraph().clearGideLine());
         getGraphs().forEach(this::clearVectorList);
         super.stop();
         heartRate.clear();
@@ -76,43 +80,45 @@ public class HrAnalyzer extends Analyzer {
 
     @Override
     public void execute() {
+
+        Wave hrWave = source.getWave(hrCalcLength);
         if (graphContextMap.get("Wave").isVisible()) {
-            Wave tmpWave = source.getWave(2.0);
+            Wave tmpWave = source.getWave(hrCalcLength);
             LineGraph waveGraph = graphContextMap.get("Wave").getGraph();
             Wave wave1 = tmpWave.stream().lastCutX(waveGraph.getXAxis().getRange()).zeroX(waveGraph.getXAxis().getMax()).to(tmpWave::from);
             graphContextMap.get("Wave").update("Wave", wave1.getXList(), wave1.getYList()); // グラフ登録
         }
+        if (source.available(hrCalcLength)) {
+            if (isPassedInterval(1.0)) {
+                if (graphContextMap.get("HR").isVisible()) {
+                    double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
+                    graphContextMap.get("ACF").ifVisible(graph -> {
+                        double[] acfX = new double[acf.length];
+                        double[] acfY = new double[acf.length];
+                        for (int i = 0; i < acf.length; i++) {
+                            acfX[i] = i;
+                            acfY[i] = acf[i] / acf[0];
+                        }
+                        graph.update("ACF", acfX, acfY);
+                    });
+                    graphContextMap.get("Diff").ifVisible(graph -> {
+                        Wave diffWave = hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10).to(hrWave::from);
+                        graph.getGraph().getVectorList("Diff").set(diffWave.getXList(), diffWave.getYList());
+                        graph.update("Diff", diffWave.getXList(), diffWave.getYList());
+                    });
+                    double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0;
+                    Point hrPoint = new Point(hrWave.getStartTime(), hr);
+                    logger.print(hrPoint);
+                    heartRate.add(hrPoint);
+                    LineGraph hrGraph = graphContextMap.get("HR").getGraph();
+                    graphContextMap.get("HR").update("HR", heartRate.getXList(), heartRate.getYList());
+                    hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
+                    hrGraph.setGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET);
+                    hrEvent.accept(hr);
+                }
 
-        if (source.available(hrCalcLength) && isPassedInterval(1.0)) {
-            Wave hrWave = source.getWave(hrCalcLength);
-
-            if (graphContextMap.get("HR").isVisible()) {
-                double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
-                graphContextMap.get("ACF").ifVisible(graph -> {
-                    double[] acfX = new double[acf.length];
-                    double[] acfY = new double[acf.length];
-                    for (int i = 0; i < acf.length; i++) {
-                        acfX[i] = hrWave.getSamplingFrequency() / i;
-                        acfY[i] = acf[i] / acf[0];
-                    }
-                    graph.getVectorList("ACF").set(acfX, acfY);
-                });
-                graphContextMap.get("Diff").ifVisible(graph -> {
-                    Wave diffWave = hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10).to(hrWave::from);
-                    graph.getVectorList("Diff").set(diffWave.getXList(), diffWave.getYList());
-                });
-                double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0;
-                Point hrPoint = new Point(hrWave.getStartTime(), hr);
-                logger.print(hrPoint);
-                heartRate.add(hrPoint);
-                LineGraph hrGraph = graphContextMap.get("HR").getGraph();
-                graphContextMap.get("HR").update("HR", heartRate.getXList(), heartRate.getYList());
-                hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
-                hrGraph.setGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET);
-                hrEvent.accept(hr);
+                updatePreviousTime();
             }
-
-            updatePreviousTime();
         }
     }
 
