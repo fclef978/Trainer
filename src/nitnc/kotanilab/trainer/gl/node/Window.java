@@ -153,7 +153,7 @@ public class Window extends StackPane implements GLEventListener {
         ByteBuffer rawBuffer = ByteBuffer.allocate(imageSize);
         byte[] imageArray = new byte[imageSize];
 
-        gl.glReadBuffer(GL2.GL_FRONT);
+        gl.glReadBuffer(GL2.GL_BACK);
         gl.glReadPixels(x1, y1, imageWidth, imageHeight, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, rawBuffer);
         byte[] rawArray = rawBuffer.array();
         for (int iRaw = 0; iRaw < imageHeight; iRaw++) {

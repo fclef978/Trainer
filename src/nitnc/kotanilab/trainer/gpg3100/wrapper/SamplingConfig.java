@@ -30,9 +30,14 @@ public class SamplingConfig extends SamplingSetting {
     @Override
     public void setChannelList(List<Integer> channelList) {
         entity.chCount = channelList.size();
+        for (int i = 0; i < channelList.size(); i++) {
+            entity.samplingChRequests[i].chNumber = channelList.get(i);
+        }
+        /*
         for (Integer channel : channelList) {
             entity.samplingChRequests[channel - 1].chNumber = channel;
         }
+        */
         super.setChannelList(channelList);
     }
 
