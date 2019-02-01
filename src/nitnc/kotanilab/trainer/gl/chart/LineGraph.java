@@ -1,5 +1,6 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
+import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.*;
 import nitnc.kotanilab.trainer.gl.util.Vector;
@@ -8,10 +9,8 @@ import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 /**
  * 折れ線グラフの線部分
@@ -22,8 +21,7 @@ public class LineGraph extends StackPane {
     protected Axis xAxis;
     protected Axis yAxis;
     protected Map<String, PolygonalLine> lineMap = new LinkedHashMap<>();
-    protected Map<String, Line> gideLineMap = new HashMap<>();
-    protected Map<String, Text> gideLineLabelMap = new HashMap<>();
+    protected Map<String, GideLineContext>  gideLineContextMap = new HashMap<>();
 
     /**
      * コンストラクタです
@@ -59,27 +57,25 @@ public class LineGraph extends StackPane {
         return lineMap.get(key).getVectorList();
     }
 
-    public void putGideLine(String label, double value, Color color) {
+    public void putGideLine(String label, double value, Color color, boolean vertical) {
+        /*
         double y = yAxis.scale(value);
         Line gideLine = new Line(y, false, color, 1.0);
         Text gideLineLabel = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(-0.95, y), false);
         gideLineLabel.getStyle().put("align:left bottom;");
-        gideLineMap.put(label, gideLine);
-        gideLineLabelMap.put(label, gideLineLabel);
-        children.addAll(gideLine, gideLineLabel);
+        */
+        GideLineContext gideLineContext = new GideLineContext(label, value, color, vertical);
+        gideLineContextMap.put(label, gideLineContext);
+        children.addAll(gideLineContext.getNodes());
     }
 
     public void setGideLine(String label, double value) {
-        double y = yAxis.scale(value);
-        gideLineMap.get(label).setVector(y, false);
-        gideLineLabelMap.get(label).setVector(new Vector(-0.95, y));
+        gideLineContextMap.get(label).setPosition(value);
     }
 
     public void clearGideLine() {
-        getChildren().removeAll(gideLineMap.values());
-        getChildren().removeAll(gideLineLabelMap.values());
-        gideLineMap.clear();
-        gideLineLabelMap.clear();
+        gideLineContextMap.values().forEach(gideLineContext -> getChildren().removeAll(gideLineContext.getNodes()));
+        gideLineContextMap.clear();
     }
 
     protected Vector createVector(Point point) {
@@ -145,5 +141,43 @@ public class LineGraph extends StackPane {
 
     public Axis getYAxis() {
         return yAxis;
+    }
+
+    private class GideLineContext {
+        Line gideLine;
+        Text label;
+        Color color;
+        boolean vertical;
+
+        public GideLineContext(String label, double position, Color color, boolean vertical) {
+            Vector vector;
+            double absPosition;
+            if (vertical) {
+                absPosition = xAxis.scale(position);
+                vector = new Vector(absPosition, 0.95);
+            } else {
+                absPosition = yAxis.scale(position);
+                vector = new Vector(-0.95, absPosition);
+            }
+            this.gideLine = new Line(absPosition, vertical, color, 1.0);
+            this.label = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, vector, vertical);
+            this.label.getStyle().put("align:left bottom;");
+            this.color = color;
+            this.vertical = vertical;
+        }
+
+        public void setPosition(double position) {
+            double absPosition;
+            if (vertical) {
+                absPosition = xAxis.scale(position);
+            } else {
+                absPosition = yAxis.scale(position);
+            }
+            gideLine.setVector(absPosition, vertical);
+        }
+
+        public List<Node> getNodes() {
+            return Arrays.asList(gideLine, label);
+        }
     }
 }

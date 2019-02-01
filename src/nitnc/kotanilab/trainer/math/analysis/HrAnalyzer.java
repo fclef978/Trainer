@@ -60,8 +60,8 @@ public class HrAnalyzer extends Analyzer {
             graph.getXAxis().setSize(hrCalcLength / source.getSamplingFrequency() / 8.0);
         });
         graphContextMap.get("HR").setGraphSetter(graph -> {
-            graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED);
-            graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker());
+            graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED, false);
+            graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), false);
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
         fft = new OouraFft(hrCalcLength);
@@ -112,8 +112,8 @@ public class HrAnalyzer extends Analyzer {
                     heartRate.add(hrPoint);
                     LineGraph hrGraph = graphContextMap.get("HR").getGraph();
                     graphContextMap.get("HR").update("HR", heartRate.getXList(), heartRate.getYList());
-                    hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
-                    hrGraph.setGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET);
+                    // hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
+                    // hrGraph.setGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET);
                     hrEvent.accept(hr);
                 }
 

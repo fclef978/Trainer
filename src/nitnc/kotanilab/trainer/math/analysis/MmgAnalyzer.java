@@ -131,6 +131,9 @@ public class MmgAnalyzer extends Analyzer {
             median.add(medianPoint);
             peek.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
+            LineGraph spectrumGraph = graphContextMap.get("Spectrum").getGraph();
+            spectrumGraph.setGideLine("MF", medianPoint.getY());
+
             graphContextMap.get("Frequency").update("Median", median.getXList(), median.getYList());
             graphContextMap.get("Frequency").update("Peek", peek.getXList(), peek.getYList());
 
