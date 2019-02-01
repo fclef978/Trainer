@@ -11,6 +11,7 @@ import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.CsvLogger;
 import nitnc.kotanilab.trainer.util.Utl;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -80,6 +81,7 @@ public class MmgAnalyzer extends Analyzer {
         graphContextMap.get("Spectrum").setGraphSetter(graph -> {
             graph.getXAxis().setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
             graph.getXAxis().setMax(fs / 2.0);
+            graph.putGideLine("MF", 0.0, Color.RED, 2.0, true);
         });
         graphContextMap.get("Frequency").setGraphSetter(graph -> {
             graph.getYAxis().setMax(fs / 2.0);
@@ -98,6 +100,7 @@ public class MmgAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
+        graphContextMap.get("Spectrum").getGraph().clearGideLine();
         getGraphs().forEach(this::clearVectorList);
         super.stop();
         median.clear();

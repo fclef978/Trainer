@@ -57,14 +57,14 @@ public class LineGraph extends StackPane {
         return lineMap.get(key).getVectorList();
     }
 
-    public void putGideLine(String label, double value, Color color, boolean vertical) {
+    public void putGideLine(String label, double value, Color color, double width, boolean vertical) {
         /*
         double y = yAxis.scale(value);
         Line gideLine = new Line(y, false, color, 1.0);
         Text gideLineLabel = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(-0.95, y), false);
         gideLineLabel.getStyle().put("align:left bottom;");
         */
-        GideLineContext gideLineContext = new GideLineContext(label, value, color, vertical);
+        GideLineContext gideLineContext = new GideLineContext(label, value, color, width, vertical);
         gideLineContextMap.put(label, gideLineContext);
         children.addAll(gideLineContext.getNodes());
     }
@@ -145,11 +145,28 @@ public class LineGraph extends StackPane {
 
     private class GideLineContext {
         Line gideLine;
+        double width;
         Text label;
         Color color;
         boolean vertical;
+        List<Node> nodes;
 
-        public GideLineContext(String label, double position, Color color, boolean vertical) {
+        public GideLineContext(String label, double position, Color color, double width, boolean vertical) {
+            this.gideLine = new Line(0.0, vertical, color, width);
+            this.label = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(0.0,0.0), vertical);
+            this.color = color;
+            this.width = width;
+            this.vertical = vertical;
+            this.nodes = Arrays.asList(this.gideLine, this.label);;
+            if (vertical) {
+                this.label.getStyle().put("align:right bottom;");
+            } else {
+                this.label.getStyle().put("align:left bottom;");
+            }
+            setPosition(position);
+        }
+
+        public void setPosition(double position) {
             Vector vector;
             double absPosition;
             if (vertical) {
@@ -159,25 +176,12 @@ public class LineGraph extends StackPane {
                 absPosition = yAxis.scale(position);
                 vector = new Vector(-0.95, absPosition);
             }
-            this.gideLine = new Line(absPosition, vertical, color, 1.0);
-            this.label = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, vector, vertical);
-            this.label.getStyle().put("align:left bottom;");
-            this.color = color;
-            this.vertical = vertical;
-        }
-
-        public void setPosition(double position) {
-            double absPosition;
-            if (vertical) {
-                absPosition = xAxis.scale(position);
-            } else {
-                absPosition = yAxis.scale(position);
-            }
             gideLine.setVector(absPosition, vertical);
+            label.setVector(vector);
         }
 
         public List<Node> getNodes() {
-            return Arrays.asList(gideLine, label);
+            return nodes;
         }
     }
 }

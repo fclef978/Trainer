@@ -60,8 +60,8 @@ public class HrAnalyzer extends Analyzer {
             graph.getXAxis().setSize(hrCalcLength / source.getSamplingFrequency() / 8.0);
         });
         graphContextMap.get("HR").setGraphSetter(graph -> {
-            graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED, false);
-            graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), false);
+            graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED, 1.0, false);
+            graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), 1.0, false);
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
         fft = new OouraFft(hrCalcLength);
