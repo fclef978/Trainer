@@ -1,5 +1,8 @@
 package nitnc.kotanilab.trainer.adConverter;
 
+/**
+ * ADコンバータのスペックを表すクラスです。
+ */
 public abstract class ConverterSpec {
 
     /**
@@ -19,6 +22,14 @@ public abstract class ConverterSpec {
      */
     protected double range;
 
+    /**
+     * コンストラクタです。
+     *
+     * @param name コンバータの品名
+     * @param chCount 最大チャンネル数
+     * @param resolution 分解能(ビット数)
+     * @param range 測定範囲
+     */
     public ConverterSpec(String name, int chCount, int resolution, double range) {
         this.name = name;
         this.chCount = chCount;

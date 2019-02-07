@@ -125,7 +125,7 @@ public class Window extends StackPane implements GLEventListener {
         this.drawable = drawable;
         draw();
         if (shotFrag) {
-            imaging("test.png", drawable);
+            imaging("castStream.png", drawable);
             synchronized (shotFragLock) {
                 shotFrag = false;
             }

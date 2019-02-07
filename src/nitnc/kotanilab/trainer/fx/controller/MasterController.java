@@ -10,53 +10,58 @@ import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.fx.setting.MasterSetting;
 import nitnc.kotanilab.trainer.fx.setting.Saver;
-import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
-import nitnc.kotanilab.trainer.gl.chart.Chart;
-import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
 import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
 import nitnc.kotanilab.trainer.math.FunctionGenerator;
 import nitnc.kotanilab.trainer.math.VirtualADC;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
-import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * メイン画面のコントローラです。
+ */
 public class MasterController {
     private Pane root = new VBox();
-    private HBox first = new HBox(0);
-    private HBox second = new HBox(0);
-    private TextField samplingFreq = new TextField("100");
-    private Button startBtn = new Button("Start");
-    private Button stopBtn = new Button("Stop");
-    private ToggleButton pauseBtn = new ToggleButton("Pause");
-    private Button ssBtn = new Button("SS");
-    private Button setBtn = new Button("Set");
-    private Button deleteBtn = new Button("Delete");
-    private Button upBtn = new Button("↑");
-    private Button downBtn = new Button("↓");
+    private HBox samplingControls = new HBox(0);
+    private HBox analysisControls = new HBox(0);
+    private TextField samplingFrequency = new TextField("100");
+    private Button startButton = new Button("Start");
+    private Button stopButton = new Button("Stop");
+    private ToggleButton pauseButton = new ToggleButton("Pause");
+    private Button screenShotButton = new Button("SS");
+    private Button addAnalysisButton = new Button("Set");
+    private Button removeAnalysisButton = new Button("Delete");
+    private Button liftAnalysisButton = new Button("↑");
+    private Button lowerAnalysisButton = new Button("↓");
     private ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(
             "MMG", "MMG(mic.)", "EMG", "HR"
     ));
-    private TableView<Controller> tableView = new TableView<>();
+    private TableView<Controller> analysisTable = new TableView<>();
     private PeriodicTask analysisTask = new PeriodicTask(10);
     private ADConverter adc;
     private SamplingSetting samplingSetting;
     private MasterSetting setting;
     private List<WaveBuffer> buffers;
     private UserSetting userSetting;
+    private nitnc.kotanilab.trainer.gl.pane.Pane masterPane;
 
-    public MasterController(Window glWindow) {
+    /**
+     * コンストラクタです。
+     *
+     * @param masterPane OpenGLの親ペイン
+     */
+    public MasterController(nitnc.kotanilab.trainer.gl.pane.Pane masterPane) {
+        this.masterPane = masterPane;
         setting = (MasterSetting) Saver.load("MasterSetting");
         if (setting != null) {
-            samplingFreq.setText(String.valueOf(setting.getSamplingFrequency()));
+            samplingFrequency.setText(String.valueOf(setting.getSamplingFrequency()));
         } else {
             setting = new MasterSetting();
         }
@@ -74,35 +79,38 @@ public class MasterController {
         samplingSetting = adc.getSamplingSetting();
 
         Label labelSF = new Label("Sampling Frequency");
-        samplingFreq.setStyle("-fx-max-width: 50px");
+        samplingFrequency.setStyle("-fx-max-width: 50px");
         Label labelCH = new Label("Channel");
         setColumns();
 
-        stopBtn.setDisable(true);
-        deleteBtn.setOnMouseClicked(event -> {
-            tableView.getSelectionModel().getSelectedCells().forEach(tablePosition -> {
-                tableView.getItems().remove(tablePosition.getRow());
+        stopButton.setDisable(true);
+        removeAnalysisButton.setOnMouseClicked(event -> {
+            analysisTable.getSelectionModel().getSelectedCells().forEach(tablePosition -> {
+                analysisTable.getItems().remove(tablePosition.getRow());
             });
         });
-        upBtn.setOnMouseClicked(event -> {
-            upElement(tableView.getItems(), tableView.getSelectionModel().getSelectedItem());
+        liftAnalysisButton.setOnMouseClicked(event -> {
+            liftElement(analysisTable.getItems(), analysisTable.getSelectionModel().getSelectedItem());
         });
-        downBtn.setOnMouseClicked(event -> {
-            downElement(tableView.getItems(), tableView.getSelectionModel().getSelectedItem());
+        lowerAnalysisButton.setOnMouseClicked(event -> {
+            lowerElement(analysisTable.getItems(), analysisTable.getSelectionModel().getSelectedItem());
         });
-        pauseBtn.setOnMouseClicked(event -> {
-            if (!pauseBtn.isSelected()) {
-                tableView.getItems().forEach(controller -> controller.getAnalyzer().setPause(false));
+        pauseButton.setOnMouseClicked(event -> {
+            if (!pauseButton.isSelected()) {
+                analysisTable.getItems().forEach(controller -> controller.getAnalyzer().setPause(false));
             } else {
-                tableView.getItems().forEach(controller -> controller.getAnalyzer().setPause(true));
+                analysisTable.getItems().forEach(controller -> controller.getAnalyzer().setPause(true));
             }
         });
-        ssBtn.setOnMouseClicked(event -> {
-            tableView.getItems().forEach(Controller::saveAsImage);
+        screenShotButton.setOnMouseClicked(event -> {
+            analysisTable.getItems().forEach(Controller::saveAsImage);
         });
-        first.getChildren().addAll(labelSF, samplingFreq, startBtn, stopBtn, pauseBtn, ssBtn);
-        second.getChildren().addAll(labelCH, comboBox, setBtn, deleteBtn, upBtn, downBtn);
-        root.getChildren().addAll(first, second, tableView);
+        addAnalysisButton.setOnMouseClicked(event -> addAnalysis());
+        startButton.setOnMouseClicked(event -> startAnalysis());
+        stopButton.setOnMouseClicked(event -> stopAnalysis());
+        samplingControls.getChildren().addAll(labelSF, samplingFrequency, startButton, stopButton, pauseButton, screenShotButton);
+        analysisControls.getChildren().addAll(labelCH, comboBox, addAnalysisButton, removeAnalysisButton, liftAnalysisButton, lowerAnalysisButton);
+        root.getChildren().addAll(samplingControls, analysisControls, analysisTable);
         analysisTask.setCallback(count -> {
             analyze();
         });
@@ -126,14 +134,14 @@ public class MasterController {
         indicatorCol.setMinWidth(180);
         indicatorCol.setCellValueFactory(new PropertyValueFactory<>("indicator"));
 
-        tableView.getColumns().addAll(nameCol, chCol, ctrlCol, indicatorCol);
+        analysisTable.getColumns().addAll(nameCol, chCol, ctrlCol, indicatorCol);
     }
 
-    private static void upElement(List<Controller> list, Controller target) {
+    private static void liftElement(List<Controller> list, Controller target) {
         shiftElement(list, target, 0, -1);
     }
 
-    private static void downElement(List<Controller> list, Controller target) {
+    private static void lowerElement(List<Controller> list, Controller target) {
         shiftElement(list, target, -1, 1);
     }
 
@@ -149,114 +157,127 @@ public class MasterController {
         list.set(pos + quantity, tmp2);
     }
 
-    public void setSetEvent(Pane parent, nitnc.kotanilab.trainer.gl.pane.Pane masterPane, Consumer<Integer> action) {
-        setBtn.setOnMouseClicked(event -> {
-            String str = comboBox.getValue();
-            Controller controller = null;
-            if (str != null) {
-                switch (str) {
-                    case "MMG":
-                        controller = new MmgController(masterPane, userSetting);
-                        break;
-                    case "MMG(mic.)":
-                        controller = new MmgMicController(masterPane, userSetting);
-                        break;
-                    case "EMG":
-                        controller = new EmgController(masterPane, userSetting);
-                        break;
-                    case "HR":
-                        controller = new HrController(masterPane, userSetting);
-                        break;
-                    case "":
-                        break;
-                    default:
-                        throw new IllegalArgumentException("不明な選択です");
-                }
-                if (controller != null) {
-                    tableView.getItems().add(controller);
-                }
-                action.accept(getChannelNumber());
+    private void addAnalysis() {
+        String str = comboBox.getValue();
+        Controller controller = null;
+        if (str != null) {
+            switch (str) {
+                case "MMG":
+                    controller = new MmgController(masterPane, userSetting);
+                    break;
+                case "MMG(mic.)":
+                    controller = new MmgMicController(masterPane, userSetting);
+                    break;
+                case "EMG":
+                    controller = new EmgController(masterPane, userSetting);
+                    break;
+                case "HR":
+                    controller = new HrController(masterPane, userSetting);
+                    break;
+                case "":
+                    break;
+                default:
+                    throw new IllegalArgumentException("不明な選択です");
             }
-        });
+            if (controller != null) {
+                analysisTable.getItems().add(controller);
+            }
+        }
     }
 
-    public void setSecondButton(Consumer<? super Button> action) {
-        test(second.getChildren().stream(), Button.class).forEach(action);
+    private void startAnalysis() {
+        List<Integer> channelList = getChannelList();
+        double fs = getFs();
+        if (channelList.size() == 0) return;
+
+        samplingSetting.setAll(channelList, fs, fs);
+        adc.setSamplingSetting(samplingSetting);
+        buffers = adc.convertEternally();
+        for (int i = 0; i < buffers.size(); i++) {
+            Controller controller = analysisTable.getItems().get(i);
+            WaveBuffer waveBuffer = buffers.get(i);
+            controller.getAnalyzer().setSource(waveBuffer);
+        }
+        buffers.forEach(WaveBuffer::start);
+
+        startButton.setDisable(true);
+        forEachAnalysisControls(button -> button.setDisable(true));
+        addAnalysisButton.setDisable(true);
+        getControllers().forEach(controller -> controller.start(fs));
+        stopButton.setDisable(false);
+        pauseButton.setDisable(false);
+        analysisTask.start();
+    }
+
+    public void forEachAnalysisControls(Consumer<? super Button> action) {
+        castStream(analysisControls.getChildren().stream(), Button.class).forEach(action);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Stream<T> test(Stream<?> stream, Class<T> clazz) {
+    public <T> Stream<T> castStream(Stream<?> stream, Class<T> clazz) {
         return stream.filter(o -> clazz.equals(o.getClass())).map(o -> (T) o);
     }
 
-    public void setStartEvent(BiConsumer<Integer, Double> action) {
-        startBtn.setOnMouseClicked(event -> {
-            List<Integer> channelList = getChannelList();
-            double fs = getFs();
-            if (channelList.size() == 0) return;
+    private void stopAnalysis() {
+        if (getAnalysisNumber() == 0) return;
+        analysisTask.stop();
+        adc.stop();
+        buffers.forEach(WaveBuffer::stop);
+        stopButton.setDisable(true);
+        pauseButton.setDisable(true);
+        getControllers().forEach(Controller::stop);
+        startButton.setDisable(false);
+        forEachAnalysisControls(button -> button.setDisable(false));
 
-            samplingSetting.setAll(channelList, fs, fs);
-            adc.setSamplingSetting(samplingSetting);
-            buffers = adc.convertEternally();
-            for (int i = 0; i < buffers.size(); i++) {
-                Controller controller = tableView.getItems().get(i);
-                WaveBuffer waveBuffer = buffers.get(i);
-                controller.getAnalyzer().setSource(waveBuffer);
-            }
-            buffers.forEach(WaveBuffer::start);
-
-            startBtn.setDisable(true);
-            setSecondButton(button -> button.setDisable(true));
-            setBtn.setDisable(true);
-            action.accept(channelList.size(), fs);
-            getControllers().forEach(controller -> controller.start(fs));
-            stopBtn.setDisable(false);
-            pauseBtn.setDisable(false);
-            analysisTask.start();
-        });
+        setting.setSamplingFrequency(samplingSetting.getSamplingFrequency());
+        Saver.save("MasterSetting", setting);
     }
 
-    public void setStopEvent(Consumer<Object> action) {
-        // eventはnullの可能性もある
-        stopBtn.setOnMouseClicked(event -> {
-            if (getChannelNumber() == 0) return;
-            analysisTask.stop();
-            adc.stop();
-            buffers.forEach(WaveBuffer::stop);
-            stopBtn.setDisable(true);
-            pauseBtn.setDisable(true);
-            action.accept(event);
-            getControllers().forEach(Controller::stop);
-            startBtn.setDisable(false);
-            setSecondButton(button -> button.setDisable(false));
-
-            setting.setSamplingFrequency(samplingSetting.getSamplingFrequency());
-            Saver.save("MasterSetting", setting);
-        });
-    }
-
+    /**
+     * 解析を停止します。
+     */
     public void stop() {
-        stopBtn.getOnMouseClicked().handle(null);
+        stopAnalysis();
     }
 
-    public void analyze() {
+    private void analyze() {
         getControllers().parallelStream().forEach(controller -> controller.getAnalyzer().execute());
     }
 
+    /**
+     * 使用するチャンネルのリストを返します。
+     *
+     * @return 使用するチャンネルのリスト
+     */
     public List<Integer> getChannelList() {
-        return tableView.getItems().stream().map(Controller::getChannel).collect(Collectors.toList());
+        return analysisTable.getItems().stream().map(Controller::getChannel).sorted().collect(Collectors.toList());
     }
 
-    public int getChannelNumber() {
-        return tableView.getItems().size();
+    /**
+     * 解析数を返します。
+     *
+     * @return 解析数
+     */
+    public int getAnalysisNumber() {
+        return analysisTable.getItems().size();
     }
 
+    /**
+     * サンプリング周波数を返します。
+     *
+     * @return サンプリング周波数
+     */
     public double getFs() {
-        return Double.parseDouble(samplingFreq.getText());
+        return Double.parseDouble(samplingFrequency.getText());
     }
 
+    /**
+     * 現在登録されているコントローラのリストを返します。
+     *
+     * @return
+     */
     public List<Controller> getControllers() {
-        return new ArrayList<>(tableView.getItems());
+        return new ArrayList<>(analysisTable.getItems());
     }
 
     public Pane getRoot() {
@@ -265,35 +286,5 @@ public class MasterController {
 
     public void setUserSetting(UserSetting userSetting) {
         this.userSetting = userSetting;
-    }
-
-    public class Channel {
-        private PositiveIntField channel;
-        private Controller controller;
-
-        public Channel(int channel, Controller controller) {
-            this.channel = new PositiveIntField(channel);
-            this.controller = controller;
-        }
-
-        public PositiveIntField getChannel() {
-            return channel;
-        }
-
-        public int getChNum() {
-            return channel.getValueAsInt();
-        }
-
-        public Controller getController() {
-            return controller;
-        }
-
-        public void setChannel(PositiveIntField channel) {
-            this.channel = channel;
-        }
-
-        public void setController(Controller controller) {
-            this.controller = controller;
-        }
     }
 }

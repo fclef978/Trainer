@@ -51,6 +51,10 @@ public class LineGraph extends StackPane {
         lineMap.put(key, line);
     }
 
+    public PolygonalLine getLine(String key) {
+        return lineMap.get(key);
+    }
+
     public VectorList getVectorList(String key) {
         if (lineMap.isEmpty()) return null;
         if (!lineMap.keySet().contains(key)) throw new IllegalArgumentException("不正なキーです。" + key);

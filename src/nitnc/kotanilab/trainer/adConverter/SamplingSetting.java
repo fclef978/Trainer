@@ -25,9 +25,20 @@ public class SamplingSetting {
      */
     protected double samplingFrequency;
 
+    /**
+     * 引数なしコンストラクタです。
+     */
     public SamplingSetting() {
     }
 
+    /**
+     * コンストラクタです。
+     * サンプル数で設定します。
+     *
+     * @param channelList       使用するチャンネルのリスト
+     * @param samplingNumber    サンプル数
+     * @param samplingFrequency サンプリング周波数
+     */
     public SamplingSetting(List<Integer> channelList, int samplingNumber, double samplingFrequency) {
         this.channelList = channelList;
         this.samplingNumber = samplingNumber;
@@ -35,6 +46,14 @@ public class SamplingSetting {
         this.samplingFrequency = samplingFrequency;
     }
 
+    /**
+     * コンストラクタです。
+     * サンプル時間で設定します。
+     *
+     * @param channelList       使用するチャンネルのリスト
+     * @param samplingTime      サンプル時間[ms]
+     * @param samplingFrequency サンプリング周波数
+     */
     public SamplingSetting(List<Integer> channelList, double samplingTime, double samplingFrequency) {
         this.channelList = channelList;
         this.samplingNumber = timeToNumber(samplingTime);
@@ -42,10 +61,22 @@ public class SamplingSetting {
         this.samplingFrequency = samplingFrequency;
     }
 
+    /**
+     * サンプル数からサンプル時間に変換します。
+     *
+     * @param num サンプル数
+     * @return サンプル時間[ms]
+     */
     protected double numberToTime(int num) {
         return (double) num / samplingFrequency * 1000.0;
     }
 
+    /**
+     * サンプル時間からサンプル数に変換します。
+     *
+     * @param time サンプル時間[ms]
+     * @return サンプル数
+     */
     protected int timeToNumber(double time) {
         return (int) (time * samplingFrequency / 1000.0);
     }
@@ -62,14 +93,28 @@ public class SamplingSetting {
         return samplingFrequency;
     }
 
+    /**
+     * まとめて設定するユーティリティメソッドです。
+     *
+     * @param channelList       チャンネルのリスト
+     * @param samplingNumber    サンプル数
+     * @param samplingFrequency サンプリング周波数
+     */
     public void setAll(List<Integer> channelList, int samplingNumber, double samplingFrequency) {
         setChannelList(channelList);
         setSamplingNumber(samplingNumber);
         setSamplingFrequency(samplingFrequency);
     }
 
-    public void setAll(List<Integer> channelList, double mSec, double samplingFrequency) {
-        setAll(channelList, timeToNumber(mSec), samplingFrequency);
+    /**
+     * まとめて設定するユーティリティメソッドです。
+     *
+     * @param channelList       チャンネルのリスト
+     * @param samplingTime      サンプル秒[ms]
+     * @param samplingFrequency サンプリング周波数
+     */
+    public void setAll(List<Integer> channelList, double samplingTime, double samplingFrequency) {
+        setAll(channelList, timeToNumber(samplingTime), samplingFrequency);
     }
 
     public void setChannelList(List<Integer> channelList) {

@@ -71,7 +71,7 @@ public class ShiftedSeries<E extends Point> extends RealSeries<E> {
         double tmp = this.get(this.size() - 1).getX();
         this.forEach(point -> {
             point.shiftX(-tmp);
-            point.mulX(-1.0);
+            point.inverseSignX();
         });
     }
 

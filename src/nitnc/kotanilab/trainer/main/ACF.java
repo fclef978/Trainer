@@ -10,8 +10,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 自己相関関数に関するstaticメソッドだけで構成されるクラスです。
+ */
 public class ACF {
 
+    /**
+     * ウィーナー＝ヒンチンの定理に基づいて計算します。
+     * データ点数は2の累乗でなければなりません
+     *
+     * @param fft フーリエ変換に用いるFFTクラス
+     * @param x   変換する信号
+     * @return 自己相関関数
+     */
     public static double[] wienerKhinchin(Fft fft, List<Double> x) {
         int size = fft.getLength();
         Complex[] a = new Complex[size], b, c = new Complex[size], d;
@@ -30,51 +41,29 @@ public class ACF {
         return f;
     }
 
-    public static List<Double> acf(List<Double> a) {
-        List<Double> b = new ArrayList<>(a.size());
-
-        for (int i = 0; i < a.size(); i++) {
-            double tmp = 0;
-            for (int j = 0; j < a.size(); j++) {
-                tmp += a.get(j) * a.get((j + i) % a.size());
-            }
-            b.add(tmp);
-        }
-
-        return b;
-
-        /*
-        try {
-            FileWriter filewriter = new FileWriter("data.csv");
-            for (int i = 0; i < b.size(); i++) {
-                filewriter.append(String.valueOf(a.get(i))).append(",").append(String.valueOf(b.get(i))).append("\n");
-            }
-            filewriter.close();
-
-            System.out.println("テキストファイルの作成に成功しました");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
-    }
-
-    public static int pickPeekIndex(double[] a) {
-        List<Integer> index = new ArrayList<>();
-        List<Double> value = new ArrayList<>();
-        for (int i = 1; i < a.length - 1; i++) {
-            if (a[i] > a[i - 1] && a[i] > a[i + 1]) {
-                index.add(i);
-                value.add(a[i]);
+    /**
+     * データから最大の極大値のインデックスを返します。
+     *
+     * @param data 対象のデータ
+     * @return 極大値のインデックス
+     */
+    public static int pickPeekIndex(double[] data) {
+        List<Integer> indices = new ArrayList<>();
+        List<Double> values = new ArrayList<>();
+        for (int i = 1; i < data.length - 1; i++) {
+            if (data[i] > data[i - 1] && data[i] > data[i + 1]) {
+                indices.add(i);
+                values.add(data[i]);
             }
         }
-        if (value.size() > 0) {
-            double max = value.get(0);
-            for (int i = 1; i < value.size(); i++) {
-                double v = value.get(i);
+        if (values.size() > 0) {
+            double max = values.get(0);
+            for (int i = 1; i < values.size(); i++) {
+                double v = values.get(i);
                 if (max < v) max = v;
             }
-            int i = value.indexOf(max);
-            return index.get(i);
+            int i = values.indexOf(max);
+            return indices.get(i);
         } else {
             return 0;
         }

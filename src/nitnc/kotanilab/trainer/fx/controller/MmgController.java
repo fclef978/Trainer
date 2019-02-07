@@ -10,16 +10,33 @@ import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.analysis.MmgAnalyzer;
 import nitnc.kotanilab.trainer.fx.setting.Saver;
 
+/**
+ * MMGのControllerです。
+ */
 public class MmgController extends Controller<MmgAnalyzer> {
     private PositiveIntField samplingNumber = new PositiveIntField(256);
     private MgSetting setting;
-    protected MmgField filed;
+    private Indicator filed;
     private String settingName;
 
+    /**
+     * コンストラクタです。
+     *
+     * @param masterPane  OpenGLの親ペイン
+     * @param userSetting ユーザ設定
+     */
     public MmgController(Pane masterPane, UserSetting userSetting) {
         this(userSetting, new MmgAnalyzer(masterPane), "MMG", "MmgSetting");
     }
 
+    /**
+     * コンストラクタです。
+     *
+     * @param userSetting ユーザ設定
+     * @param analyzer アナライザ
+     * @param name 名前
+     * @param settingName 設定保存ファイルのファイルネーム
+     */
     protected MmgController(UserSetting userSetting, MmgAnalyzer analyzer, String name, String settingName) {
         super(name, analyzer, userSetting);
         this.settingName = settingName;
@@ -27,7 +44,7 @@ public class MmgController extends Controller<MmgAnalyzer> {
         Label label = new Label("Sampling Number");
         operator.getChildren().addAll(label, samplingNumber);
         samplingNumber.setStyle("-fx-max-width: 50px");
-        setVisible("Wave", "Spectrum", "Frequency", "RMS");
+        addAllVisible("Wave", "Spectrum", "Frequency", "RMS");
         if (setting != null) {
             samplingNumber.setText(String.valueOf(setting.getSamplingNumber()));
             channel.setValueAsInt(setting.getChannel());
@@ -38,7 +55,7 @@ public class MmgController extends Controller<MmgAnalyzer> {
         } else {
             setting = new MgSetting();
         }
-        filed = new MmgField();
+        filed = new Indicator();
         analyzer.setMfCallback(mf -> filed.setMf(mf));
         indicator.getChildren().add(filed.getWrapper());
     }
@@ -61,13 +78,17 @@ public class MmgController extends Controller<MmgAnalyzer> {
         Saver.save(settingName, setting);
     }
 
-    public class MmgField {
+    /**
+     * MMGのインジケータです。
+     * 表示に必要なコントロールを持ちます。
+     */
+    private class Indicator {
         private HBox wrapper = new HBox(3);
         private Label label = new Label("中央周波数");
         private Text mf = new Text("0");
         private Label unit = new Label("Hz");
 
-        public MmgField() {
+        public Indicator() {
             wrapper.getChildren().addAll(label, mf, unit);
         }
 

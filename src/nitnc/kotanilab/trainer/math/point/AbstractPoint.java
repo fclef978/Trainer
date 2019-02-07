@@ -7,11 +7,22 @@ import java.util.function.UnaryOperator;
  * 二次元点データのための抽象クラスです。
  * このクラスはイミュータブルでなければなりません。
  */
-public class AbstractPoint<X, Y> implements Cloneable {
+public abstract class AbstractPoint<X, Y> implements Cloneable {
 
+    /**
+     * xの値です。
+     */
     protected X x;
+    /**
+     * yの値です。
+     */
     protected Y y;
 
+    /**
+     * コンストラクタです。
+     * @param x xの値
+     * @param y yの値
+     */
     public AbstractPoint(X x, Y y) {
         this.x = x;
         this.y = y;

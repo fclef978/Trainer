@@ -11,7 +11,6 @@ import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.CsvLogger;
 import nitnc.kotanilab.trainer.util.Utl;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,9 +40,10 @@ public class MmgAnalyzer extends Analyzer {
         );
         filters.addAll(Arrays.asList(
                 // x -> (x - 2.5) / 1.0,
-                IirFilter.execute("bpf0.001-0.2.txt"),
-                IirFilter.execute("bef0.048-0.052.txt")
+                //IirFilter.execute("bpf0.001-0.2.txt"),
+                //IirFilter.execute("bef0.048-0.052.txt")
         ));
+        graphContextMap.get("Spectrum").getGraph().getLine("Spectrum").setThick(2.0);
     }
 
     protected MmgAnalyzer(Pane masterPane, String name, LineGraph waveGraph, LineGraph spectrumGraph, LineGraph freqGraph, LineGraph rmsGraph) {
@@ -81,7 +81,7 @@ public class MmgAnalyzer extends Analyzer {
         graphContextMap.get("Spectrum").setGraphSetter(graph -> {
             graph.getXAxis().setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
             graph.getXAxis().setMax(fs / 2.0);
-            graph.putGideLine("MF", 0.0, Color.RED, 2.0, true);
+            // graph.putGideLine("MF", 0.0, Color.RED, 2.0, true);
         });
         graphContextMap.get("Frequency").setGraphSetter(graph -> {
             graph.getYAxis().setMax(fs / 2.0);
@@ -121,11 +121,11 @@ public class MmgAnalyzer extends Analyzer {
             Wave tmpWave = source.getWave(number);
             Wave wave = tmpWave.stream().to(tmpWave::from);
             // fft処理
-            tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency()).replaceYByIndex(Wave::hanning, (a, b) -> a * b).to(wave::from);
+            tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency()).replaceYByIndex(Wave::hamming, (a, b) -> a * b).to(wave::from);
             Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
             Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
             // スペクトラムのdB化
-            Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::toLogY);
+            Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
             graphContextMap.get("Spectrum").update("Spectrum", powerSpectrum.getXList(), powerSpectrum.getYList());
 
             Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
@@ -135,7 +135,7 @@ public class MmgAnalyzer extends Analyzer {
             peek.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
             LineGraph spectrumGraph = graphContextMap.get("Spectrum").getGraph();
-            spectrumGraph.setGideLine("MF", medianPoint.getY());
+            // spectrumGraph.setGideLine("MF", medianPoint.getY());
 
             graphContextMap.get("Frequency").update("Median", median.getXList(), median.getYList());
             graphContextMap.get("Frequency").update("Peek", peek.getXList(), peek.getYList());

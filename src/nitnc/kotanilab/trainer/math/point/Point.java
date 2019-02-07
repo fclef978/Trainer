@@ -8,20 +8,29 @@ import java.util.function.UnaryOperator;
  * 二次元で実数の点データです。
  */
 public class Point extends AbstractPoint<Double, Double>{
+    /**
+     * コンストラクタです。
+     * @param x xの値
+     * @param y yの値
+     */
     public Point(double x, double y) {
         super(x, y);
     }
 
-    public Point mapY(UnaryOperator<Double> function) {
-        return new Point(x, function.apply(y));
-    }
-
+    /**
+     * 指定した数だけxをずらします。
+     * x += val
+     * @param val ずらす量
+     */
     public void shiftX(Double val) {
         this.x += val;
     }
 
-    public void mulX(Double val) {
-        this.x *= val;
+    /**
+     * xの符号を反転します。
+     */
+    public void inverseSignX() {
+        this.x *= -1;
     }
 
     @Override

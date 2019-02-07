@@ -25,7 +25,7 @@ public class Sampler {
             scanner.next();
             System.out.println("GO!!");
             Wave wave = adc.convertContinuously().get(0);
-            FileWriter fw = new FileWriter(".\\test.csv", false);
+            FileWriter fw = new FileWriter(".\\castStream.csv", false);
             PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
             wave.forEach(point -> {
                 pw.print(point.getX().toString() + ",");

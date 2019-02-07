@@ -71,7 +71,7 @@ public class HrAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
-        graphContextMap.get("HR").ifVisible(graph->graph.getGraph().clearGideLine());
+        graphContextMap.get("HR").ifVisible(graph -> graph.getGraph().clearGideLine());
         getGraphs().forEach(this::clearVectorList);
         super.stop();
         heartRate.clear();
@@ -80,7 +80,6 @@ public class HrAnalyzer extends Analyzer {
 
     @Override
     public void execute() {
-
         Wave hrWave = source.getWave(hrCalcLength);
         if (graphContextMap.get("Wave").isVisible()) {
             Wave tmpWave = source.getWave(hrCalcLength);
@@ -103,7 +102,6 @@ public class HrAnalyzer extends Analyzer {
                     });
                     graphContextMap.get("Diff").ifVisible(graph -> {
                         Wave diffWave = hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10).to(hrWave::from);
-                        graph.getGraph().getVectorList("Diff").set(diffWave.getXList(), diffWave.getYList());
                         graph.update("Diff", diffWave.getXList(), diffWave.getYList());
                     });
                     double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0;

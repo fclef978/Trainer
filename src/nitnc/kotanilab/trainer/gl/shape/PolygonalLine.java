@@ -44,4 +44,8 @@ public class PolygonalLine extends Child {
     public VectorList getVectorList() {
         return vectorList;
     }
+
+    public void setThick(double thick) {
+        this.thick = (float) thick;
+    }
 }

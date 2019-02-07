@@ -15,14 +15,14 @@ public interface ADConverter {
 
     /**
      * コンバータの性能を返します。
-     * @return コンバータの性能です。
+     * @return コンバータの性能
      */
     ConverterSpec getConverterSpec();
 
     /**
      * サンプリング設定を返します。
-     * 初回呼び出し時にデフォルト設定を返します。
-     * @return
+     * 初期値はデフォルト設定です。
+     * @return サンプリング設定
      */
     SamplingSetting getSamplingSetting();
 
@@ -35,20 +35,20 @@ public interface ADConverter {
     /**
      * サンプリング設定の条件で連続でサンプリングします。
      * サンプリング回数は有限です。
-     * @return チャンネルごとの波形です。
+     * @return チャンネルごとの波形
      */
     List<Wave> convertContinuously();
 
     /**
      * 単発でサンプリングします。
-     * @return チャンネルごとの値です。
+     * @return チャンネルごとの値
      */
     List<PointOfWave> convertOnce();
 
     /**
      * stop()が呼ばれるまで連続でサンプリングします。
      * 動作は非同期になります。
-     * @return チャンネルごとのバッファです。
+     * @return チャンネルごとのバッファ
      */
     List<WaveBuffer> convertEternally();
 

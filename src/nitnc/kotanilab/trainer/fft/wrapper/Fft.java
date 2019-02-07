@@ -27,7 +27,7 @@ public interface Fft {
      * 逆離散フーリエ変換です。
      *
      * @param signal 入力スペクトラムです。
-     * @return 出力スペクトルです。
+     * @return 出力スペクトラムです。
      */
     public Complex[] idft(Complex[] signal);
 

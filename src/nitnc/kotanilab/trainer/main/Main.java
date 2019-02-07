@@ -9,16 +9,11 @@ import nitnc.kotanilab.trainer.fx.stage.UserSettingStage;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
-import nitnc.kotanilab.trainer.gl.pane.VPane;
 
 /**
  * メイン
  */
 public class Main extends Application {
-
-    private int ch = 1;
-    private int n = 256;
-    private double fs = 100;
 
     private Window window;
     private Pane masterPane;
@@ -26,11 +21,13 @@ public class Main extends Application {
     private MasterController masterController;
     private Stage primaryStage;
 
-
     public static void main(final String... args) {
         launch();
     }
 
+    /**
+     * OpenGLの初期化
+     */
     public void glInit() {
         System.out.println("初期化開始");
 
@@ -56,17 +53,8 @@ public class Main extends Application {
 
         root = new VBox();
 
-        masterController = new MasterController(window);
+        masterController = new MasterController(masterPane);
         root.getChildren().addAll(masterController.getRoot());
-        masterController.setSetEvent(root, masterPane, ch -> {
-            this.ch = ch;
-        });
-
-        masterController.setStartEvent((ch, fs) -> {
-        });
-
-        masterController.setStopEvent((o) -> {
-        });
         Scene scene = new Scene(root, 720, 320);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Panel");
