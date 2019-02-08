@@ -35,7 +35,7 @@ public class MmgAnalyzer extends Analyzer {
         this(masterPane, "MMG",
                 createWaveGraph(1, new Unit("Acceleration", "m/s/s"), 5, "Wave"),
                 createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -200, 0, 25), "Spectrum"),
-                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0, 0.1), "Median", "Peek"),
+                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0), "Median", "Peek"),
                 createWaveGraph(10, Unit.v(), 0, 5, "RMS")
         );
         filters.addAll(Arrays.asList(
@@ -43,10 +43,10 @@ public class MmgAnalyzer extends Analyzer {
                 //IirFilter.execute("bpf0.001-0.2.txt"),
                 //IirFilter.execute("bef0.048-0.052.txt")
         ));
-        graphContextMap.get("Spectrum").getGraph().getLine("Spectrum").setThick(2.0);
+        graphContextMap.get("Spectrum").getPlot().getLine("Spectrum").setThick(2.0);
     }
 
-    protected MmgAnalyzer(Pane masterPane, String name, LineGraph waveGraph, LineGraph spectrumGraph, LineGraph freqGraph, LineGraph rmsGraph) {
+    protected MmgAnalyzer(Pane masterPane, String name, LinePlot waveGraph, LinePlot spectrumGraph, LinePlot freqGraph, LinePlot rmsGraph) {
         super(masterPane, name);
 
         Chart waveChart = new Chart("Wave", waveGraph);
@@ -72,18 +72,18 @@ public class MmgAnalyzer extends Analyzer {
     public void start(double fs, int n) {
         source.setXMax(fs * n);
         source.addCallback(filters);
-        graphContextMap.get("Wave").setGraphSetter(graph -> {
+        graphContextMap.get("Wave").setPlotSetter(graph -> {
             graph.getXAxis().setMax(waveXMax);
             graph.getXAxis().setSize(waveXMax / 10);
             graph.getYAxis().setMax(waveYMax);
             graph.getYAxis().setMin(waveYMin);
         });
-        graphContextMap.get("Spectrum").setGraphSetter(graph -> {
+        graphContextMap.get("Spectrum").setPlotSetter(graph -> {
             graph.getXAxis().setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
             graph.getXAxis().setMax(fs / 2.0);
             // graph.putGideLine("MF", 0.0, Color.RED, 2.0, true);
         });
-        graphContextMap.get("Frequency").setGraphSetter(graph -> {
+        graphContextMap.get("Frequency").setPlotSetter(graph -> {
             graph.getYAxis().setMax(fs / 2.0);
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
@@ -100,7 +100,7 @@ public class MmgAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
-        graphContextMap.get("Spectrum").getGraph().clearGideLine();
+        graphContextMap.get("Spectrum").getPlot().clearGideLine();
         getGraphs().forEach(this::clearVectorList);
         super.stop();
         median.clear();
@@ -112,7 +112,7 @@ public class MmgAnalyzer extends Analyzer {
     public void execute() {
         if (graphContextMap.get("Wave").isVisible()) {
             Wave tmpWave = source.getWave(1.0);
-            LineGraph waveGraph = graphContextMap.get("Wave").getGraph();
+            LinePlot waveGraph = graphContextMap.get("Wave").getPlot();
             Wave wave = tmpWave.stream().lastCutX(waveGraph.getXAxis().getRange()).zeroX(waveGraph.getXAxis().getMax())
                     .to(tmpWave::from);
             graphContextMap.get("Wave").update("Wave", wave.getXList(), wave.getYList());
@@ -134,7 +134,7 @@ public class MmgAnalyzer extends Analyzer {
             median.add(medianPoint);
             peek.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
-            LineGraph spectrumGraph = graphContextMap.get("Spectrum").getGraph();
+            LinePlot spectrumGraph = graphContextMap.get("Spectrum").getPlot();
             // spectrumGraph.setGideLine("MF", medianPoint.getY());
 
             graphContextMap.get("Frequency").update("Median", median.getXList(), median.getYList());

@@ -1,9 +1,7 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
 import nitnc.kotanilab.trainer.gl.pane.Pane;
-import nitnc.kotanilab.trainer.math.analysis.Analyzer;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -11,15 +9,15 @@ import java.util.function.Consumer;
  * グラフ描画系の一連のクラスをまとめたユーティリティクラスです。
  */
 public class GraphContext {
-    LineGraph graph;
+    LinePlot plot;
     Chart chart;
     Pane wrapper;
     boolean visible;
     protected boolean pause = false;
-    Consumer<? super LineGraph> graphSetter;
+    Consumer<? super LinePlot> plotSetter;
 
-    public GraphContext(LineGraph graph, Chart chart, Pane wrapper, boolean visible) {
-        this.graph = graph;
+    public GraphContext(LinePlot plot, Chart chart, Pane wrapper, boolean visible) {
+        this.plot = plot;
         this.chart = chart;
         this.wrapper = wrapper;
         wrapper.getChildren().add(chart);
@@ -28,23 +26,23 @@ public class GraphContext {
 
     public void confirm(Pane masterPane) {
         if (visible) {
-            if (graphSetter != null) {
-                graphSetter.accept(graph);
+            if (plotSetter != null) {
+                plotSetter.accept(plot);
             }
-            chart.setGraph();
+            chart.redraw();
             masterPane.getChildren().add(wrapper);
         }
     }
 
     public void update(String key, List<? extends Double> xc, List<? extends Double> yc) {
         if (visible && !pause) {
-            graph.getVectorList(key).set(xc, yc);
+            plot.getVectorList(key).set(xc, yc);
         }
     }
 
     public void update(String key, double[] xc, double[] yc) {
         if (visible && !pause) {
-            graph.getVectorList(key).set(xc, yc);
+            plot.getVectorList(key).set(xc, yc);
         }
     }
 
@@ -52,16 +50,16 @@ public class GraphContext {
         if (visible) action.accept(this);
     }
 
-    public void setGraphSetter(Consumer<? super LineGraph> graphSetter) {
-        this.graphSetter = graphSetter;
+    public void setPlotSetter(Consumer<? super LinePlot> plotSetter) {
+        this.plotSetter = plotSetter;
     }
 
-    public LineGraph getGraph() {
-        return graph;
+    public LinePlot getPlot() {
+        return plot;
     }
 
-    public void setGraph(LineGraph graph) {
-        this.graph = graph;
+    public void setPlot(LinePlot plot) {
+        this.plot = plot;
     }
 
     public Chart getChart() {

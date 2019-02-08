@@ -6,7 +6,7 @@ import nitnc.kotanilab.trainer.fx.controller.HrController;
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
 import nitnc.kotanilab.trainer.gl.chart.GraphContext;
-import nitnc.kotanilab.trainer.gl.chart.LineGraph;
+import nitnc.kotanilab.trainer.gl.chart.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.Unit;
@@ -29,22 +29,22 @@ public class HrAnalyzer extends Analyzer {
 
     public HrAnalyzer(Pane masterPane) {
         super(masterPane, "HR");
-        LineGraph waveGraph = createWaveGraph(1, Unit.v(), -2, 2, "Wave");
+        LinePlot waveGraph = createWaveGraph(1, Unit.v(), -2, 2, "Wave");
         Chart waveChart = new Chart("Wave", waveGraph);
         graphContextMap.put("Wave", new GraphContext(waveGraph, waveChart, createWrapperPane(1), false));
 
-        LineGraph hrGraph = createTimeSeriesGraph(60, new Axis("HR[bpm]", 50.0, 210.0, 20), "HR");
+        LinePlot hrGraph = createTimeSeriesGraph(60, new Axis("HR[bpm]", 50.0, 210.0, 20), "HR");
         Chart hrChart = new Chart("Heart Rate", hrGraph);
         graphContextMap.put("HR", new GraphContext(hrGraph, hrChart, createWrapperPane(1), false));
 
-        LineGraph acfGraph = createGraph(
+        LinePlot acfGraph = createGraph(
                 new Axis("Value", 0.0, hrCalcLength / 2, hrCalcLength / 20),
                 new Axis("Value", -1.0, 1.0, 0.5),
                 "ACF"
         );
         addGraphContext("ACF", acfGraph);
 
-        LineGraph diffGraph = createWaveGraph(6, Unit.v(), -3, 3, "Diff");
+        LinePlot diffGraph = createWaveGraph(6, Unit.v(), -3, 3, "Diff");
         addGraphContext("Diff", diffGraph);
 
         panes.addAll(getGraphWrappers());
@@ -55,11 +55,11 @@ public class HrAnalyzer extends Analyzer {
         source.setXMax(10.0);
         source.setDecimationNumber(16);
         source.addCallback(IirFilter.execute("bpf0.0001-0.01.txt"));
-        graphContextMap.get("Wave").setGraphSetter(graph -> {
+        graphContextMap.get("Wave").setPlotSetter(graph -> {
             graph.getXAxis().setMax(hrCalcLength / source.getSamplingFrequency());
             graph.getXAxis().setSize(hrCalcLength / source.getSamplingFrequency() / 8.0);
         });
-        graphContextMap.get("HR").setGraphSetter(graph -> {
+        graphContextMap.get("HR").setPlotSetter(graph -> {
             graph.putGideLine("Maximal", HrController.getMaxHR(age), Color.RED, 1.0, false);
             graph.putGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), 1.0, false);
         });
@@ -71,7 +71,7 @@ public class HrAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
-        graphContextMap.get("HR").ifVisible(graph -> graph.getGraph().clearGideLine());
+        graphContextMap.get("HR").ifVisible(graph -> graph.getPlot().clearGideLine());
         getGraphs().forEach(this::clearVectorList);
         super.stop();
         heartRate.clear();
@@ -83,7 +83,7 @@ public class HrAnalyzer extends Analyzer {
         Wave hrWave = source.getWave(hrCalcLength);
         if (graphContextMap.get("Wave").isVisible()) {
             Wave tmpWave = source.getWave(hrCalcLength);
-            LineGraph waveGraph = graphContextMap.get("Wave").getGraph();
+            LinePlot waveGraph = graphContextMap.get("Wave").getPlot();
             Wave wave1 = tmpWave.stream().lastCutX(waveGraph.getXAxis().getRange()).zeroX(waveGraph.getXAxis().getMax()).to(tmpWave::from);
             graphContextMap.get("Wave").update("Wave", wave1.getXList(), wave1.getYList()); // グラフ登録
         }
@@ -108,7 +108,7 @@ public class HrAnalyzer extends Analyzer {
                     Point hrPoint = new Point(hrWave.getStartTime(), hr);
                     logger.print(hrPoint);
                     heartRate.add(hrPoint);
-                    LineGraph hrGraph = graphContextMap.get("HR").getGraph();
+                    LinePlot hrGraph = graphContextMap.get("HR").getPlot();
                     graphContextMap.get("HR").update("HR", heartRate.getXList(), heartRate.getYList());
                     // hrGraph.setGideLine("Maximal", HrController.getMaxHR(age));
                     // hrGraph.setGideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET);

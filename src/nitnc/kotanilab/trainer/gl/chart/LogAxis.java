@@ -7,25 +7,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Hirokazu SUZUKI on 2018/08/01.
- * 対数軸
+ * グラフの対数軸です。
+ * グリッドの間隔と補助目盛りの有無は固定です。
  */
 public class LogAxis extends Axis {
 
-    public LogAxis(String name, double min, double max, double size, boolean vertical) {
-        super(name, Math.log10(min), Math.log10(max), size, vertical);
+
+    /**
+     * コンストラクタです。
+     *
+     * @param name     軸の名前
+     * @param min      最小値
+     * @param max      最大値
+     * @param vertical 垂直軸かどうか
+     */
+    public LogAxis(String name, double min, double max, boolean vertical) {
+        super(name, Math.log10(min), Math.log10(max), 0.0, vertical);
     }
 
-    public LogAxis(String name, int min, int max, double size, boolean vertical) {
-        super(name, min, max, size, vertical);
-    }
 
-    public LogAxis(String name, double min, double max, double size) {
-        super(name, Math.log10(min), Math.log10(max), size);
-    }
-
-    public LogAxis(String name, int min, int max, double size) {
-        super(name, min, max, size);
+    /**
+     * 水平軸で作成します。
+     *
+     * @param name     軸の名前
+     * @param min      最小値
+     * @param max      最大値
+     */
+    public LogAxis(String name, double min, double max) {
+        super(name, Math.log10(min), Math.log10(max), 0.0);
     }
 
     @Override
@@ -44,7 +53,7 @@ public class LogAxis extends Axis {
     }
 
     @Override
-    public List<Text> getGridStrings() {
+    public List<Text> getTickMarks() {
         List<Text> strings = new ArrayList<>();
         for (double i = min; i <= max; i++) {
             double num = Math.pow(10, i);
@@ -55,13 +64,13 @@ public class LogAxis extends Axis {
             } else {
                 str = String.format("%d", Math.round(num));
             }
-            strings.add(createText(str, getVector(pos)));
+            strings.add(createText(str, getTickMarkVector(pos)));
         }
         return strings;
     }
 
     @Override
-    public List<Line> getGrids() {
+    public List<Line> getGraduationLines() {
         List<Line> grids = new ArrayList<>();
         boolean first = true;
         for (double i = min; i < max; i++) {

@@ -16,20 +16,30 @@ import nitnc.kotanilab.trainer.fx.setting.Saver;
 
 import java.util.function.Consumer;
 
+/**
+ * ユーザ設定ダイアログです。
+ * コンストラクタが実行されると自動的に表示されます。
+ */
 public class UserSettingStage extends Stage {
     private Scene scene;
     private UserSetting userSetting;
     private TextField nameField = new TextField("noname");
-    private PositiveIntField ageField = new PositiveIntField("20");
+    private PositiveIntField ageField = new PositiveIntField(20);
     private VBox root = new VBox(1);
     private Consumer<UserSetting> finishAction;
     private Button enter = new Button("Enter");
 
+    /**
+     * コンストラクタです。
+     * Enterボタンが押されるとfinishActionが実行されます。
+     *
+     * @param finishAction 終了時の動作
+     */
     public UserSettingStage(Consumer<UserSetting> finishAction) {
         this.finishAction = finishAction;
         userSetting = (UserSetting) Saver.load("UserSetting");
         VBox wrapper = new VBox(1);
-        wrapper.getChildren().addAll(createColumn("Name", nameField), createColumn("Age", ageField));
+        wrapper.getChildren().addAll(createRow("Name", nameField), createRow("Age", ageField));
         ageField.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.ENTER)) {
                 finish();
@@ -49,16 +59,16 @@ public class UserSettingStage extends Stage {
         show();
     }
 
-    private Pane createColumn(String name, Node node) {
+    private Pane createRow(String name, Node node) {
         HBox wrapper = new HBox(1);
         wrapper.getChildren().addAll(new Label(name), node);
         return wrapper;
     }
 
-    public void finish() {
-        finishAction.accept(new UserSetting(nameField.getText(), ageField.getValueAsInt()));
+    private void finish() {
+        finishAction.accept(new UserSetting(nameField.getText(), ageField.getValue()));
         userSetting.setName(nameField.getText());
-        userSetting.setAge(ageField.getValueAsInt());
+        userSetting.setAge(ageField.getValue());
         Saver.save("UserSetting", userSetting);
         this.close();
     }

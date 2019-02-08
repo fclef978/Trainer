@@ -3,10 +3,8 @@ package nitnc.kotanilab.trainer.gl.chart;
 
 import nitnc.kotanilab.trainer.gl.shape.*;
 import nitnc.kotanilab.trainer.gl.util.Vector;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +34,17 @@ public class Axis {
      */
     protected boolean vertical;
 
-    private boolean isReverce = false;
+    private boolean reverce = false;
 
+    /**
+     * コンストラクタです。
+     *
+     * @param name     軸の名前
+     * @param min      最小値
+     * @param max      最大値
+     * @param size     補助線の間隔
+     * @param vertical 垂直軸かどうか
+     */
     public Axis(String name, double min, double max, double size, boolean vertical) {
         this.name = name;
         this.min = min;
@@ -46,40 +53,75 @@ public class Axis {
         this.vertical = vertical;
     }
 
+    /**
+     * 水平軸で作成します。
+     *
+     * @param name 軸の名前
+     * @param min  最小値
+     * @param max  最大値
+     * @param size 補助線の間隔
+     */
     public Axis(String name, double min, double max, double size) {
         this(name, min, max, size, false);
     }
 
-    public void setReverse(boolean isReverse) {
-        this.isReverce = isReverse;
+    /**
+     * 軸の方向を反転させるかどうかを設定します。
+     *
+     * @param reverse 反転ならtrue
+     */
+    public void setReverse(boolean reverse) {
+        this.reverce = reverse;
     }
 
-    public void setVertical() {
-        vertical = true;
+    /**
+     * 軸を垂直にするか水平にするかを設定します。
+     *
+     * @param vertical 垂直ならtrue
+     */
+    public void setVertical(boolean vertical) {
+        this.vertical = vertical;
     }
 
-    protected double getIntermediate() {
+    /**
+     * 軸の絶対中間値を返します。
+     * 絶対中間値は軸の最小値と最大値の中間値です。
+     *
+     * @return 軸の絶対中間値
+     */
+    protected double getAbsIntermediate() {
         return (max + min) / 2.0;
     }
 
-    protected double getHalf() {
+    /**
+     * 軸の相対中間値を返します。
+     * 相対中間値は軸の最小値を0にずらしたときの中間値です。
+     *
+     * @return 軸の相対中間値
+     */
+    protected double getRltIntermediate() {
         return (max - min) / 2.0;
     }
 
+    /**
+     * 値を軸の値でOpenGLのベクトルに変換します。
+     *
+     * @param val 値
+     * @return ベクトル
+     */
     public double scale(double val) {
-        return  (val - getIntermediate()) / getHalf();
-    }
-
-    protected double restrict(double val) {
-        if (val < min) val = min;
-        if (val > max) val = max;
-        return val;
+        return (val - getAbsIntermediate()) / getRltIntermediate();
     }
 
     public double getMin() {
         return min;
     }
 
+    /**
+     * 値の範囲を返します。
+     *
+     * @return 値の範囲
+     */
     public double getRange() {
         return max - min;
     }
@@ -108,7 +150,12 @@ public class Axis {
         return name;
     }
 
-    public List<Text> getGridStrings() {
+    /**
+     * 目盛りの文字のリストを返します。
+     *
+     * @return 目盛りの文字のリスト
+     */
+    public List<Text> getTickMarks() {
         List<Text> strings = new ArrayList<>();
         for (double i = min; i <= max * 1.001; i += size) {
             double pos = scale(i);
@@ -118,12 +165,17 @@ public class Axis {
                 split[1] = split[1].substring(0, split[1].length() - 1);
             }
             String str = split[1].isEmpty() ? split[0] : split[0] + "." + split[1];
-            strings.add(createText(str, getVector(pos).reverceX(isReverce)));
+            strings.add(createText(str, getTickMarkVector(pos).reverceX(reverce)));
         }
         return strings;
     }
 
-    public List<Line> getGrids() {
+    /**
+     * 目盛り線のリストを返します。
+     *
+     * @return 目盛り線のリスト
+     */
+    public List<Line> getGraduationLines() {
         List<Line> grids = new ArrayList<>();
         for (double i = min + size; i < max; i += size) {
             double pos = scale(i);
@@ -136,7 +188,13 @@ public class Axis {
         return grids;
     }
 
-    protected Vector getVector(double pos) {
+    /**
+     * 目盛り文字のVectorを返します。
+     *
+     * @param pos OpenGLのベクトル
+     * @return 目盛り文字のVector
+     */
+    protected Vector getTickMarkVector(double pos) {
         Vector vector;
         if (vertical) {
             vector = new Vector(0.4, pos);
@@ -146,6 +204,12 @@ public class Axis {
         return vector;
     }
 
+    /**
+     * 文字列と位置からそれに対応したOpenGL文字列オブジェクトを細かい設定なしで作成するユーティリティメソッドです。
+     * @param str 文字列
+     * @param vector 位置
+     * @return OpenGL文字列オブジェクト
+     */
     protected Text createText(String str, Vector vector) {
         return new Text(new Font("", Font.PLAIN, 10), Color.BLACK, str, vector, vertical);
     }

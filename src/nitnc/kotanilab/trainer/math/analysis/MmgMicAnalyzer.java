@@ -13,7 +13,7 @@ public class MmgMicAnalyzer extends MmgAnalyzer {
         super(masterPane, "MMG(mic.)",
                 createWaveGraph(0.1, Unit.v(), 2, "Wave"),
                 createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -100, 0, 10), "Spectrum"),
-                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0, 0.1), "Median", "Peek"),
+                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0), "Median", "Peek"),
                 createWaveGraph(10, Unit.v(), 0, 5, "RMS")
         );
         waveYMax = 2;

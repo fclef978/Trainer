@@ -1,6 +1,7 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
 import nitnc.kotanilab.trainer.gl.node.Node;
+import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.*;
 import nitnc.kotanilab.trainer.gl.util.Vector;
@@ -13,15 +14,20 @@ import java.util.*;
 import java.util.List;
 
 /**
- * 折れ線グラフの線部分
- * 表示部とデータ部でスレッドが異なるため衝突しないように気をつける必要がある。
+ * 折れ線グラフのプロットクラスです。
+ * 表示部とデータ部でスレッドが異なるため衝突しないように気をつける必要があります。
  */
-public class LineGraph extends StackPane {
+public class LinePlot extends StackPane {
 
     protected Axis xAxis;
     protected Axis yAxis;
     protected Map<String, PolygonalLine> lineMap = new LinkedHashMap<>();
-    protected Map<String, GideLineContext>  gideLineContextMap = new HashMap<>();
+    protected Map<String, GideLineContext> gideLineContextMap = new HashMap<>();
+    private Text xLabel;
+    private Text yLabel;
+    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
+    private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
+    private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");
 
     /**
      * コンストラクタです
@@ -29,11 +35,12 @@ public class LineGraph extends StackPane {
      * @param xAxis x軸
      * @param yAxis y軸
      */
-    public LineGraph(Axis xAxis, Axis yAxis) {
+    public LinePlot(Axis xAxis, Axis yAxis) {
         getStyle().put("size:100% 100%;margin:0 0;border:none;");
         this.xAxis = xAxis;
         this.yAxis = yAxis;
-        yAxis.setVertical();
+        yAxis.setVertical(true);
+        children.addAll(xAxisArea, yAxisArea, plotArea);
     }
 
     /**
@@ -47,30 +54,68 @@ public class LineGraph extends StackPane {
         VectorList vectorList = new VectorList(xAxis::scale, yAxis::scale);
         PolygonalLine line = new PolygonalLine(vectorList, color, thick);
         line.setGroup(key);
-        children.add(line);
+        plotArea.getChildren().add(line);
         lineMap.put(key, line);
     }
 
+    /**
+     * 軸の再描画を行います。
+     * Axisの設定を変えた後に実行すると描画に反映されます。
+     */
+    public void redraw() {
+        xAxisArea.getChildren().clear();
+        yAxisArea.getChildren().clear();
+        plotArea.getChildren().clear();
+
+        List<Line> xGrids = xAxis.getGraduationLines();
+        List<Line> yGrids = yAxis.getGraduationLines();
+        List<Text> xAxisLabels = xAxis.getTickMarks();
+        List<Text> yAxisLabels = yAxis.getTickMarks();
+
+        plotArea.getChildren().addAll(xGrids);
+        plotArea.getChildren().addAll(yGrids);
+        gideLineContextMap.values().forEach(glc -> {
+            glc.getNodes().forEach(node -> plotArea.getChildren().add(node));
+        });
+        plotArea.getChildren().addAll(lineMap.values());
+        xAxisArea.getChildren().addAll(xAxisLabels);
+        yAxisArea.getChildren().addAll(yAxisLabels);
+
+        xLabel = new Text(xAxis.getName(), new Vector(0.0, -0.4), false);
+        xAxisArea.getChildren().add(xLabel);
+        yLabel = new Text(yAxis.getName(), new Vector(-0.4, 0.0), true);
+        yAxisArea.getChildren().add(yLabel);
+    }
+
+    /**
+     * 指定したキーの折れ線の描画に使用しているPolygonalLineを返します。
+     *
+     * @param key キー
+     * @return 折れ線の描画に使用しているPolygonalLine
+     */
     public PolygonalLine getLine(String key) {
         return lineMap.get(key);
     }
 
+    /**
+     * 指定したキーの折れ線の描画に使用しているPolygonalLineの絶対描画位置を持つVectorListを返します。
+     *
+     * @param key キー
+     * @return PolygonalLineのVectorList
+     */
     public VectorList getVectorList(String key) {
         if (lineMap.isEmpty()) return null;
         if (!lineMap.keySet().contains(key)) throw new IllegalArgumentException("不正なキーです。" + key);
         return lineMap.get(key).getVectorList();
     }
 
+    /*
+    TODO Chartへ移す
+     */
     public void putGideLine(String label, double value, Color color, double width, boolean vertical) {
-        /*
-        double y = yAxis.scale(value);
-        Line gideLine = new Line(y, false, color, 1.0);
-        Text gideLineLabel = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(-0.95, y), false);
-        gideLineLabel.getStyle().put("align:left bottom;");
-        */
         GideLineContext gideLineContext = new GideLineContext(label, value, color, width, vertical);
         gideLineContextMap.put(label, gideLineContext);
-        children.addAll(gideLineContext.getNodes());
+        plotArea.getChildren().addAll(gideLineContext.getNodes());
     }
 
     public void setGideLine(String label, double value) {
@@ -80,17 +125,6 @@ public class LineGraph extends StackPane {
     public void clearGideLine() {
         gideLineContextMap.values().forEach(gideLineContext -> getChildren().removeAll(gideLineContext.getNodes()));
         gideLineContextMap.clear();
-    }
-
-    protected Vector createVector(Point point) {
-        return new Vector(xAxis.scale(point.getX()), yAxis.scale(point.getY()));
-    }
-
-    protected Point createLinearInterpolatedPoint(Point a, Point base, Point b) {
-        double slope = (b.getY() - a.getY()) / (b.getX() - a.getX());
-        double x = base.getX() - a.getX();
-        double y = slope * x + a.getY();
-        return new Point(x, y);
     }
 
     public Set<String> getKeys() {
@@ -157,11 +191,12 @@ public class LineGraph extends StackPane {
 
         public GideLineContext(String label, double position, Color color, double width, boolean vertical) {
             this.gideLine = new Line(0.0, vertical, color, width);
-            this.label = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(0.0,0.0), vertical);
+            this.label = new Text(new Font("", Font.ITALIC, 10), Color.BLACK, label, new Vector(0.0, 0.0), vertical);
             this.color = color;
             this.width = width;
             this.vertical = vertical;
-            this.nodes = Arrays.asList(this.gideLine, this.label);;
+            this.nodes = Arrays.asList(this.gideLine, this.label);
+            ;
             if (vertical) {
                 this.label.getStyle().put("align:right bottom;");
             } else {

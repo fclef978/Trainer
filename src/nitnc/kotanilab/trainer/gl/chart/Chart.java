@@ -9,7 +9,6 @@ import nitnc.kotanilab.trainer.gl.util.Vector;
 import nitnc.kotanilab.trainer.util.Dbg;
 
 
-import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -17,22 +16,14 @@ import java.util.List;
 /**
  * グラフです。
  */
-public final class Chart extends StackPane {
+public class Chart extends StackPane {
 
-    private LineGraph graph;
-    private Text xLabel;
-    private Text yLabel;
+    private LinePlot plot;
     private final Object lock = new Object();
     private String title;
 
-    private BackGround bg = new BackGround(Color.BLACK);
-
     private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000;border-bottom:none;");
-    private Pane graphArea = new StackPane("size:100% 90%;margin:0 0;border:solid #000000;");
     private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000;border-top:none;");
-    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
-    private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
-    private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");
 
     private boolean shotFrag = false;
     private final Object shotFragLock = new Object();
@@ -42,64 +33,41 @@ public final class Chart extends StackPane {
      * コンストラクタです。
      *
      * @param title グラフのタイトル
-     * @param graph 折れ線グラフ
+     * @param plot 折れ線グラフ
      */
-    public Chart(String title, LineGraph graph) {
+    public Chart(String title, LinePlot plot) {
         getStyle().put("size:95% 95%;margin:0 0;");
+        plot.getStyle().put("size:100% 90%;margin:0 0;border:solid #000000;");
         this.title = title;
-        this.graph = graph;
+        this.plot = plot;
 
-        setGraph();
         titleArea.getChildren().add(new Text(title, new Vector(0.0, 0.0), false));
-
-        children.addAll(titleArea, legendArea, graphArea);
+        children.addAll(titleArea, legendArea, plot);
         setLegend();
+        redraw();
         Dbg.p(titleArea.getStyle().get("border-top-width"));
     }
 
     /**
      * スレッドセーフ
      */
-    public void setGraph() {
+    public void redraw() {
         synchronized (lock) {
-            plotArea.getChildren().clear();
-            xAxisArea.getChildren().clear();
-            yAxisArea.getChildren().clear();
-            graphArea.getChildren().clear();
-
-            List<Line> xGrid = graph.getXAxis().getGrids();
-            List<Line> yGrid = graph.getYAxis().getGrids();
-            List<Text> xAxisLabel = graph.getXAxis().getGridStrings();
-            List<Text> yAxisLabel = graph.getYAxis().getGridStrings();
-
-            // 描画順に気をつけること
-            plotArea.getChildren().addAll(xGrid);
-            plotArea.getChildren().addAll(yGrid);
-            plotArea.getChildren().add(graph);
-            xAxisArea.getChildren().addAll(xAxisLabel);
-            yAxisArea.getChildren().addAll(yAxisLabel);
-            graphArea.getChildren().addAll(plotArea, xAxisArea, yAxisArea);
-
-            xLabel = new Text(graph.getXAxis().getName(), new Vector(0.0, -0.4), false);
-            xAxisArea.getChildren().add(xLabel);
-            yLabel = new Text(graph.getYAxis().getName(), new Vector(-0.4, 0.0), true);
-            yAxisArea.getChildren().add(yLabel);
+            plot.redraw();
         }
     }
 
     public void setLegend() {
-        graph.getKeys().forEach(key -> {
+        plot.getKeys().forEach(key -> {
             Pane pane = new StackPane("size:33% 100%;margin:0 0;");
-            pane.getChildren().add(graph.getLegendLine(key, new Vector(-0.9, 0.0), new Vector(-0.3, 0.0)));
-            pane.getChildren().add(graph.getLegendText(key, new Vector(0.4, 0.0)));
+            pane.getChildren().add(plot.getLegendLine(key, new Vector(-0.9, 0.0), new Vector(-0.3, 0.0)));
+            pane.getChildren().add(plot.getLegendText(key, new Vector(0.4, 0.0)));
             legendArea.getChildren().add(pane);
         });
     }
 
     @Override
     public void draw() {
-        xLabel.setString(graph.getXLabel());
-        yLabel.setString(graph.getYLabel());
         synchronized (lock) {
             super.draw();
         }
@@ -131,7 +99,7 @@ public final class Chart extends StackPane {
         }
     }
 
-    public LineGraph getGraph() {
-        return graph;
+    public LinePlot getPlot() {
+        return plot;
     }
 }

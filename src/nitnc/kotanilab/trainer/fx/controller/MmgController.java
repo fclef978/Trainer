@@ -47,7 +47,7 @@ public class MmgController extends Controller<MmgAnalyzer> {
         addAllVisible("Wave", "Spectrum", "Frequency", "RMS");
         if (setting != null) {
             samplingNumber.setText(String.valueOf(setting.getSamplingNumber()));
-            channel.setValueAsInt(setting.getChannel());
+            channel.setValue(setting.getChannel());
             visible.get("Wave").setSelected(setting.getWave());
             visible.get("Spectrum").setSelected(setting.getSpectrum());
             visible.get("Frequency").setSelected(setting.getFrequency());
@@ -63,14 +63,14 @@ public class MmgController extends Controller<MmgAnalyzer> {
     @Override
     public void start(double fs) {
         super.start(fs);
-        analyzer.start(fs, samplingNumber.getValueAsInt());
+        analyzer.start(fs, samplingNumber.getValue());
     }
 
     @Override
     public void stop() {
         analyzer.stop();
-        setting.setChannel(channel.getValueAsInt());
-        setting.setSamplingNumber(samplingNumber.getValueAsInt());
+        setting.setChannel(channel.getValue());
+        setting.setSamplingNumber(samplingNumber.getValue());
         setting.setWave(visible.get("Wave").isSelected());
         setting.setSpectrum(visible.get("Spectrum").isSelected());
         setting.setFrequency(visible.get("Frequency").isSelected());

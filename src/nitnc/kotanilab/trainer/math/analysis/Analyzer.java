@@ -56,7 +56,7 @@ public abstract class Analyzer {
         return ret;
     }
 
-    public void addGraphContext(String title, LineGraph graph) {
+    public void addGraphContext(String title, LinePlot graph) {
         Chart chart = new Chart(title, graph);
         graphContextMap.put(title, new GraphContext(graph, chart, createWrapperPane(1), false));
     }
@@ -69,12 +69,12 @@ public abstract class Analyzer {
         return graphContextMap.values().stream().map(GraphContext::getChart).collect(Collectors.toList());
     }
 
-    protected List<LineGraph> getGraphs() {
-        return graphContextMap.values().stream().map(GraphContext::getGraph).collect(Collectors.toList());
+    protected List<LinePlot> getGraphs() {
+        return graphContextMap.values().stream().map(GraphContext::getPlot).collect(Collectors.toList());
     }
 
-    protected void clearVectorList(LineGraph lineGraph) {
-        lineGraph.getKeys().forEach(key -> lineGraph.getVectorList(key).clear());
+    protected void clearVectorList(LinePlot linePlot) {
+        linePlot.getKeys().forEach(key -> linePlot.getVectorList(key).clear());
     }
 
     protected double getTime() {
@@ -113,41 +113,41 @@ public abstract class Analyzer {
         return lineColors[i % lineColors.length];
     }
 
-    private static void addLines(LineGraph lineGraph, String... lines) {
+    private static void addLines(LinePlot linePlot, String... lines) {
         int i = 0;
         for (String lineName : lines) {
-            lineGraph.addLine(lineName, getLineColor(i++), 1.0);
+            linePlot.addLine(lineName, getLineColor(i++), 1.0);
         }
     }
 
-    protected static LineGraph createGraph(Axis xAxis, Axis yAxis, String... lines) {
-        LineGraph ret;
-        ret = new LineGraph(xAxis, yAxis);
+    protected static LinePlot createGraph(Axis xAxis, Axis yAxis, String... lines) {
+        LinePlot ret;
+        ret = new LinePlot(xAxis, yAxis);
         addLines(ret, lines);
         return ret;
     }
 
-    protected static LineGraph createWaveGraph(double xMax, Unit yUnit, double yMin, double yMax, String... lines) {
+    protected static LinePlot createWaveGraph(double xMax, Unit yUnit, double yMin, double yMax, String... lines) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         xAxis.setReverse(true);
         return createGraph(xAxis, new Axis(yUnit.toString(), yMin, yMax, (yMax - yMin) / 10.0), lines);
     }
 
-    protected static LineGraph createWaveGraph(double xMax, Unit yUnit, double yRange, String... lines) {
+    protected static LinePlot createWaveGraph(double xMax, Unit yUnit, double yRange, String... lines) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         xAxis.setReverse(true);
         return createGraph(xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 5.0), lines);
     }
 
-    protected static LineGraph createTimeSeriesGraph(double xMax, Axis yAxis, String... lines) {
+    protected static LinePlot createTimeSeriesGraph(double xMax, Axis yAxis, String... lines) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         // xAxis.setReverse(true);
         return createGraph(xAxis, yAxis, lines);
     }
 
-    protected static LineGraph createSpectrumGraph(double xMin, double xMax, Axis yAxis, String... lines) {
+    protected static LinePlot createSpectrumGraph(double xMin, double xMax, Axis yAxis, String... lines) {
         return createGraph(
-                new LogAxis("Frequency[Hz]", xMin, xMax, 0.1),
+                new LogAxis("Frequency[Hz]", xMin, xMax),
                 yAxis, lines);
     }
 }

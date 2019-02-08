@@ -115,7 +115,7 @@ public abstract class Controller<T extends Analyzer> {
      * @return チャンネル番号
      */
     public int getChannel() {
-        return channel.getValueAsInt();
+        return channel.getValue();
     }
 
     public Label getNameLabel() {

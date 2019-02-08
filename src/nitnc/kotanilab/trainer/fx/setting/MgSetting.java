@@ -1,13 +1,35 @@
 package nitnc.kotanilab.trainer.fx.setting;
 
+/**
+ * MmgControllerとそのサブクラスの設定クラスです。
+ * JavaBeanに対応していて、Saverクラスによる保存・復帰ができます。
+ */
 public class MgSetting {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 使用するチャンネル
+     */
     private int channel;
+    /**
+     * サンプル数
+     */
     private int samplingNumber;
+    /**
+     * waveグラフを表示するかどうか
+     */
     private boolean wave;
+    /**
+     * spectrumグラフを表示するかどうか
+     */
     private boolean spectrum;
+    /**
+     * frequencyグラフを表示するかどうか
+     */
     private boolean frequency;
+    /**
+     * rmsグラフを表示するかどうか
+     */
     private boolean rms;
 
     public MgSetting() {

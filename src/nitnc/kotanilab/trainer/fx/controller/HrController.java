@@ -32,7 +32,7 @@ public class HrController extends Controller<HrAnalyzer> {
         setting = (HrSetting) Saver.load("HrSetting");
         addAllVisible("Wave", "HR", "ACF", "Diff");
         if (setting != null) {
-            channel.setValueAsInt(setting.getChannel());
+            channel.setValue(setting.getChannel());
             visible.get("Wave").setSelected(setting.getWave());
             visible.get("HR").setSelected(setting.getHr());
             visible.get("ACF").setSelected(setting.getAcf());
@@ -53,7 +53,7 @@ public class HrController extends Controller<HrAnalyzer> {
     @Override
     public void stop() {
         analyzer.stop();
-        setting.setChannel(channel.getValueAsInt());
+        setting.setChannel(channel.getValue());
         setting.setWave(visible.get("Wave").isSelected());
         setting.setHr(visible.get("HR").isSelected());
         setting.setAcf(visible.get("ACF").isSelected());
