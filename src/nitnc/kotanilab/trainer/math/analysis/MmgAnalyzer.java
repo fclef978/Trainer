@@ -3,6 +3,7 @@ package nitnc.kotanilab.trainer.math.analysis;
 import nitnc.kotanilab.trainer.fft.wrapper.Fft;
 import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
 import nitnc.kotanilab.trainer.gl.chart.*;
+import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;

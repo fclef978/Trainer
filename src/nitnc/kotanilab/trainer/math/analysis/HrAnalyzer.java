@@ -6,7 +6,7 @@ import nitnc.kotanilab.trainer.fx.controller.HrController;
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
 import nitnc.kotanilab.trainer.gl.chart.GraphContext;
-import nitnc.kotanilab.trainer.gl.chart.LinePlot;
+import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.Unit;

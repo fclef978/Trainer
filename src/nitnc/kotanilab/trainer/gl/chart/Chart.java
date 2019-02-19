@@ -1,5 +1,6 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
+import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
@@ -11,7 +12,6 @@ import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * グラフです。

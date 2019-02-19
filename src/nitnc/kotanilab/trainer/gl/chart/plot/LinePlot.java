@@ -1,5 +1,6 @@
-package nitnc.kotanilab.trainer.gl.chart;
+package nitnc.kotanilab.trainer.gl.chart.plot;
 
+import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
