@@ -57,9 +57,9 @@ public abstract class Analyzer {
         return ret;
     }
 
-    public void addGraphContext(String title, LinePlot graph) {
-        Chart chart = new Chart(title, graph);
-        graphContextMap.put(title, new GraphContext(graph, chart, createWrapperPane(1), false));
+    public void addGraphContext(String title, LinePlot plot) {
+        Chart chart = new Chart(title, plot);
+        graphContextMap.put(title, new GraphContext(plot, chart, createWrapperPane(1), false));
     }
 
     protected List<Pane> getGraphWrappers() {

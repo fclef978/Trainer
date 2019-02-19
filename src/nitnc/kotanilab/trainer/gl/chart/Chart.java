@@ -1,29 +1,36 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
-import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
+import nitnc.kotanilab.trainer.gl.chart.plot.Plot;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.*;
 import nitnc.kotanilab.trainer.gl.util.Vector;
+import nitnc.kotanilab.trainer.util.CallbackArrayList;
 import nitnc.kotanilab.trainer.util.Dbg;
 
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * グラフです。
  */
 public class Chart extends StackPane {
 
-    private LinePlot plot;
+    private Axis xAxis;
+    private Axis yAxis;
+    private CallbackArrayList<Plot> plots = new CallbackArrayList<>();
     private final Object lock = new Object();
     private String title;
 
     private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000;border-bottom:none;");
     private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000;border-top:none;");
+    private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
+    private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");
+    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
 
     private boolean shotFrag = false;
     private final Object shotFragLock = new Object();
@@ -33,36 +40,62 @@ public class Chart extends StackPane {
      * コンストラクタです。
      *
      * @param title グラフのタイトル
-     * @param plot 折れ線グラフ
      */
-    public Chart(String title, LinePlot plot) {
+    public Chart(String title) {
         getStyle().put("size:95% 95%;margin:0 0;");
-        plot.getStyle().put("size:100% 90%;margin:0 0;border:solid #000000;");
+        plots.setAddCallback(plot -> {
+            plot.getStyle().put("size:100% 90%;margin:0 0;border:solid #000000;");
+            children.add(plot);
+            return plot;
+        });
+        plots.setRemoveCallback(plot -> {
+            children.removeAll(plot);
+            return plot;
+        });
         this.title = title;
-        this.plot = plot;
 
         titleArea.getChildren().add(new Text(title, new Vector(0.0, 0.0), false));
-        children.addAll(titleArea, legendArea, plot);
+        children.addAll(titleArea, legendArea);
         setLegend();
-        redraw();
+        updateAxisElements();
         Dbg.p(titleArea.getStyle().get("border-top-width"));
     }
 
     /**
      * スレッドセーフ
      */
-    public void redraw() {
+    public void updateAxisElements() {
         synchronized (lock) {
-            plot.redraw();
+            xAxisArea.getChildren().clear();
+            yAxisArea.getChildren().clear();
+            plotArea.getChildren().clear();
+
+            List<Line> xGrids = xAxis.getGraduationLines();
+            List<Line> yGrids = yAxis.getGraduationLines();
+            List<Text> xAxisLabels = xAxis.getTickMarks();
+            List<Text> yAxisLabels = yAxis.getTickMarks();
+            Text xLabel = new Text(xAxis.getName(), new Vector(0.0, -0.4), false);
+            Text yLabel = new Text(yAxis.getName(), new Vector(-0.4, 0.0), true);
+
+            plotArea.getChildren().addAll(xGrids);
+            plotArea.getChildren().addAll(yGrids);
+            xAxisArea.getChildren().addAll(xAxisLabels);
+            yAxisArea.getChildren().addAll(yAxisLabels);
+            xAxisArea.getChildren().add(xLabel);
+            yAxisArea.getChildren().add(yLabel);
         }
     }
 
     public void setLegend() {
-        plot.getKeys().forEach(key -> {
-            Pane pane = new StackPane("size:33% 100%;margin:0 0;");
-            pane.getChildren().add(plot.getLegendLine(key, new Vector(-0.9, 0.0), new Vector(-0.3, 0.0)));
-            pane.getChildren().add(plot.getLegendText(key, new Vector(0.4, 0.0)));
-            legendArea.getChildren().add(pane);
+        plots.forEach(plot -> {
+            plot.getKeys().forEach(key -> {
+                Pane pane = new StackPane("size:33% 100%;margin:0 0;");
+                Line line = plot.getLegendLine(key, new Vector(-0.9, 0.0), new Vector(-0.3, 0.0));
+                if (line == null) return ;
+                pane.getChildren().add(line);
+                pane.getChildren().add(new Text(key, new Vector(0.4, 0.0), false));
+                legendArea.getChildren().add(pane);
+            });
         });
     }
 
@@ -99,7 +132,7 @@ public class Chart extends StackPane {
         }
     }
 
-    public LinePlot getPlot() {
-        return plot;
+    public List<? extends Plot> getPlots() {
+        return plots;
     }
 }

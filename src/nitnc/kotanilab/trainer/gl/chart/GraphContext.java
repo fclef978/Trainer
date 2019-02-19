@@ -30,7 +30,7 @@ public class GraphContext {
             if (plotSetter != null) {
                 plotSetter.accept(plot);
             }
-            chart.redraw();
+            chart.updateAxisElements();
             masterPane.getChildren().add(wrapper);
         }
     }
