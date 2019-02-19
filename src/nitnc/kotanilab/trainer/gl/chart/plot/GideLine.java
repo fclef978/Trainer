@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.List;
 
 public class GideLine extends Plot{
-    protected Map<String, Line> gideLineContextMap = new HashMap<>();
+    protected Map<String, Line> lineMap = new HashMap<>();
 
     protected Axis xAxis;
     protected Axis yAxis;
@@ -54,10 +54,19 @@ public class GideLine extends Plot{
 
     @Override
     public Set<String> getKeys() {
-        return gideLineContextMap.keySet();
+        return lineMap.keySet();
+    }
+    public void put(String label, double value, Color color, double width, boolean vertical) {
+        GideLineContext gideLineContext = new GideLineContext(label, value, color, width, vertical);
+        lineMap.put(label, gideLineContext);
+        children.addAll(gideLineContext.getNodes());
     }
 
     public List<Node> getNodes() {
         return nodes;
+    }
+
+    public class Context {
+
     }
 }

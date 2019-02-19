@@ -45,6 +45,7 @@ public class Chart extends StackPane {
         getStyle().put("size:95% 95%;margin:0 0;");
         plots.setAddCallback(plot -> {
             plot.getStyle().put("size:100% 90%;margin:0 0;border:solid #000000;");
+            plot.setxAxises(xAxis,yAxis);
             children.add(plot);
             return plot;
         });
