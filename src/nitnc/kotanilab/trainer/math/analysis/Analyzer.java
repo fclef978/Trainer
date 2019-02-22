@@ -57,9 +57,25 @@ public abstract class Analyzer {
         return ret;
     }
 
-    public void addGraphContext(String title, LinePlot plot) {
-        Chart chart = new Chart(title, plot);
-        graphContextMap.put(title, new GraphContext(plot, chart, createWrapperPane(1), false));
+    /**
+     * 新しいGraphContextを指定したChartで作成し、graphContextMapに指定したキーで追加するユーティリティメソッドです。
+     * wrapperPaneの幅は1マスで初期非表示です。
+     *
+     * @param key   Mapのキー
+     * @param chart GraphContextのChart
+     */
+    public void putNewGraphContext(String key, Chart chart) {
+        graphContextMap.put(key, new GraphContext(chart, createWrapperPane(1), false));
+    }
+
+    /**
+     * 新しいGraphContextをgraphContextMapに追加するユーティリティメソッドです。
+     * キーは指定したChartのtitleで、wrapperPaneの幅は1マスで初期非表示です。
+     *
+     * @param chart GraphContextのChart
+     */
+    public void putNewGraphContext(Chart chart) {
+        graphContextMap.put(chart.getTitle(), new GraphContext(chart, createWrapperPane(1), false));
     }
 
     protected List<Pane> getGraphWrappers() {
@@ -68,14 +84,6 @@ public abstract class Analyzer {
 
     public List<Chart> getCharts() {
         return graphContextMap.values().stream().map(GraphContext::getChart).collect(Collectors.toList());
-    }
-
-    protected List<LinePlot> getGraphs() {
-        return graphContextMap.values().stream().map(GraphContext::getPlot).collect(Collectors.toList());
-    }
-
-    protected void clearVectorList(LinePlot linePlot) {
-        linePlot.getKeys().forEach(key -> linePlot.getVectorList(key).clear());
     }
 
     protected double getTime() {
@@ -114,41 +122,39 @@ public abstract class Analyzer {
         return lineColors[i % lineColors.length];
     }
 
-    private static void addLines(LinePlot linePlot, String... lines) {
+    private static void addLinePlotsToChart(Chart chart, String... lines) {
         int i = 0;
         for (String lineName : lines) {
-            linePlot.addLine(lineName, getLineColor(i++), 1.0);
+            chart.getPlots().add(new LinePlot(lineName, getLineColor(i++), 1.0));
         }
     }
 
-    protected static LinePlot createGraph(Axis xAxis, Axis yAxis, String... lines) {
-        LinePlot ret;
-        ret = new LinePlot(xAxis, yAxis);
-        addLines(ret, lines);
+    protected static Chart createChart(String name, Axis xAxis, Axis yAxis) {
+        Chart ret;
+        ret = new Chart(name, xAxis, yAxis);
         return ret;
     }
 
-    protected static LinePlot createWaveGraph(double xMax, Unit yUnit, double yMin, double yMax, String... lines) {
+    protected static Chart createWaveChart(String name, double xMax, Unit yUnit, double yMin, double yMax) {
+        Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
+        Axis yAxis = new Axis(yUnit.toString(), yMin, yMax, (yMax - yMin) / 10.0);
+        xAxis.setReverse(true);
+        return new Chart(name, xAxis, yAxis);
+    }
+
+    protected static Chart createWaveChart(String name, double xMax, Unit yUnit, double yRange) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         xAxis.setReverse(true);
-        return createGraph(xAxis, new Axis(yUnit.toString(), yMin, yMax, (yMax - yMin) / 10.0), lines);
+        return new Chart(name, xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 5.0));
     }
 
-    protected static LinePlot createWaveGraph(double xMax, Unit yUnit, double yRange, String... lines) {
+    protected static Chart createTimeSeriesChart(String name, double xMax, Axis yAxis) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
-        xAxis.setReverse(true);
-        return createGraph(xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 5.0), lines);
+        return new Chart(name, xAxis, yAxis);
     }
 
-    protected static LinePlot createTimeSeriesGraph(double xMax, Axis yAxis, String... lines) {
-        Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
-        // xAxis.setReverse(true);
-        return createGraph(xAxis, yAxis, lines);
-    }
-
-    protected static LinePlot createSpectrumGraph(double xMin, double xMax, Axis yAxis, String... lines) {
-        return createGraph(
-                new LogAxis("Frequency[Hz]", xMin, xMax),
-                yAxis, lines);
+    protected static Chart createSpectrumChart(String name, double xMin, double xMax, Axis yAxis) {
+        Axis xAxis = new LogAxis("Frequency[Hz]", xMin, xMax);
+        return new Chart(name, xAxis, yAxis);
     }
 }

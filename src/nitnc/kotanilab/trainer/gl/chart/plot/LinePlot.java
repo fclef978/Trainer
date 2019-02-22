@@ -20,115 +20,42 @@ import java.util.List;
  */
 public class LinePlot extends Plot {
 
-    protected Axis xAxis;
-    protected Axis yAxis;
-    protected Map<String, PolygonalLine> lineMap = new LinkedHashMap<>();
-    private Text xLabel;
-    private Text yLabel;
+    protected PolygonalLine line;
+    private Color color;
+    private double thick;
 
     /**
-     * コンストラクタです
+     * 指定した名前、ランダムカラー、太さ1.0で作成します。
+     * @param name
      */
-    public LinePlot() {
+    public LinePlot(String name) {
+        this(name, Color.getHSBColor((float) Math.random(), 1.0f, 0.5f), 1.0);
+    }
+
+    /**
+     * 指定した名前と色と太さで作成します。
+     */
+    public LinePlot(String name, Color color, double thick) {
+        super(name);
+        this.color = color;
+        this.thick = thick;
         getStyle().put("size:100% 100%;margin:0 0;border:none;");
-        yAxis.setVertical(true);
     }
 
-    /**
-     * 指定したキーと色と太さで系列を追加します。
-     *
-     * @param key   キー
-     * @param color 線の色
-     * @param thick 線の太さ
-     */
-    public void addLine(String key, Color color, double thick) {
+    @Override
+    public void setAxises(Axis xAxis, Axis yAxis) {
+        super.setAxises(xAxis, yAxis);
         VectorList vectorList = new VectorList(xAxis::scale, yAxis::scale);
-        PolygonalLine line = new PolygonalLine(vectorList, color, thick);
-        line.setGroup(key);
+        line = new PolygonalLine(vectorList, color, thick);
         children.add(line);
-        lineMap.put(key, line);
     }
 
-    /**
-     * 指定したキーの折れ線の描画に使用しているPolygonalLineを返します。
-     *
-     * @param key キー
-     * @return 折れ線の描画に使用しているPolygonalLine
-     */
-    public PolygonalLine getLine(String key) {
-        return lineMap.get(key);
+    @Override
+    public Line getLegend(Vector start, Vector end) {
+        return new Line(start, end, line.getColor(), line.getThick());
     }
 
-    /**
-     * 指定したキーの折れ線の描画に使用しているPolygonalLineの絶対描画位置を持つVectorListを返します。
-     *
-     * @param key キー
-     * @return PolygonalLineのVectorList
-     */
-    public VectorList getVectorList(String key) {
-        if (lineMap.isEmpty()) return null;
-        if (!lineMap.keySet().contains(key)) throw new IllegalArgumentException("不正なキーです。" + key);
-        return lineMap.get(key).getVectorList();
-    }
-
-    /*
-    TODO Chartへ移す
-     */
-    public void putGideLine(String label, double value, Color color, double width, boolean vertical) {
-        GideLineContext gideLineContext = new GideLineContext(label, value, color, width, vertical);
-        gideLineContextMap.put(label, gideLineContext);
-        children.addAll(gideLineContext.getNodes());
-    }
-
-    public void setGideLine(String label, double value) {
-        gideLineContextMap.get(label).setPosition(value);
-    }
-
-    public void clearGideLine() {
-        gideLineContextMap.values().forEach(gideLineContext -> getChildren().removeAll(gideLineContext.getNodes()));
-        gideLineContextMap.clear();
-    }
-
-    public Set<String> getKeys() {
-        return lineMap.keySet();
-    }
-
-    /**
-     * 凡例の線を返します。
-     *
-     * @param key   キー
-     * @param start 開始点
-     * @param end   終了点
-     * @return 凡例線
-     */
-    public Line getLegendLine(String key, Vector start, Vector end) {
-        PolygonalLine pl = lineMap.get(key);
-        return new Line(start, end, pl.getColor(), pl.getThick());
-    }
-
-    /**
-     * X軸のラベルを返します。
-     *
-     * @return X軸ラベル
-     */
-    public String getXLabel() {
-        return xAxis.getName();
-    }
-
-    /**
-     * Y軸のラベルを返します。
-     *
-     * @return Y軸ラベル
-     */
-    public String getYLabel() {
-        return yAxis.getName();
-    }
-
-    public Axis getXAxis() {
-        return xAxis;
-    }
-
-    public Axis getYAxis() {
-        return yAxis;
+    public PolygonalLine getLine() {
+        return line;
     }
 }

@@ -1,6 +1,7 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
 import nitnc.kotanilab.trainer.gl.chart.plot.Plot;
+import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
@@ -26,11 +27,12 @@ public class Chart extends StackPane {
     private final Object lock = new Object();
     private String title;
 
-    private Pane titleArea = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000;border-bottom:none;");
-    private Pane legendArea = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000;border-top:none;");
-    private Pane xAxisArea = new StackPane("size:86% 10%;margin:6% -90%;");
-    private Pane yAxisArea = new StackPane("size:10% 86%;margin:-90% 6%;");
-    private Pane plotArea = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
+    private Pane titlePane = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000;border-bottom:none;");
+    private Pane legendPane = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000;border-top:none;");
+    private Pane graphPane = new StackPane("size:100% 90%;margin:0 0;border:solid #000000;");
+    private Pane xAxisPane = new StackPane("size:86% 10%;margin:6% -90%;");
+    private Pane yAxisPane = new StackPane("size:10% 86%;margin:-90% 6%;");
+    private Pane plotPane = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
 
     private boolean shotFrag = false;
     private final Object shotFragLock = new Object();
@@ -41,35 +43,40 @@ public class Chart extends StackPane {
      *
      * @param title グラフのタイトル
      */
-    public Chart(String title) {
+    public Chart(String title, Axis xAxis, Axis yAxis) {
+        this.xAxis = xAxis;
+        this.yAxis = yAxis;
+        this.yAxis.setVertical(true);
         getStyle().put("size:95% 95%;margin:0 0;");
         plots.setAddCallback(plot -> {
-            plot.getStyle().put("size:100% 90%;margin:0 0;border:solid #000000;");
-            plot.setxAxises(xAxis,yAxis);
-            children.add(plot);
+            plot.getStyle().put("size:86% 86%;margin:6% 6%;border:solid #000000;");
+            plot.setAxises(xAxis, yAxis);
+            graphPane.getChildren().add(plot);
             return plot;
         });
         plots.setRemoveCallback(plot -> {
-            children.removeAll(plot);
+            graphPane.getChildren().removeAll(plot);
             return plot;
         });
         this.title = title;
 
-        titleArea.getChildren().add(new Text(title, new Vector(0.0, 0.0), false));
-        children.addAll(titleArea, legendArea);
-        setLegend();
+        titlePane.getChildren().add(new Text(title, new Vector(0.0, 0.0), false));
+        graphPane.getChildren().addAll(xAxisPane, yAxisPane, plotPane);
+        children.addAll(titlePane, graphPane, legendPane);
+        updateLegend();
         updateAxisElements();
-        Dbg.p(titleArea.getStyle().get("border-top-width"));
+        Dbg.p(titlePane.getStyle().get("border-top-width"));
     }
 
     /**
-     * スレッドセーフ
+     * 軸ラベルや目盛り線の更新を行います。
+     * Axisオブジェクトを変更した際はこのメソッドを呼び出さないと表示に反映されません。
      */
     public void updateAxisElements() {
         synchronized (lock) {
-            xAxisArea.getChildren().clear();
-            yAxisArea.getChildren().clear();
-            plotArea.getChildren().clear();
+            xAxisPane.getChildren().clear();
+            yAxisPane.getChildren().clear();
+            plotPane.getChildren().clear();
 
             List<Line> xGrids = xAxis.getGraduationLines();
             List<Line> yGrids = yAxis.getGraduationLines();
@@ -78,26 +85,31 @@ public class Chart extends StackPane {
             Text xLabel = new Text(xAxis.getName(), new Vector(0.0, -0.4), false);
             Text yLabel = new Text(yAxis.getName(), new Vector(-0.4, 0.0), true);
 
-            plotArea.getChildren().addAll(xGrids);
-            plotArea.getChildren().addAll(yGrids);
-            xAxisArea.getChildren().addAll(xAxisLabels);
-            yAxisArea.getChildren().addAll(yAxisLabels);
-            xAxisArea.getChildren().add(xLabel);
-            yAxisArea.getChildren().add(yLabel);
+            plotPane.getChildren().addAll(xGrids);
+            plotPane.getChildren().addAll(yGrids);
+            xAxisPane.getChildren().addAll(xAxisLabels);
+            yAxisPane.getChildren().addAll(yAxisLabels);
+            xAxisPane.getChildren().add(xLabel);
+            yAxisPane.getChildren().add(yLabel);
         }
     }
 
-    public void setLegend() {
-        plots.forEach(plot -> {
-            plot.getKeys().forEach(key -> {
+    /**
+     * 凡例線の更新を行います。
+     * Plotを増やしたり、見た目を変えてもこのメソッドを呼び出さないと表示に反映されません。
+     */
+    public void updateLegend() {
+        synchronized (lock) {
+            legendPane.getChildren().clear();
+            plots.forEach(plot -> {
                 Pane pane = new StackPane("size:33% 100%;margin:0 0;");
-                Line line = plot.getLegendLine(key, new Vector(-0.9, 0.0), new Vector(-0.3, 0.0));
-                if (line == null) return ;
-                pane.getChildren().add(line);
-                pane.getChildren().add(new Text(key, new Vector(0.4, 0.0), false));
-                legendArea.getChildren().add(pane);
+                Node legend = plot.getLegend(new Vector(-0.9, 0.0), new Vector(-0.3, 0.0));
+                if (legend == null) return;
+                pane.getChildren().add(legend);
+                pane.getChildren().add(new Text(plot.getName(), new Vector(0.4, 0.0), false));
+                legendPane.getChildren().add(pane);
             });
-        });
+        }
     }
 
     @Override
@@ -108,6 +120,10 @@ public class Chart extends StackPane {
         imaging();
     }
 
+    /**
+     * 指定したファイル名(拡張子抜き)でスクリーンショットします。
+     * @param filenamePrefix ファイル名(拡張子抜き)
+     */
     public void shot(String filenamePrefix) {
         synchronized (shotFragLock) {
             shotFrag = true;
@@ -133,7 +149,27 @@ public class Chart extends StackPane {
         }
     }
 
-    public List<? extends Plot> getPlots() {
+    public List<Plot> getPlots() {
         return plots;
+    }
+
+    public Axis getXAxis() {
+        return xAxis;
+    }
+
+    public void setXAxis(Axis xAxis) {
+        this.xAxis = xAxis;
+    }
+
+    public Axis getYAxis() {
+        return yAxis;
+    }
+
+    public void setYAxis(Axis yAxis) {
+        this.yAxis = yAxis;
+    }
+
+    public String getTitle() {
+        return title;
     }
 }

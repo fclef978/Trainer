@@ -3,6 +3,7 @@ package nitnc.kotanilab.trainer.math.analysis;
 import nitnc.kotanilab.trainer.fft.wrapper.Fft;
 import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
 import nitnc.kotanilab.trainer.gl.chart.*;
+import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.Unit;
@@ -12,6 +13,7 @@ import nitnc.kotanilab.trainer.math.series.*;
 import nitnc.kotanilab.trainer.util.CsvLogger;
 import nitnc.kotanilab.trainer.util.Utl;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,9 +22,9 @@ import java.util.function.DoubleUnaryOperator;
 
 public class MmgAnalyzer extends Analyzer {
 
-    protected RealSeries<Point> median;
-    protected RealSeries<Point> peek;
-    protected RealSeries<Point> rms;
+    protected RealSeries<Point> mdfSeries;
+    protected RealSeries<Point> pfSeries;
+    protected RealSeries<Point> rmsSeries;
     protected Fft fft;
     protected int number;
     protected double waveXMax;
@@ -30,39 +32,52 @@ public class MmgAnalyzer extends Analyzer {
     protected double waveYMin;
     private CsvLogger logger;
     List<DoubleUnaryOperator> filters = new ArrayList<>();
-    protected DoubleConsumer mfCallback = v -> {};
+    protected DoubleConsumer mfCallback = v -> {
+    };
+    protected LinePlot wavePlot;
+    protected LinePlot spectrumPlot;
+    protected LinePlot mdfPlot;
+    protected LinePlot pfPlot;
+    protected LinePlot rmsPlot;
+    protected GideLine mdfGide = new GideLine("MF", 0.0, Color.RED, 2.0, true);
 
     public MmgAnalyzer(Pane masterPane) {
         this(masterPane, "MMG",
-                createWaveGraph(1, new Unit("Acceleration", "m/s/s"), 5, "Wave"),
-                createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -200, 0, 25), "Spectrum"),
-                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0), "Median", "Peek"),
-                createWaveGraph(10, Unit.v(), 0, 5, "RMS")
+                createWaveChart("Wave", 1, new Unit("Acceleration", "m/s/s"), 5),
+                createSpectrumChart("Spectrum", 0.01, 100, new Axis(Unit.db("Amplitude").toString(), -200, 0, 25)),
+                createTimeSeriesChart("MDF and PF", 60.0, new LogAxis("Frequency[Hz]", 1, 100.0)),
+                createWaveChart("RMS", 10, Unit.v(), 0, 5)
         );
         filters.addAll(Arrays.asList(
-                // x -> (x - 2.5) / 1.0,
-                //IirFilter.execute("bpf0.001-0.2.txt"),
-                //IirFilter.execute("bef0.048-0.052.txt")
+                x -> (x - 2.5) / 1.0,
+                IirFilter.execute("bpf0.001-0.2.txt"),
+                IirFilter.execute("bef0.048-0.052.txt")
         ));
-        graphContextMap.get("Spectrum").getPlot().getLine("Spectrum").setThick(2.0);
+        spectrumPlot.getLine().setThick(2.0);
     }
 
-    protected MmgAnalyzer(Pane masterPane, String name, LinePlot waveGraph, LinePlot spectrumGraph, LinePlot freqGraph, LinePlot rmsGraph) {
+    protected MmgAnalyzer(Pane masterPane, String name, Chart waveChart, Chart spectrumChart, Chart freqChart, Chart rmsChart) {
         super(masterPane, name);
 
-        Chart waveChart = new Chart("Wave", waveGraph);
-        graphContextMap.put("Wave", new GraphContext(waveGraph, waveChart, createWrapperPane(1), false));
+        wavePlot = new LinePlot("Wave");
+        waveChart.getPlots().add(wavePlot);
+        putNewGraphContext(waveChart);
 
-        Chart spectrumChart = new Chart("Spectrum", spectrumGraph);
-        graphContextMap.put("Spectrum", new GraphContext(spectrumGraph, spectrumChart, createWrapperPane(1), false));
+        spectrumPlot = new LinePlot("Spectrum");
+        spectrumChart.getPlots().addAll(Arrays.asList(spectrumPlot, mdfGide));
+        putNewGraphContext(spectrumChart);
 
-        Chart freqChart = new Chart("Median and Peek Frequency", freqGraph);
-        graphContextMap.put("Frequency", new GraphContext(freqGraph, freqChart, createWrapperPane(1), false));
+        mdfPlot = new LinePlot("MDF");
+        pfPlot = new LinePlot("PF");
+        freqChart.getPlots().addAll(Arrays.asList(mdfPlot, pfPlot));
+        putNewGraphContext("Frequency", freqChart);
 
-        Chart rmsChart = new Chart("RMS", rmsGraph);
-        graphContextMap.put("RMS", new GraphContext(rmsGraph, rmsChart, createWrapperPane(1), false));
+        rmsPlot = new LinePlot("RMS");
+        rmsChart.getPlots().add(rmsPlot);
+        putNewGraphContext(rmsChart);
 
         panes.addAll(getGraphWrappers());
+        getCharts().forEach(Chart::updateLegend);
 
         waveXMax = 0.1;
         waveYMax = 3.0;
@@ -73,25 +88,24 @@ public class MmgAnalyzer extends Analyzer {
     public void start(double fs, int n) {
         source.setXMax(fs * n);
         source.addCallback(filters);
-        graphContextMap.get("Wave").setPlotSetter(graph -> {
-            graph.getXAxis().setMax(waveXMax);
-            graph.getXAxis().setSize(waveXMax / 10);
-            graph.getYAxis().setMax(waveYMax);
-            graph.getYAxis().setMin(waveYMin);
+        graphContextMap.get("Wave").setAxisSetter((x, y) -> {
+            x.setMax(waveXMax);
+            x.setSize(waveXMax / 10);
+            y.setMax(waveYMax);
+            y.setMin(waveYMin);
         });
-        graphContextMap.get("Spectrum").setPlotSetter(graph -> {
-            graph.getXAxis().setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
-            graph.getXAxis().setMax(fs / 2.0);
-            // graph.putGideLine("MF", 0.0, Color.RED, 2.0, true);
+        graphContextMap.get("Spectrum").setAxisSetter((x, y) -> {
+            x.setMin(Math.pow(10.0, Utl.ceil(Math.log10(fs / n))));
+            x.setMax(fs / 2.0);
         });
-        graphContextMap.get("Frequency").setPlotSetter(graph -> {
-            graph.getYAxis().setMax(fs / 2.0);
+        graphContextMap.get("Frequency").setAxisSetter((x, y) -> {
+            y.setMax(fs / 2.0);
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
 
-        median = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
-        peek = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
-        rms = new ShiftedSeries<>(5.0, 0.0, Unit.sec(), Unit.v(), 10);
+        mdfSeries = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
+        pfSeries = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
+        rmsSeries = new ShiftedSeries<>(5.0, 0.0, Unit.sec(), Unit.v(), 10);
 
         number = n;
         fft = new OouraFft(n);
@@ -101,11 +115,9 @@ public class MmgAnalyzer extends Analyzer {
 
     @Override
     public void stop() {
-        graphContextMap.get("Spectrum").getPlot().clearGideLine();
-        getGraphs().forEach(this::clearVectorList);
         super.stop();
-        median.clear();
-        peek.clear();
+        mdfSeries.clear();
+        pfSeries.clear();
         logger.close();
     }
 
@@ -113,10 +125,11 @@ public class MmgAnalyzer extends Analyzer {
     public void execute() {
         if (graphContextMap.get("Wave").isVisible()) {
             Wave tmpWave = source.getWave(1.0);
-            LinePlot waveGraph = graphContextMap.get("Wave").getPlot();
-            Wave wave = tmpWave.stream().lastCutX(waveGraph.getXAxis().getRange()).zeroX(waveGraph.getXAxis().getMax())
+            Wave wave = tmpWave.stream()
+                    .lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax())
                     .to(tmpWave::from);
-            graphContextMap.get("Wave").update("Wave", wave.getXList(), wave.getYList());
+            graphContextMap.get("Wave").ifVisible(context ->
+                    wavePlot.getLine().getVectorList().set(wave.getXList(), wave.getYList()));
         }
         if (source.available(number) && isPassedInterval(1.0)) {
             Wave tmpWave = source.getWave(number);
@@ -127,25 +140,28 @@ public class MmgAnalyzer extends Analyzer {
             Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
             // スペクトラムのdB化
             Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
-            graphContextMap.get("Spectrum").update("Spectrum", powerSpectrum.getXList(), powerSpectrum.getYList());
+            graphContextMap.get("Spectrum").ifVisible(context ->
+                    spectrumPlot.getLine().getVectorList().set(powerSpectrum.getXList(), powerSpectrum.getYList()));
 
             Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
             logger.print(medianPoint);
             mfCallback.accept(medianPoint.getY());
-            median.add(medianPoint);
-            peek.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
+            mdfSeries.add(medianPoint);
+            pfSeries.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
-            LinePlot spectrumGraph = graphContextMap.get("Spectrum").getPlot();
-            // spectrumGraph.setGideLine("MF", medianPoint.getY());
+            mdfGide.setPosition(medianPoint.getY());
 
-            graphContextMap.get("Frequency").update("Median", median.getXList(), median.getYList());
-            graphContextMap.get("Frequency").update("Peek", peek.getXList(), peek.getYList());
+            graphContextMap.get("Frequency").ifVisible(context -> {
+                mdfPlot.getLine().getVectorList().set(mdfSeries.getXList(), mdfSeries.getYList());
+                pfPlot.getLine().getVectorList().set(pfSeries.getXList(), pfSeries.getYList());
+            });
 
             Wave rmsWave = source.getWave(3.0);
             double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
             double rms = Math.sqrt(sqAve);
-            this.rms.add(new Point(rmsWave.getStartTime(), rms));
-            graphContextMap.get("RMS").update("RMS", this.rms.getXList(), this.rms.getYList());
+            rmsSeries.add(new Point(rmsWave.getStartTime(), rms));
+            graphContextMap.get("RMS").ifVisible(context ->
+                    rmsPlot.getLine().getVectorList().set(rmsSeries.getXList(), rmsSeries.getYList()));
 
 
             updatePreviousTime();

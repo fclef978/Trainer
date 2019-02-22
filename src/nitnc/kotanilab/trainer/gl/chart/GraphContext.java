@@ -1,24 +1,25 @@
 package nitnc.kotanilab.trainer.gl.chart;
 
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
+import nitnc.kotanilab.trainer.gl.chart.plot.Plot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
  * グラフ描画系の一連のクラスをまとめたユーティリティクラスです。
  */
 public class GraphContext {
-    LinePlot plot;
     Chart chart;
     Pane wrapper;
     boolean visible;
     protected boolean pause = false;
-    Consumer<? super LinePlot> plotSetter;
+    BiConsumer<? super Axis, ? super Axis> axisSetter;
 
-    public GraphContext(LinePlot plot, Chart chart, Pane wrapper, boolean visible) {
-        this.plot = plot;
+    public GraphContext(Chart chart, Pane wrapper, boolean visible) {
         this.chart = chart;
         this.wrapper = wrapper;
         wrapper.getChildren().add(chart);
@@ -27,40 +28,20 @@ public class GraphContext {
 
     public void confirm(Pane masterPane) {
         if (visible) {
-            if (plotSetter != null) {
-                plotSetter.accept(plot);
+            if (axisSetter != null) {
+                axisSetter.accept(chart.getXAxis(), chart.getYAxis());
             }
             chart.updateAxisElements();
             masterPane.getChildren().add(wrapper);
         }
     }
 
-    public void update(String key, List<? extends Double> xc, List<? extends Double> yc) {
-        if (visible && !pause) {
-            plot.getVectorList(key).set(xc, yc);
-        }
-    }
-
-    public void update(String key, double[] xc, double[] yc) {
-        if (visible && !pause) {
-            plot.getVectorList(key).set(xc, yc);
-        }
-    }
-
     public void ifVisible(Consumer<? super GraphContext> action) {
-        if (visible) action.accept(this);
+        if (visible && !pause) action.accept(this);
     }
 
-    public void setPlotSetter(Consumer<? super LinePlot> plotSetter) {
-        this.plotSetter = plotSetter;
-    }
-
-    public LinePlot getPlot() {
-        return plot;
-    }
-
-    public void setPlot(LinePlot plot) {
-        this.plot = plot;
+    public void setAxisSetter(BiConsumer<? super Axis, ? super Axis> plotSetter) {
+        this.axisSetter = plotSetter;
     }
 
     public Chart getChart() {

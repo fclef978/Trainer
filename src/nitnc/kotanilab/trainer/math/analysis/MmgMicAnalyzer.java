@@ -11,10 +11,10 @@ public class MmgMicAnalyzer extends MmgAnalyzer {
 
     public MmgMicAnalyzer(Pane masterPane) {
         super(masterPane, "MMG(mic.)",
-                createWaveGraph(0.1, Unit.v(), 2, "Wave"),
-                createSpectrumGraph(0.01, 100, new Axis(Unit.db("Amplitude").toString(), -100, 0, 10), "Spectrum"),
-                createTimeSeriesGraph(60.0, new LogAxis("Frequency[Hz]", 1, 100.0), "Median", "Peek"),
-                createWaveGraph(10, Unit.v(), 0, 5, "RMS")
+                createWaveChart("Wave", 0.1, Unit.v(), 2),
+                createSpectrumChart("Spectrum", 0.01, 100, new Axis(Unit.db("Amplitude").toString(), -100, 0, 10)),
+                createTimeSeriesChart("Frequency", 60.0, new LogAxis("Frequency[Hz]", 1, 100.0)),
+                createWaveChart("RMS", 10, Unit.v(), 0, 5)
         );
         waveYMax = 2;
         waveYMin = -waveYMax;
