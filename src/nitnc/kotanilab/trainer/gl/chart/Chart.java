@@ -17,7 +17,8 @@ import java.util.Calendar;
 import java.util.List;
 
 /**
- * グラフです。
+ * グラフの大元のクラスです。
+ * タイトル・軸・プロット部・凡例を管理します。
  */
 public class Chart extends StackPane {
 
@@ -39,9 +40,12 @@ public class Chart extends StackPane {
     private String filenamePrefix;
 
     /**
+     *
      * コンストラクタです。
      *
      * @param title グラフのタイトル
+     * @param xAxis X軸
+     * @param yAxis Y軸
      */
     public Chart(String title, Axis xAxis, Axis yAxis) {
         this.xAxis = xAxis;
@@ -95,7 +99,7 @@ public class Chart extends StackPane {
     }
 
     /**
-     * 凡例線の更新を行います。
+     * 凡例の更新を行います。
      * Plotを増やしたり、見た目を変えてもこのメソッドを呼び出さないと表示に反映されません。
      */
     public void updateLegend() {

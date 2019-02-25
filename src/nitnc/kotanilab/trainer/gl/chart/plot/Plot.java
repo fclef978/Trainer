@@ -9,6 +9,9 @@ import nitnc.kotanilab.trainer.gl.util.Vector;
 
 import java.util.Set;
 
+/**
+ * Chart内のプロット部分のスーパークラスです。
+ */
 public abstract class Plot extends StackPane {
     protected String name;
     protected Axis xAxis;

@@ -7,17 +7,31 @@ import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
 
+/**
+ * 子を持ちレイアウト可能な親ノードです。
+ */
 public abstract class Pane extends Parent {
 
     private Border border = new Border();
 
+    /**
+     * コンストラクタです。
+     */
     public Pane() {
     }
 
+    /**
+     * 指定したスタイルで作成します。
+     *
+     * @param style スタイルシート
+     */
     public Pane(String style) {
         super(style);
     }
 
+    /**
+     * 描画プロセスです。
+     */
     public void drawingProcess() {
         children.stream().filter(node -> node.getParent() == this).forEach(Node::draw);
     }

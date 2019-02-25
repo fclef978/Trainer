@@ -10,11 +10,15 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 /**
- * Created by Hirokazu SUZUKI on 2018/07/17.
- * 文字
+ * 文字オブジェクトです。
+ * 文字色はStyleのcolorプロパティを参照します。
+ * TODO 文字サイズやフォント等もスタイルシート参照にする。
  */
 public class Text extends Child {
 
+    /**
+     * デフォルトのFontオブジェクトです。
+     */
     public static final Font DEFAULT_FONT = new Font("", Font.PLAIN, 11);
 
     protected Color color;
@@ -23,6 +27,13 @@ public class Text extends Child {
     protected Vector vector;
     protected boolean vertical;
 
+    /**
+     * デフォルトFontオブジェクトを用いて作成します。
+     *
+     * @param str      初期文字列
+     * @param vector   初期座標
+     * @param vertical 垂直ならtrue
+     */
     public Text(String str, Vector vector, boolean vertical) {
         this.str = str;
         this.vector = vector;
@@ -31,8 +42,16 @@ public class Text extends Child {
         tr = new TextRenderer(DEFAULT_FONT, true, true);
     }
 
-    public Text(Font font, Color color, String str, Vector vector, boolean vertical) {
-        this.color = color;
+    /**
+     * 指定したフォントで作成します。
+     *
+     * @param font     Fontオブジェクト
+     * @param str      初期文字列
+     * @param vector   初期座標
+     * @param vertical 垂直ならtrue
+     */
+    public Text(Font font, String str, Vector vector, boolean vertical) {
+        this.color = Color.decode(style.get("color").getValue());
         this.str = str;
         this.vector = vector;
         this.vertical = vertical;
@@ -69,6 +88,14 @@ public class Text extends Child {
         gl.glDisable(GL.GL_LINE_SMOOTH);
     }
 
+    /**
+     * TextRendererによる実際のレンダリングを行うメソッドです。
+     *
+     * @param str    描画する文字列
+     * @param vector 描画座標
+     * @param width  画面幅
+     * @param height 画面の高さ
+     */
     protected void render(String str, Vector vector, int width, int height) {
         double x, y;
         double tmpX = getShiftQuantity(str, style.get("align-x").getValue(), false);
@@ -80,10 +107,17 @@ public class Text extends Child {
             x = calcAbsPosition(vector.getX(), width) - tmpX;
             y = calcAbsPosition(vector.getY(), height) - tmpY;
         }
-        render(str, x, y);
+        drawString(str, x, y);
     }
 
-    private void render(String str, double x, double y) {
+    /**
+     * TextRendererのdraw()メソッドをdoubleで使用するためのユーティリティメソッドです。
+     *
+     * @param str 描画文字列
+     * @param x   横軸描画位置[px]
+     * @param y   縦軸描画位置[px]
+     */
+    protected void drawString(String str, double x, double y) {
         tr.draw(str, (int) Math.round(x), (int) Math.round(y));
     }
 

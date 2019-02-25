@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * グラフの軸です。
+ * グラフの線形軸です。
+ * 一般的なグラフに使用できます。
+ * 将来的には極座標軸なども追加していく予定です。
  */
 public class Axis {
 
@@ -211,6 +213,6 @@ public class Axis {
      * @return OpenGL文字列オブジェクト
      */
     protected Text createText(String str, Vector vector) {
-        return new Text(new Font("", Font.PLAIN, 10), Color.BLACK, str, vector, vertical);
+        return new Text(new Font("", Font.PLAIN, 10), str, vector, vertical);
     }
 }

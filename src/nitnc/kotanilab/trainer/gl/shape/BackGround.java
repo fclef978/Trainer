@@ -7,16 +7,27 @@ import nitnc.kotanilab.trainer.gl.node.Child;
 import java.awt.*;
 
 /**
- * Created by Hirokazu SUZUKI on 2018/07/16.
- * 背景
+ * 背景ノードです。
+ * Windowクラスが持ちます。
  */
 public class BackGround extends Child {
     private Color color;
 
+    /**
+     * コンストラクタです。
+     *
+     * @param color 背景色
+     */
     public BackGround(Color color) {
         this.color = color;
     }
 
+    /**
+     * 指定したGLAutoDrawableを用いて背景を設定します。
+     * 最初に一度呼び出せば設定されます。
+     *
+     * @param drawable 設定するウィンドウのGLAutoDrawable
+     */
     public void init(GLAutoDrawable drawable) {
         gl = drawable.getGL().getGL2();
         gl.glClearColor(

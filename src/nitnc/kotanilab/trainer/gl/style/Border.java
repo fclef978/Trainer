@@ -1,33 +1,46 @@
 package nitnc.kotanilab.trainer.gl.style;
 
 import nitnc.kotanilab.trainer.gl.node.Node;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * オブジェクトの枠線であるボーダーを表すプロパティです。
+ */
 public class Border extends Properties {
     private List<Properties> positions = new ArrayList<>(4);
     private List<Property> types = new ArrayList<>(4);
 
+    /**
+     * プロパティのうち、位置の値を持つ配列です。
+     */
     public static String[] positionArray = {"top", "right", "bottom", "left"};
 
+    /**
+     * コンストラクタです。
+     *
+     * @param value 値
+     * @param node  ノード
+     */
     public Border(String value, Node node) {
         super("border", node, false);
-        children.add(new Style(name, "", node){
+        children.add(new Style(name, "", node) {
             @Override
             public void setValue(String value) {
                 super.setValue(value);
                 positions.forEach(property -> property.setValue(value));
             }
         });
-        children.add(new Width(name, "", node){
+        children.add(new Width(name, "", node) {
             @Override
             public void setValue(String value) {
                 super.setValue(value);
                 positions.forEach(property -> property.setValue(value));
             }
         });
-        children.add(new Color(name, "", node){
+        children.add(new Color(name, "", node) {
             @Override
             public void setValue(String value) {
                 super.setValue(value);
@@ -104,5 +117,13 @@ public class Border extends Properties {
         public Color(String name, String value, Node node) {
             super(name + "-color", value, node, false, false, Property::isColor);
         }
+    }
+
+    public static void main(String... args) {
+        Border border = new Border("solid #000000 2px", null);
+        border.setValue("none #FFFFFF 3px");
+        border.positions.forEach(properties -> {
+            properties.children.forEach(Dbg::p);
+        });
     }
 }

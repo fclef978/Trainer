@@ -6,14 +6,25 @@ import nitnc.kotanilab.trainer.gl.util.Position;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 単一の水平行に子をレイアウトするPaneです。
+ */
 public class HPane extends Pane {
 
     private int count = 0;
     private List<Position> list = new ArrayList<>();
 
+    /**
+     * コンストラクタです。
+     */
     public HPane() {
     }
 
+    /**
+     * 指定したスタイルで作成します。
+     *
+     * @param style スタイルシート
+     */
     public HPane(String style) {
         super(style);
     }
@@ -24,7 +35,7 @@ public class HPane extends Pane {
         list.clear();
         double totalWidth = children.stream().mapToDouble(Node::getWidth).sum();
         final double[] previousWidth = {0};
-        children.each(child -> {
+        children.forEach(child -> {
             double center = child.getWidth() / 2.0;
             double left = previousWidth[0] + center;
             double right = totalWidth - previousWidth[0] - center;
@@ -34,7 +45,7 @@ public class HPane extends Pane {
             list.add(position);
             previousWidth[0] += center * 2;
         });
-        children.each(Node::draw);
+        children.forEach(Node::draw);
 
         // this.position = new Position(parent.getPosition(), getStyle());
 

@@ -5,7 +5,6 @@ import nitnc.kotanilab.trainer.fft.wrapper.OouraFft;
 import nitnc.kotanilab.trainer.fx.controller.HrController;
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
-import nitnc.kotanilab.trainer.gl.chart.GraphContext;
 import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;

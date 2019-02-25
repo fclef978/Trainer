@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.List;
 
 /**
- * 折れ線グラフのプロットクラスです。
+ * 折れ線グラフのPlotです。
  * 表示部とデータ部でスレッドが異なるため衝突しないように気をつける必要があります。
  */
 public class LinePlot extends Plot {
@@ -26,7 +26,7 @@ public class LinePlot extends Plot {
 
     /**
      * 指定した名前、ランダムカラー、太さ1.0で作成します。
-     * @param name
+     * @param name 名前
      */
     public LinePlot(String name) {
         this(name, Color.getHSBColor((float) Math.random(), 1.0f, 0.5f), 1.0);
@@ -34,6 +34,10 @@ public class LinePlot extends Plot {
 
     /**
      * 指定した名前と色と太さで作成します。
+     *
+     * @param name 名前
+     * @param color 線の色
+     * @param thick 線の太さ
      */
     public LinePlot(String name, Color color, double thick) {
         super(name);

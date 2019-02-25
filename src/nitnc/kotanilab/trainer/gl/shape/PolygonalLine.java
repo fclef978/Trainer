@@ -8,8 +8,7 @@ import java.awt.*;
 import static com.jogamp.opengl.GL.GL_LINE_STRIP;
 
 /**
- * Created by Hirokazu SUZUKI on 2018/07/16.
- * 折れ線
+ * 折れ線のオブジェクトです。
  */
 public class PolygonalLine extends Child {
     private VectorList vectorList;
@@ -17,12 +16,19 @@ public class PolygonalLine extends Child {
     private float thick;
     // im = intermediate
 
+    /**
+     * コンストラクタです。
+     * @param vectorList 折れ線の座標のリスト
+     * @param color 折れ線の色
+     * @param thick 折れ線の太さ
+     */
     public PolygonalLine(VectorList vectorList, Color color, double thick) {
         this.vectorList = vectorList;
         this.color = color;
         this.thick = (float) thick;
     }
 
+    @Override
     public void drawingProcess() {
         setThickness(thick);
         setMode(GL_LINE_STRIP);

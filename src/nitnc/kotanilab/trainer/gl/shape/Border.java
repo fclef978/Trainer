@@ -10,9 +10,17 @@ import java.util.function.Consumer;
 
 import static com.jogamp.opengl.GL.GL_LINES;
 
+/**
+ * Paneの枠線を担当するクラスです。
+ */
 public class Border extends Child {
     private Map<String, BorderSetting> settingMap = new HashMap<>();
 
+    /**
+     * 枠線の各辺のBorderSettingを持つMapです。
+     * キーはnitnc.kotanilab.trainer.gl.style.Border.positionArrayにあるtop,left,right,borderです。
+     * @return
+     */
     public Map<String, BorderSetting> getSettingMap() {
         return settingMap;
     }
@@ -60,10 +68,13 @@ public class Border extends Child {
         });
     }
 
+    /**
+     * nitnc.kotanilab.trainer.gl.style.Borderの各要素を文字列でなく実際のオブジェクトで保持するクラスです。
+     */
     public static class BorderSetting {
-        String style;
-        double width;
-        Color color;
+        private String style;
+        private double width;
+        private Color color;
 
         public BorderSetting(String style, double width, Color color) {
             this.style = style;

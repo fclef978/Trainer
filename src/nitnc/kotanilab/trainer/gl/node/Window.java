@@ -8,7 +8,6 @@ import com.jogamp.opengl.util.Animator;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.BackGround;
 import nitnc.kotanilab.trainer.gl.util.Position;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -95,7 +94,7 @@ public class Window extends StackPane implements GLEventListener {
     @Override
     public void draw() {
         synchronized (lock) {
-            children.each(Node::draw);
+            children.forEach(Node::draw);
         }
     }
 
