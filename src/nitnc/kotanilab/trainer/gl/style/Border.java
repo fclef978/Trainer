@@ -4,6 +4,7 @@ import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public class Border extends Properties {
     private List<Properties> positions = new ArrayList<>(4);
-    private List<Property> types = new ArrayList<>(4);
+    private List<Properties> types = new ArrayList<>(4);
 
     /**
      * プロパティのうち、位置の値を持つ配列です。
@@ -26,33 +27,28 @@ public class Border extends Properties {
      */
     public Border(String value, Node node) {
         super("border", node, false);
-        children.add(new Style(name, "", node) {
-            @Override
-            public void setValue(String value) {
-                super.setValue(value);
-                positions.forEach(property -> property.setValue(value));
-            }
-        });
-        children.add(new Width(name, "", node) {
-            @Override
-            public void setValue(String value) {
-                super.setValue(value);
-                positions.forEach(property -> property.setValue(value));
-            }
-        });
-        children.add(new Color(name, "", node) {
-            @Override
-            public void setValue(String value) {
-                super.setValue(value);
-                positions.forEach(property -> property.setValue(value));
-            }
-        });
-        types.addAll(children);
-        for (String position : positionArray) {
-            Properties tmp = new BorderByPosition(position, "", node);
-            positions.add(tmp);
-            children.add(tmp);
+
+
+        ByType styles = new ByType("style", "", node);
+        ByType colors = new ByType("color", "", node);
+        ByType widths = new ByType("width", "", node);
+        types.addAll(Arrays.asList(styles, colors, widths));
+        for (String positionStr : positionArray) {
+            Style style = new Style(name + "-" + positionStr, "", node);
+            Width width = new Width(name + "-" + positionStr, "", node);
+            Color color = new Color(name + "-" + positionStr, "", node);
+
+            ByPosition byPosition = new ByPosition(positionStr, "", node);
+            byPosition.getChildren().addAll(Arrays.asList(style, width, color));
+            positions.add(byPosition);
+            styles.getChildren().add(style);
+            colors.getChildren().add(color);
+            widths.getChildren().add(width);
         }
+
+        children.addAll(positions);
+        children.addAll(types);
+
         setValue(value);
     }
 
@@ -69,21 +65,36 @@ public class Border extends Properties {
     public void setValue(String value) {
         String[] split = value.trim().split(" ");
         for (String s : split) {
-            types.forEach(property -> {
-                if (property.rule.test(s)) {
-                    property.setValue(s);
-                }
+            types.forEach(properties -> {
+                properties.setValue(s);
             });
         }
     }
 
-    public static class BorderByPosition extends Properties {
-        public BorderByPosition(String position, String value, Node node) {
+    public static class ByPosition extends Properties {
+        public ByPosition(String position, String value, Node node) {
             super("border-" + position, node, false);
-            children.add(new Style(name, "none", node));
-            children.add(new Width(name, "1px", node));
-            children.add(new Color(name, "#000000", node));
             setValue(value);
+        }
+
+        @Override
+        public String getValue() {
+            StringBuilder ret = new StringBuilder();
+            children.forEach(property -> {
+                ret.append(property.getValue()).append(" ");
+            });
+            return ret.toString();
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValueByRule(value);
+        }
+    }
+
+    public static class ByType extends Properties {
+        public ByType(String type, String value, Node node) {
+            super("border-" + type, node, false);
         }
 
         @Override
@@ -117,13 +128,5 @@ public class Border extends Properties {
         public Color(String name, String value, Node node) {
             super(name + "-color", value, node, false, false, Property::isColor);
         }
-    }
-
-    public static void main(String... args) {
-        Border border = new Border("solid #000000 2px", null);
-        border.setValue("none #FFFFFF 3px");
-        border.positions.forEach(properties -> {
-            properties.children.forEach(Dbg::p);
-        });
     }
 }

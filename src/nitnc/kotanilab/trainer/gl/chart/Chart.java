@@ -28,19 +28,18 @@ public class Chart extends StackPane {
     private final Object lock = new Object();
     private String title;
 
-    private Pane titlePane = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000;border-bottom:none;");
-    private Pane legendPane = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000;border-top:none;");
-    private Pane graphPane = new StackPane("size:100% 90%;margin:0 0;border:solid #000000;");
+    private Pane titlePane = new StackPane("size:100% 5%;margin:0 95%;border:solid #000000 1px;border-bottom:none;");
+    private Pane legendPane = new HPane("size:100% 5%;margin:0 -95%;border:solid #000000 1px;border-top:none;");
+    private Pane graphPane = new StackPane("size:100% 90%;margin:0 0;border:solid #000000 1px;");
     private Pane xAxisPane = new StackPane("size:86% 10%;margin:6% -90%;");
     private Pane yAxisPane = new StackPane("size:10% 86%;margin:-90% 6%;");
-    private Pane plotPane = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000;");
+    private Pane plotPane = new StackPane("size:86% 86%;margin:6% 6%;border:solid #000000 1px;");
 
     private boolean shotFrag = false;
     private final Object shotFragLock = new Object();
     private String filenamePrefix;
 
     /**
-     *
      * コンストラクタです。
      *
      * @param title グラフのタイトル
@@ -53,7 +52,7 @@ public class Chart extends StackPane {
         this.yAxis.setVertical(true);
         getStyle().put("size:95% 95%;margin:0 0;");
         plots.setAddCallback(plot -> {
-            plot.getStyle().put("size:86% 86%;margin:6% 6%;border:solid #000000;");
+            plot.getStyle().put("size:86% 86%;margin:6% 6%;border:solid #000000 1px;");
             plot.setAxises(xAxis, yAxis);
             graphPane.getChildren().add(plot);
             return plot;
@@ -69,7 +68,6 @@ public class Chart extends StackPane {
         children.addAll(titlePane, graphPane, legendPane);
         updateLegend();
         updateAxisElements();
-        Dbg.p(titlePane.getStyle().get("border-top-width"));
     }
 
     /**
@@ -126,6 +124,8 @@ public class Chart extends StackPane {
 
     /**
      * 指定したファイル名(拡張子抜き)でスクリーンショットします。
+     * フォーマットはPNGです。
+     *
      * @param filenamePrefix ファイル名(拡張子抜き)
      */
     public void shot(String filenamePrefix) {

@@ -66,7 +66,6 @@ public class GideLine extends Plot {
     @Override
     public void setAxises(Axis xAxis, Axis yAxis) {
         super.setAxises(xAxis, yAxis);
-        Dbg.p(xAxis, this.xAxis);
         setPosition(position);
     }
 }
