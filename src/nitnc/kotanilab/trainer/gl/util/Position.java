@@ -26,8 +26,9 @@ public class Position {
 
     /**
      * 親オブジェクトのPositionとこのPositionが属するオブジェクトのStyleから作成します。
+     *
      * @param parent 親オブジェクトのPosition
-     * @param style このPositionが属するオブジェクトのStyle
+     * @param style  このPositionが属するオブジェクトのStyle
      */
     public Position(Position parent, Style style) {
         this.xScale = style.get("width").getValueAsRatio() * parent.getXScale();
@@ -39,6 +40,7 @@ public class Position {
     /**
      * このPositionが属するオブジェクトのStyleから作成します。
      * 細かい設定は後から行います。
+     *
      * @param style このPositionが属するオブジェクトのStyle
      */
     public Position(Style style) {
@@ -48,11 +50,16 @@ public class Position {
         this.yOffset = style.get("margin-y").getValueAsRatio();
     }
 
-    public Position(Position parent, Position style) {
-        this.xScale = style.getXScale() * parent.getXScale();
-        this.xOffset = style.getXOffset() * parent.getXScale() + parent.getXOffset();
-        this.yScale = style.getYScale() * parent.getYScale();
-        this.yOffset = style.getYOffset() * parent.getYScale() + parent.getYOffset();
+    /**
+     * 指定したPositionを親としてこのPositionを更新します。
+     *
+     * @param parent 親にしたいPosition
+     */
+    public void scale(Position parent) {
+        xScale *= parent.getXScale();
+        xOffset = xOffset * parent.getXScale() + parent.getXOffset();
+        yScale *= parent.getYScale();
+        yOffset = yOffset * parent.getYScale() + parent.getYOffset();
     }
 
     public double getXScale() {

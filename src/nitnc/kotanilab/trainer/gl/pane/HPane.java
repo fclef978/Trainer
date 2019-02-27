@@ -41,8 +41,8 @@ public class HPane extends Pane {
             double right = totalWidth - previousWidth[0] - center;
             Position curr = new Position(getStyle());
             curr.setXOffset(left - right);
-            Position position = new Position(parent.getPosition(), curr);
-            list.add(position);
+            curr.scale(parent.getPosition());
+            list.add(curr);
             previousWidth[0] += center * 2;
         });
         children.forEach(Node::draw);

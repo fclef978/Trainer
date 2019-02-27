@@ -167,7 +167,7 @@ public class Axis {
                 split[1] = split[1].substring(0, split[1].length() - 1);
             }
             String str = split[1].isEmpty() ? split[0] : split[0] + "." + split[1];
-            strings.add(createText(str, getTickMarkVector(pos).reverceX(reverce)));
+            strings.add(createText(str, getTickMarkVector(pos).inverseX(reverce)));
         }
         return strings;
     }

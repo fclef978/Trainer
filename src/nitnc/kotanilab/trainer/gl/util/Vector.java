@@ -1,9 +1,18 @@
 package nitnc.kotanilab.trainer.gl.util;
 
+/**
+ * OpenGLの描画で座標を表す位置ベクトルのクラスです。
+ */
 public class Vector {
     private double x;
     private double y;
 
+    /**
+     * 指定した値で作成します。
+     *
+     * @param x X(横軸)の値
+     * @param y Y(縦軸)の値
+     */
     public Vector(double x, double y) {
         this.x = x;
         this.y = y;
@@ -25,8 +34,14 @@ public class Vector {
         this.y = y;
     }
 
-    public Vector reverceX(boolean reverce) {
-        x *= reverce ? -1 : 1;
+    /**
+     * 指定した値がtrueならXの値の符号を反転します。
+     *
+     * @param inverse Xの値の符号を反転するかどうか
+     * @return このVector
+     */
+    public Vector inverseX(boolean inverse) {
+        x *= inverse ? -1 : 1;
         return this;
     }
 
