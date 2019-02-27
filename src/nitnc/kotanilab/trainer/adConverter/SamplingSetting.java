@@ -3,7 +3,7 @@ package nitnc.kotanilab.trainer.adConverter;
 import java.util.List;
 
 /**
- * サンプリング時の設定を表すクラスです。
+ * サンプリング時の設定を表すスーパークラスです。
  * 使用する機器に合わせて継承してください。
  */
 public class SamplingSetting {

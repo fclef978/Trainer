@@ -16,7 +16,8 @@ import nitnc.kotanilab.trainer.math.VirtualADC;
 import nitnc.kotanilab.trainer.util.Utl;
 
 /**
- * メイン
+ * メインクラス
+ * JavaFXに対応しています。
  */
 public class Main extends Application {
 

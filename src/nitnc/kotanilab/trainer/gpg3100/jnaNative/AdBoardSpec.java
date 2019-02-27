@@ -7,7 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * デバイスの仕様を格納する構造体です。AdGetDeviceInfo関数で使用されます。
+ * デバイスの仕様を格納するクラスです。AdGetDeviceInfo関数で使用されます。
+ * GPG-3100のADBOARDSPEC構造体に対応しています。
  */
 public class AdBoardSpec extends Structure {
 

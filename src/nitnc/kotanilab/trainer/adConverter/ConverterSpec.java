@@ -1,7 +1,7 @@
 package nitnc.kotanilab.trainer.adConverter;
 
 /**
- * ADコンバータのスペックを表すクラスです。
+ * ADコンバータのスペックを表すスーパークラスです。
  */
 public abstract class ConverterSpec {
 
