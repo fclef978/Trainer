@@ -3,11 +3,14 @@ package nitnc.kotanilab.trainer.gl.util;
 /**
  * Created by Hirokazu SUZUKI on 2018/07/16.
  * 24bitRGBカラー
+ * TODO awtのColorを置き換える予定
  */
 public class Color {
     public static int max = 255;
 
-    /** assets */
+    /**
+     * assets
+     */
     public static Color WHITE = new Color(max, max, max);
     public static Color GRAY = new Color(max / 2, max / 2, max / 2);
     public static Color BLACK = new Color(0, 0, 0);
@@ -29,14 +32,14 @@ public class Color {
     }
 
     public float getRed() {
-        return (float)red / (float)max;
+        return (float) red / (float) max;
     }
 
     public float getBlue() {
-        return (float)blue / (float)max;
+        return (float) blue / (float) max;
     }
 
     public float getGreen() {
-        return (float)green / (float)max;
+        return (float) green / (float) max;
     }
 }

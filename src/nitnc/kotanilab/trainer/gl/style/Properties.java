@@ -5,17 +5,33 @@ import nitnc.kotanilab.trainer.gl.node.Node;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
+/**
+ * 同じようなプロパティが複数存在する際にそれらをまとめるスーパークラスです。
+ */
 public class Properties extends Property {
-    List<Property> children = new ArrayList<>();
+    /**
+     * 子のプロパティのリスト
+     */
+    protected List<Property> children = new ArrayList<>();
 
-    public Properties(String name, Node node, boolean isExtendable) {
+    /**
+     * コンストラクタです。
+     *
+     * @param name         プロパティの名前
+     * @param node         プロパティが所属するノード
+     * @param isExtendable 継承可能かどうか
+     */
+    protected Properties(String name, Node node, boolean isExtendable) {
         super(name, "", node, false, isExtendable);
     }
 
-    public void setValueByRule(String value) {
+    /**
+     * 子のプロパティ全てに値をセットします。
+     *
+     * @param value セットする値
+     */
+    protected void setValueToChildren(String value) {
         String[] split = value.trim().split(" ");
         for (String s : split) {
             children.forEach(property -> {
@@ -27,9 +43,9 @@ public class Properties extends Property {
     }
 
     @Override
-    public void registerToMap(Map<String, Property> map) {
-        super.registerToMap(map);
-        children.forEach(property -> property.registerToMap(map));
+    public void putsToMap(Map<String, Property> map) {
+        super.putsToMap(map);
+        children.forEach(property -> property.putsToMap(map));
     }
 
     public List<Property> getChildren() {

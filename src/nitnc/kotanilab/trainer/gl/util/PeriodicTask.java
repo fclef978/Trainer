@@ -25,6 +25,7 @@ public class PeriodicTask {
     /**
      * 指定した周期で周期実行を準備します。
      * 実行内容は後で設定します。
+     *
      * @param period 周期[ms]
      */
     public PeriodicTask(int period) {
@@ -33,8 +34,9 @@ public class PeriodicTask {
 
     /**
      * 指定した周期と実行内容で周期実行を準備します。
+     *
      * @param callback 実行内容
-     * @param period 周期[ms]
+     * @param period   周期[ms]
      */
     public PeriodicTask(Consumer<Long> callback, int period) {
         setCallback(callback);
@@ -43,6 +45,7 @@ public class PeriodicTask {
 
     /**
      * 実行内容を設定します。
+     *
      * @param callback 実行内容
      */
     public void setCallback(Consumer<Long> callback) {

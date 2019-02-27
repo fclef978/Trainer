@@ -1,7 +1,6 @@
 package nitnc.kotanilab.trainer.gl.style;
 
 import nitnc.kotanilab.trainer.gl.node.Node;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,6 +70,9 @@ public class Border extends Properties {
         }
     }
 
+    /**
+     * ボーダーの位置によって分けられたPropertiesです。
+     */
     public static class ByPosition extends Properties {
         public ByPosition(String position, String value, Node node) {
             super("border-" + position, node, false);
@@ -88,10 +90,13 @@ public class Border extends Properties {
 
         @Override
         public void setValue(String value) {
-            super.setValueByRule(value);
+            super.setValueToChildren(value);
         }
     }
 
+    /**
+     * ボーダーのプロパティの種類によって分けられたPropertiesです。
+     */
     public static class ByType extends Properties {
         public ByType(String type, String value, Node node) {
             super("border-" + type, node, false);
@@ -108,22 +113,31 @@ public class Border extends Properties {
 
         @Override
         public void setValue(String value) {
-            super.setValueByRule(value);
+            super.setValueToChildren(value);
         }
     }
 
+    /**
+     * ボーダースタイルです。
+     */
     public static class Style extends Property {
         public Style(String name, String value, Node node) {
             super(name + "-style", value, node, false, false, Property::isLineStyle, Property::isNone);
         }
     }
 
+    /**
+     * ボーダーの太さです。
+     */
     public static class Width extends Property {
         public Width(String name, String value, Node node) {
             super(name + "-width", value, node, false, false, Property::isLength);
         }
     }
 
+    /**
+     * ボーダーの色です。
+     */
     public static class Color extends Property {
         public Color(String name, String value, Node node) {
             super(name + "-color", value, node, false, false, Property::isColor);

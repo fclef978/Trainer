@@ -49,13 +49,13 @@ public abstract class Parent extends Node {
 
     @Override
     public double getWidth() {
-        return style.get("width").getValueAsRltNumber();
+        return style.get("width").getValueAsRatio();
         // return children.stream().mapToDouble(Node::getWidth).sum() * style.getNum("width");
     }
 
     @Override
     public double getHeight() {
-        return style.get("height").getValueAsRltNumber();
+        return style.get("height").getValueAsRatio();
         // return children.stream().mapToDouble(Node::getHeight).sum() * style.getNum("height");
     }
 

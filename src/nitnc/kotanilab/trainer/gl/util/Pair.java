@@ -1,35 +1,49 @@
 package nitnc.kotanilab.trainer.gl.util;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
- * タプル
- * @param <AT> オブジェクトA
- * @param <BT> オブジェクトB
+ * オブジェクト二つのタプルを表すクラスです。
+ * 未使用
+ *
+ * @param <A> クラスA
+ * @param <B> クラスB
  */
-public class Pair<AT, BT> {
-    private AT a;
-    private BT b;
+public class Pair<A, B> {
+    private A a;
+    private B b;
 
-    public Pair(AT a, BT b) {
+    public Pair(A a, B b) {
         this.a = a;
         this.b = b;
     }
 
-    public AT getA() {
+    public A getA() {
         return a;
     }
 
-    public BT getB() {
+    public B getB() {
         return b;
     }
 
-    public void setA(AT a) {
+    public void setA(A a) {
         this.a = a;
     }
 
-    public void setB(BT b) {
+    public void setB(B b) {
         this.b = b;
+    }
+
+    /**
+     * AとBを引数にとる関数を受け取り、その結果を返します。
+     *
+     * @param function AとBを引数にとる関数
+     * @param <Y>      関数の返り値の型
+     * @return 関数の型
+     */
+    public <Y> Y func(BiFunction<? super A, ? super B, Y> function) {
+        return function.apply(a, b);
     }
 
     @Override
