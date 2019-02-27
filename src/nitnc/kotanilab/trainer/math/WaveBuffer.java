@@ -98,7 +98,7 @@ public class WaveBuffer {
             if (count == -1) {
                 break;
             }
-            wave.set(count, new PointOfWave(count-- / samplingFrequency, iterator.next()));
+            wave.setAll(count, new PointOfWave(count-- / samplingFrequency, iterator.next()));
         }
         */
 

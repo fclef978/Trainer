@@ -118,18 +118,20 @@ public class MmgAnalyzer extends Analyzer {
         super.stop();
         mdfSeries.clear();
         pfSeries.clear();
+        Arrays.asList(wavePlot, spectrumPlot, mdfPlot, pfPlot, rmsPlot).forEach(plot ->plot.getLine().getVectorList().clear());
         logger.close();
     }
 
     @Override
     public void execute() {
         if (graphContextMap.get("Wave").isVisible()) {
-            Wave tmpWave = source.getWave(1.0);
-            Wave wave = tmpWave.stream()
-                    .lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax())
-                    .to(tmpWave::from);
+            Wave wave = source.getWave(1.0);
             graphContextMap.get("Wave").ifVisible(context ->
-                    wavePlot.getLine().getVectorList().set(wave.getXList(), wave.getYList()));
+                    context.setToVectorList(
+                            wave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax()),
+                            wavePlot.getLine().getVectorList()
+                    )
+            );
         }
         if (source.available(number) && isPassedInterval(1.0)) {
             Wave tmpWave = source.getWave(number);
@@ -139,9 +141,10 @@ public class MmgAnalyzer extends Analyzer {
             Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
             Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
             // スペクトラムのdB化
-            Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
+            // Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
             graphContextMap.get("Spectrum").ifVisible(context ->
-                    spectrumPlot.getLine().getVectorList().set(powerSpectrum.getXList(), powerSpectrum.getYList()));
+                    context.setToVectorList(spectrum.stream().replaceY(y ->
+                            PointLogY.dB(y, spectrum.getYMax())), spectrumPlot.getLine().getVectorList()));
 
             Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
             logger.print(medianPoint);
@@ -152,8 +155,8 @@ public class MmgAnalyzer extends Analyzer {
             mdfGide.setPosition(medianPoint.getY());
 
             graphContextMap.get("Frequency").ifVisible(context -> {
-                mdfPlot.getLine().getVectorList().set(mdfSeries.getXList(), mdfSeries.getYList());
-                pfPlot.getLine().getVectorList().set(pfSeries.getXList(), pfSeries.getYList());
+                context.setToVectorList(mdfSeries.stream(), mdfPlot.getLine().getVectorList());
+                context.setToVectorList(pfSeries.stream(), pfPlot.getLine().getVectorList());
             });
 
             Wave rmsWave = source.getWave(3.0);
@@ -161,7 +164,7 @@ public class MmgAnalyzer extends Analyzer {
             double rms = Math.sqrt(sqAve);
             rmsSeries.add(new Point(rmsWave.getStartTime(), rms));
             graphContextMap.get("RMS").ifVisible(context ->
-                    rmsPlot.getLine().getVectorList().set(rmsSeries.getXList(), rmsSeries.getYList()));
+                    context.setToVectorList(rmsSeries.stream(), rmsPlot.getLine().getVectorList()));
 
 
             updatePreviousTime();

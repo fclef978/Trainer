@@ -10,30 +10,28 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /**
- * Vectorのリスト
- * スレッドセーフです（予定）。
+ * Vectorのリストです。
+ * できる限りスレッドセーフになるようになっています。
  */
 public class VectorList {
-    private List<Vector> list;
-    private UnaryOperator<Double> xConverter;
-    private UnaryOperator<Double> yConverter;
-    final private Object lock = new Object();
-    private int sign = 1;
+    final private List<Vector> list;
 
     /**
-     * 空のベクトルリストを作成します。
-     *
-     * @param xConverter xの値をベクトル値に変換する処理
-     * @param yConverter yの値をベクトル値に変換する処理
+     * 空で作成します。
      */
-    public VectorList(UnaryOperator<Double> xConverter, UnaryOperator<Double> yConverter) {
-        list = Collections.synchronizedList(new ArrayList<>());
-        this.xConverter = xConverter;
-        this.yConverter = yConverter;
+    public VectorList() {
+        //list = Collections.synchronizedList(new ArrayList<>());
+        list = new ArrayList<>();
     }
 
+    /**
+     * Vectorを追加します。
+     * 追加されるVectorはY値が-1.0～1.0に制限されます。
+     *
+     * @param vector 追加するVector
+     */
     public void add(Vector vector) {
-        synchronized (lock) {
+        synchronized (list) {
             if (vector.getY() > 1.0) vector.setY(1.0);
             else if (vector.getY() < -1.0) vector.setY(-1.0);
             if (vector.getX() <= 1.0 && vector.getX() >= -1.0)
@@ -41,28 +39,38 @@ public class VectorList {
         }
     }
 
+    /**
+     * X値とY値からVectorを作成して追加します。
+     * 追加されるVectorはY値が-1.0～1.0に制限されます。
+     *
+     * @param x 追加するVectorのX値
+     * @param y 追加するVectorのY値
+     */
     public void add(double x, double y) {
-        this.add(new Vector(sign * xConverter.apply(x), yConverter.apply(y)));
+        this.add(new Vector(x, y));
     }
 
     /**
-     * TODO かなり効率が悪い
+     * このVectorListに含まれるVectorを全て削除し、指定したVectorのリストの中のVectorを全てこのVectorListに追加します。
      *
-     * @param xc xのコレクション
-     * @param yc yのコレクション
+     * @param vectors このVectorListに追加するVectorを含むVectorList
      */
-    public void set(List<? extends Double> xc, List<? extends Double> yc) {
-        synchronized (lock) {
+    public void setAll(List<Vector> vectors) {
+        synchronized (list) {
             list.clear();
-            Double[] x = xc.toArray(new Double[0]);
-            Double[] y = yc.toArray(new Double[0]);
-            for (int i = 0; i < x.length; i++) {
-                this.add(x[i], i < y.length ? y[i] : 0);
-            }
+            vectors.forEach(this::add);
         }
     }
-    public void set(double[] x, double[] y) {
-        synchronized (lock) {
+
+    /**
+     * このVectorListに含まれるVectorを全て削除し、指定したX値とY値の配列からVectorを作成し全てこのVectorListに追加します。
+     * Y配列の長さはX配列の長さ以上でなければいけません。
+     *
+     * @param x X値の配列
+     * @param y Y値の配列
+     */
+    public void setAll(double[] x, double[] y) {
+        synchronized (list) {
             list.clear();
             for (int i = 0; i < x.length; i++) {
                 this.add(x[i], i < y.length ? y[i] : 0);
@@ -70,36 +78,35 @@ public class VectorList {
         }
     }
 
+    /**
+     * 指定した位置のVectorを削除します。
+     *
+     * @param index 削除するVectorのインデックス
+     */
     public void remove(int index) {
-        synchronized (lock) {
+        synchronized (list) {
             if (index < 0) index -= list.size();
             list.remove(index);
         }
     }
 
+    /**
+     * このVectorListに含まれるVectorを全て削除します。
+     */
     public void clear() {
-        synchronized (lock) {
+        synchronized (list) {
             list.clear();
         }
     }
 
+    /**
+     * このVectorListの各Vectorに対して指定されたアクションを、すべての要素が処理されるか、アクションが例外をスローするまで実行します。
+     *
+     * @param action 各Vectorに対して実行されるアクション
+     */
     public void forEach(Consumer<? super Vector> action) {
-        synchronized (lock) {
+        synchronized (list) {
             list.forEach(action);
-        }
-    }
-
-    public Collection<Vector> getCollection() {
-        synchronized (lock) {
-            return list;
-        }
-    }
-
-    public void reverse(boolean dir) {
-        if (dir) {
-            sign = -1;
-        } else {
-            sign = 1;
         }
     }
 }

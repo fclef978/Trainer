@@ -3,7 +3,11 @@ package nitnc.kotanilab.trainer.fx.controller;
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.gl.util.Vector;
+import nitnc.kotanilab.trainer.gl.util.VectorList;
+import nitnc.kotanilab.trainer.math.series.SeriesStream;
 
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -19,7 +23,8 @@ public class GraphContext {
 
     /**
      * コンストラクタです。
-     * @param chart 使用するChart
+     *
+     * @param chart   使用するChart
      * @param wrapper Chartを保持するラッパーになるPane
      * @param visible 初期表示するかどうか
      */
@@ -32,6 +37,7 @@ public class GraphContext {
 
     /**
      * axisSetterを呼び出し、軸や凡例の表示を更新し、指定した親Paneに追加することで描画を開始するユーティリティメソッドです。
+     *
      * @param masterPane 親Pane
      */
     public void confirm(Pane masterPane) {
@@ -47,6 +53,7 @@ public class GraphContext {
 
     /**
      * 表示可能かつ一時停止中で無ければ指定したConsumerを呼び出し、それ以外の場合は何も行いません。
+     *
      * @param action 表示可能かつ一時停止中で無い場合に実行されるブロック
      */
     public void ifVisible(Consumer<? super GraphContext> action) {
@@ -55,10 +62,51 @@ public class GraphContext {
 
     /**
      * 軸の設定ブロックをセットします。
+     *
      * @param plotSetter 軸の設定ブロック (xAxis, yAxis) -> {}
      */
     public void setAxisSetter(BiConsumer<? super Axis, ? super Axis> plotSetter) {
         this.axisSetter = plotSetter;
+    }
+
+    /**
+     * X軸のAxisオブジェクトを返します。
+     * Chartのものが返ります。
+     *
+     * @return X軸のAxisオブジェクト
+     */
+    public Axis getXAxis() {
+        return chart.getXAxis();
+    }
+
+    /**
+     * Y軸のAxisオブジェクトを返します。
+     * Chartのものが返ります。
+     *
+     * @return Y軸のAxisオブジェクト
+     */
+    public Axis getYAxis() {
+        return chart.getYAxis();
+    }
+
+    /**
+     * 処理途中のSeriesStreamをVectorのListにして返すユーティリティメソッドです。
+     *
+     * @param stream VectorのListにしたい処理途中のSeriesStream
+     * @return VectorのList
+     */
+    public List<Vector> toVectorList(SeriesStream<Double> stream) {
+        return stream.replace(getXAxis()::scale, getYAxis()::scale).combine(Vector::new);
+    }
+
+    /**
+     * 処理途中のSeriesStreamを指定したVectorListに登録するユーティリティメソッドです。
+     *
+     * @param stream     登録する処理途中のSeriesStream
+     * @param vectorList 登録されるVectorList
+     */
+    public void setToVectorList(SeriesStream<Double> stream, VectorList vectorList) {
+        vectorList.setAll(toVectorList(stream));
     }
 
     public Chart getChart() {
@@ -83,6 +131,7 @@ public class GraphContext {
 
     /**
      * 表示可能かつ一時停止中でないかを返します。
+     *
      * @param visible 表示可能かつ一時停止中でないか
      */
     public void setVisible(boolean visible) {

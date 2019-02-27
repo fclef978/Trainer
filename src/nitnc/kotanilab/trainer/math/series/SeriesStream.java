@@ -2,13 +2,10 @@ package nitnc.kotanilab.trainer.math.series;
 
 import nitnc.kotanilab.trainer.math.point.AbstractPoint;
 import nitnc.kotanilab.trainer.math.point.Point;
-import nitnc.kotanilab.trainer.util.Dbg;
 
-import java.io.ObjectStreamField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
-import java.util.stream.Stream;
 
 /**
  * 系列データを高速に処理するためのクラスです。
@@ -202,6 +199,15 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return ret;
     }
 
+    public SeriesStream<Y> replace(UnaryOperator<Double> xOperator, UnaryOperator<Y> yOperator) {
+        eachIndex(i -> {
+            ys[i] = yOperator.apply(gy(i));
+            xs[i] = xOperator.apply(xs[i]);
+            return true;
+        });
+        return this;
+    }
+
     public SeriesStream<Y> replaceY(UnaryOperator<Y> operator) {
         eachIndex(i -> {
             ys[i] = operator.apply(gy(i));
@@ -219,16 +225,14 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
-    public <E> List<E> toPointList(BiFunction<Double, ? super Y, ? extends E> pointGenerator) {
+    public <E> List<E> combine(BiFunction<Double, ? super Y, ? extends E> combiner) {
         List<E> ret = new ArrayList<>(count());
-        each((x, y) -> {
-            ret.add(pointGenerator.apply(x, y));
-        });
+        each((x, y) -> ret.add(combiner.apply(x, y)));
         return ret;
     }
 
     public <S extends Series, E extends AbstractPoint> S toSeries(BiFunction<Double, ? super Y, ? extends E> pointGenerator, Function<List<E>, S> seriesConstructor) {
-        return seriesConstructor.apply(toPointList(pointGenerator));
+        return seriesConstructor.apply(combine(pointGenerator));
     }
 
     /**

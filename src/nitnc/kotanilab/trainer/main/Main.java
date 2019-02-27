@@ -4,11 +4,16 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.fx.controller.MasterController;
 import nitnc.kotanilab.trainer.fx.stage.UserSettingStage;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
+import nitnc.kotanilab.trainer.math.FunctionGenerator;
+import nitnc.kotanilab.trainer.math.VirtualADC;
+import nitnc.kotanilab.trainer.util.Utl;
 
 /**
  * メイン
@@ -52,8 +57,18 @@ public class Main extends Application {
         glInit();
 
         root = new VBox();
-
-        masterController = new MasterController(masterPane);
+        ADConverter adc = Utl.doByOS(
+                () -> new VirtualADC(5, -5,
+                        FunctionGenerator.csv("source.csv"),
+                        FunctionGenerator.sin(1.0, 2.5, 10, 50, 100, 300),
+                        //FunctionGenerator.white(0 , 2, 2.0, 2.5),
+                        //FunctionGenerator.randSin(10.0, 1.0, 0.0)
+                        FunctionGenerator.sin(3, 2.0, 0.0)
+                        //FunctionGenerator.sin(0.5, 0.0, 1, 5)
+                ),
+                () -> new GPG3100(1)
+        );
+        masterController = new MasterController(masterPane,adc);
         root.getChildren().addAll(masterController.getRoot());
         Scene scene = new Scene(root, 720, 320);
         primaryStage.setScene(scene);

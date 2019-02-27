@@ -44,12 +44,7 @@ public class LinePlot extends Plot {
         this.color = color;
         this.thick = thick;
         getStyle().put("size:100% 100%;margin:0 0;border:none;");
-    }
-
-    @Override
-    public void setAxises(Axis xAxis, Axis yAxis) {
-        super.setAxises(xAxis, yAxis);
-        VectorList vectorList = new VectorList(xAxis::scale, yAxis::scale);
+        VectorList vectorList = new VectorList();
         line = new PolygonalLine(vectorList, color, thick);
         children.add(line);
     }

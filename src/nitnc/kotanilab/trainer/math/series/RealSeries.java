@@ -64,7 +64,7 @@ public class RealSeries<E extends Point> extends SeriesImpl<Double, Double, E> {
     }
 
     public RealSeries<PointLogY> getLogSeries() {
-        List<PointLogY> tmp = stream().toPointList((x, y) -> new PointLogY(x, y, yMax));
+        List<PointLogY> tmp = stream().combine((x, y) -> new PointLogY(x, y, yMax));
         return new RealSeries<>(tmp, 0.0, Double.NEGATIVE_INFINITY, xUnit, Unit.db(yUnit.getName()));
     }
 

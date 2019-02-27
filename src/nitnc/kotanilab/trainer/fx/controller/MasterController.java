@@ -56,8 +56,9 @@ public class MasterController {
      * コンストラクタです。
      *
      * @param masterPane OpenGLの親ペイン
+     * @param adc ADConverter ADコンバータのオブジェクト
      */
-    public MasterController(nitnc.kotanilab.trainer.gl.pane.Pane masterPane) {
+    public MasterController(nitnc.kotanilab.trainer.gl.pane.Pane masterPane, ADConverter adc) {
         this.masterPane = masterPane;
         setting = (MasterSetting) Saver.load("MasterSetting");
         if (setting != null) {
@@ -65,17 +66,8 @@ public class MasterController {
         } else {
             setting = new MasterSetting();
         }
-        adc = Utl.doByOS(
-                () -> new VirtualADC(5, -5,
-                        FunctionGenerator.csv("source.csv"),
-                        FunctionGenerator.sin(1.0, 2.5, 10, 50, 100, 300),
-                        //FunctionGenerator.white(0 , 2, 2.0, 2.5),
-                        //FunctionGenerator.randSin(10.0, 1.0, 0.0)
-                        FunctionGenerator.sin(60, 2.0, 0.0)
-                        //FunctionGenerator.sin(0.5, 0.0, 1, 5)
-                ),
-                () -> new GPG3100(1)
-        );
+        this.adc = adc;
+
         samplingSetting = adc.getSamplingSetting();
 
         Label labelSF = new Label("Sampling Frequency");
