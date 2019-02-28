@@ -1,12 +1,14 @@
 package nitnc.kotanilab.trainer.gl.util;
 
+import nitnc.kotanilab.trainer.util.Dbg;
+
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-/**
- * Created by Hirokazu SUZUKI on 2018/07/31.
- */
 
 /**
  * 周期実行を簡単に行うためのクラスです。
@@ -16,11 +18,13 @@ import java.util.function.Consumer;
  */
 public class PeriodicTask {
 
-    protected Consumer<Long> callback;
+    private static ScheduledExecutorService service;
+
+    protected Runnable callback;
     protected Timer timer;
     protected TimerTask task;
     protected int period;
-    private long count = 0;
+    protected ScheduledFuture<?> future;
 
     /**
      * 指定した周期で周期実行を準備します。
@@ -29,7 +33,7 @@ public class PeriodicTask {
      * @param period 周期[ms]
      */
     public PeriodicTask(int period) {
-        this.period = period;
+        this(() -> {}, period);
     }
 
     /**
@@ -38,7 +42,8 @@ public class PeriodicTask {
      * @param callback 実行内容
      * @param period   周期[ms]
      */
-    public PeriodicTask(Consumer<Long> callback, int period) {
+    public PeriodicTask(Runnable callback, int period) {
+        if (service == null) service = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
         setCallback(callback);
         this.period = period;
     }
@@ -48,7 +53,7 @@ public class PeriodicTask {
      *
      * @param callback 実行内容
      */
-    public void setCallback(Consumer<Long> callback) {
+    public void setCallback(Runnable callback) {
         this.callback = callback;
     }
 
@@ -56,38 +61,15 @@ public class PeriodicTask {
      * 周期実行を開始します。
      */
     public void start() {
-        if (timer == null) {
-            timer = new Timer();
-            setTask();
-            timer.scheduleAtFixedRate(task, 0, period);
-        }
+        Dbg.p(callback == null);
+        future = service.scheduleAtFixedRate(callback, 0, period, TimeUnit.MILLISECONDS);
     }
 
     /**
      * 周期実行を終了します。
      */
     public void stop() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-    }
-
-    /**
-     * 周期実行のTimerTaskを設定します。
-     * 複雑な内容のタスクを設定したいときはオーバーライドしてください。
-     */
-    protected void setTask() {
-        /*
-         * 周期実行タスク
-         */
-        class Task extends TimerTask {
-            @Override
-            public void run() {
-                callback.accept(count++);
-            }
-        }
-        task = new Task();
+        future.cancel(false);
     }
 
     @Override

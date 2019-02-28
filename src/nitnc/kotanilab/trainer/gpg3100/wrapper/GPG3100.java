@@ -111,7 +111,7 @@ public class GPG3100 implements ADConverter {
         LongByReference available = new LongByReference(0);
         final long[] previous = {0};
 
-        task = new BufferTask((int) (1.0 / samplingSetting.getSamplingFrequency()), n -> {
+        task = new BufferTask((int) (1.0 / samplingSetting.getSamplingFrequency()), () -> {
             evaluateErrorCode(instance.AdGetStatus(deviceNumber, status, count, available));
             long length = count.getValue() - previous[0];
             long offset = previous[0] % samplingSetting.getSamplingNumber();
@@ -236,9 +236,8 @@ public class GPG3100 implements ADConverter {
 
     private class BufferTask extends PeriodicTask {
 
-        private BufferTask(int period, Consumer<Long> callback) {
-            super(period < 1 ? 1 : period);
-            setCallback(callback);
+        private BufferTask(int period, Runnable callback) {
+            super(callback, period < 1 ? 1 : period);
         }
 
     }

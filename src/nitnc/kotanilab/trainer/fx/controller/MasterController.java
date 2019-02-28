@@ -103,9 +103,7 @@ public class MasterController {
         samplingControls.getChildren().addAll(labelSF, samplingFrequency, startButton, stopButton, pauseButton, screenShotButton);
         analysisControls.getChildren().addAll(labelCH, comboBox, addAnalysisButton, removeAnalysisButton, liftAnalysisButton, lowerAnalysisButton);
         root.getChildren().addAll(samplingControls, analysisControls, analysisTable);
-        analysisTask.setCallback(count -> {
-            analyze();
-        });
+        analysisTask.setCallback(this::analyze);
     }
 
     @SuppressWarnings("unchecked")

@@ -18,14 +18,10 @@ public class Oscillator extends PeriodicTask{
     protected UnaryOperator<Double> function;
 
     public Oscillator(double fs, UnaryOperator<Double> function, Consumer<PointOfWave> callback) {
-        super((int) (1000.0 / fs));
+        super((int) Math.round(1000.0 / fs));
         this.function = function;
         this.callback = callback;
-    }
-
-    @Override
-    protected void setTask() {
-        task = new OscTask(function, callback);
+        setCallback(new OscTask(function, callback));
     }
 
     /**
