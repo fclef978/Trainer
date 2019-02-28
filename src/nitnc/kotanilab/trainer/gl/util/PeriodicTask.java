@@ -61,7 +61,6 @@ public class PeriodicTask {
      * 周期実行を開始します。
      */
     public void start() {
-        Dbg.p(callback == null);
         future = service.scheduleAtFixedRate(callback, 0, period, TimeUnit.MILLISECONDS);
     }
 

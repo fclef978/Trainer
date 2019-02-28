@@ -6,6 +6,7 @@ import nitnc.kotanilab.trainer.gl.chart.*;
 import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;
@@ -40,6 +41,8 @@ public class MmgAnalyzer extends Analyzer {
     protected LinePlot pfPlot;
     protected LinePlot rmsPlot;
     protected GideLine mdfGide = new GideLine("MF", 0.0, Color.RED, 2.0, true);
+    private PeriodicTask waveTask = new PeriodicTask(this::waveCallback, 30);
+    private PeriodicTask freqTask = new PeriodicTask(this::freqCallback, 1000);
 
     public MmgAnalyzer(Pane masterPane) {
         this(masterPane, "MMG",
@@ -110,18 +113,67 @@ public class MmgAnalyzer extends Analyzer {
         fft = new OouraFft(n);
         updatePreviousTime();
         logger = new CsvLogger(title + ".csv");
+        waveTask.start();
+        freqTask.start();
     }
 
     @Override
     public void stop() {
         super.stop();
+        waveTask.stop();
+        freqTask.stop();
         mdfSeries.clear();
         pfSeries.clear();
         Arrays.asList(wavePlot, spectrumPlot, mdfPlot, pfPlot, rmsPlot).forEach(plot ->plot.getLine().getVectorList().clear());
         logger.close();
     }
+    private void waveCallback() {
+        if (graphContextMap.get("Wave").isVisible()) {
+            Wave wave = source.getWave(1.0);
+            graphContextMap.get("Wave").ifVisible(context ->
+                    context.setToVectorList(
+                            wave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax()),
+                            wavePlot.getLine().getVectorList()
+                    )
+            );
+        }
+    }
+    private void freqCallback() {
+        if (source.available(number)) {
+            Wave tmpWave = source.getWave(number);
+            Wave wave = tmpWave.stream().to(tmpWave::from);
+            // fft処理
+            tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency()).replaceYByIndex(Wave::hamming, (a, b) -> a * b).to(wave::from);
+            Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
+            Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
+            // スペクトラムのdB化
+            // Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
+            graphContextMap.get("Spectrum").ifVisible(context ->
+                    context.setToVectorList(spectrum.stream().replaceY(y ->
+                            PointLogY.dB(y, spectrum.getYMax())), spectrumPlot.getLine().getVectorList()));
 
-    @Override
+            Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
+            logger.print(medianPoint);
+            mfCallback.accept(medianPoint.getY());
+            mdfSeries.add(medianPoint);
+            pfSeries.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
+
+            mdfGide.setPosition(medianPoint.getY());
+
+            graphContextMap.get("Frequency").ifVisible(context -> {
+                context.setToVectorList(mdfSeries.stream(), mdfPlot.getLine().getVectorList());
+                context.setToVectorList(pfSeries.stream(), pfPlot.getLine().getVectorList());
+            });
+
+            Wave rmsWave = source.getWave(3.0);
+            double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
+            double rms = Math.sqrt(sqAve);
+            rmsSeries.add(new Point(rmsWave.getStartTime(), rms));
+            graphContextMap.get("RMS").ifVisible(context ->
+                    context.setToVectorList(rmsSeries.stream(), rmsPlot.getLine().getVectorList()));
+        }
+    }
+
     public void execute() {
         if (graphContextMap.get("Wave").isVisible()) {
             Wave wave = source.getWave(1.0);

@@ -44,7 +44,6 @@ public class MasterController {
             "MMG", "MMG(mic.)", "EMG", "HR"
     ));
     private TableView<Controller> analysisTable = new TableView<>();
-    private PeriodicTask analysisTask = new PeriodicTask(10);
     private ADConverter adc;
     private SamplingSetting samplingSetting;
     private MasterSetting setting;
@@ -103,7 +102,6 @@ public class MasterController {
         samplingControls.getChildren().addAll(labelSF, samplingFrequency, startButton, stopButton, pauseButton, screenShotButton);
         analysisControls.getChildren().addAll(labelCH, comboBox, addAnalysisButton, removeAnalysisButton, liftAnalysisButton, lowerAnalysisButton);
         root.getChildren().addAll(samplingControls, analysisControls, analysisTable);
-        analysisTask.setCallback(this::analyze);
     }
 
     @SuppressWarnings("unchecked")
@@ -196,7 +194,6 @@ public class MasterController {
         getControllers().forEach(controller -> controller.start(fs));
         stopButton.setDisable(false);
         pauseButton.setDisable(false);
-        analysisTask.start();
     }
 
     public void forEachAnalysisControls(Consumer<? super Button> action) {
@@ -210,7 +207,7 @@ public class MasterController {
 
     private void stopAnalysis() {
         if (getAnalysisNumber() == 0) return;
-        analysisTask.stop();
+        // analysisTask.stop();
         adc.stop();
         buffers.forEach(WaveBuffer::stop);
         stopButton.setDisable(true);
@@ -228,15 +225,6 @@ public class MasterController {
      */
     public void stop() {
         stopAnalysis();
-    }
-
-    /**
-     * 解析を一回実行します。
-     * 複数の解析をする場合は並列実行されます。
-     * そのため解析間に依存関係があると例外が発生される可能性があります。
-     */
-    private void analyze() {
-        getControllers().parallelStream().forEach(controller -> controller.getAnalyzer().execute());
     }
 
     /**

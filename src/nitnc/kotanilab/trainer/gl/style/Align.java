@@ -19,6 +19,5 @@ public class Align extends PropertyXY {
 
     public static void main(String... args) {
         Property align = new Align("center center", null);
-        Dbg.p(align.getValue());
     }
 }

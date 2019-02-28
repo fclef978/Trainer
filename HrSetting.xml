@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="1.8.0_181" class="java.beans.XMLDecoder">
  <object class="nitnc.kotanilab.trainer.fx.setting.HrSetting">
-  <void property="acf">
-   <boolean>true</boolean>
-  </void>
   <void property="channel">
    <int>1</int>
-  </void>
-  <void property="diff">
-   <boolean>true</boolean>
   </void>
   <void property="hr">
    <boolean>true</boolean>

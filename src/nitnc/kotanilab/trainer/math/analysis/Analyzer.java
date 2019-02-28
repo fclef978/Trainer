@@ -91,14 +91,6 @@ public abstract class Analyzer {
     }
 
     /**
-     * 解析の本体のメソッドです。
-     * このメソッドが呼び出されると解析が一回実行されます。
-     * このメソッドを周期的に実行することでリアルタイム解析が可能になります。
-     * 普段はControllerのanalyse()メソッドを通じてMasterControllerから周期的に呼び出されています。
-     */
-    public abstract void execute();
-
-    /**
      * 解析する信号の発生源になるWaveBufferをセットします。
      * このAnalyzerのstart()を呼び出す前にWaveBufferのstart()を呼び出しておいてください。
      *

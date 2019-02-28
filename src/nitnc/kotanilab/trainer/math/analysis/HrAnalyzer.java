@@ -8,6 +8,7 @@ import nitnc.kotanilab.trainer.gl.chart.Chart;
 import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
 import nitnc.kotanilab.trainer.gl.util.Vector;
 import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.Unit;
@@ -35,6 +36,8 @@ public class HrAnalyzer extends Analyzer {
     private GideLine targetHRGide = new GideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), 1.0, false);
 
     private ShiftedSeries<Point> heartRate = new ShiftedSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"), 60.0);
+    private PeriodicTask waveTask = new PeriodicTask(this::waveCallback, 30);
+    private PeriodicTask hrTask = new PeriodicTask(this::hrCallback, 1000);
 
     public HrAnalyzer(Pane masterPane) {
         super(masterPane, "HR");
@@ -70,25 +73,69 @@ public class HrAnalyzer extends Analyzer {
         source.setXMax(10.0);
         source.setDecimationNumber(16);
         source.addCallback(IirFilter.execute("bpf0.0001-0.01.txt"));
-        graphContextMap.get("Wave").setAxisSetter((x,y) -> {
+        graphContextMap.get("Wave").setAxisSetter((x, y) -> {
             x.setMax(hrCalcLength / source.getSamplingFrequency());
             x.setSize(hrCalcLength / source.getSamplingFrequency() / 8.0);
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
         fft = new OouraFft(hrCalcLength);
         logger = new CsvLogger("HR.csv");
-        updatePreviousTime();
+        waveTask.start();
+        hrTask.start();
     }
 
     @Override
     public void stop() {
         super.stop();
+        waveTask.stop();
+        hrTask.stop();
         heartRate.clear();
-        Arrays.asList(wavePlot, hrPlot, acfPlot, diffPlot).forEach(plot ->plot.getLine().getVectorList().clear());
+        Arrays.asList(wavePlot, hrPlot, acfPlot, diffPlot).forEach(plot -> plot.getLine().getVectorList().clear());
         logger.close();
     }
 
-    @Override
+    private void waveCallback() {
+        Wave hrWave = source.getWave(hrCalcLength);
+        if (graphContextMap.get("Wave").isVisible()) {
+            Wave tmpWave = source.getWave(hrCalcLength);
+            List<Vector> wave1 = tmpWave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax())
+                    .replace(wavePlot.getXAxis()::scale, wavePlot.getYAxis()::scale)
+                    .combine(Vector::new);
+            // .to(tmpWave::from);
+            graphContextMap.get("Wave").ifVisible(context -> wavePlot.getLine().getVectorList().setAll(wave1));
+        }
+    }
+
+    private void hrCallback() {
+        Wave hrWave = source.getWave(hrCalcLength);
+        if (source.available(hrCalcLength)) {
+            if (graphContextMap.get("HR").isVisible()) {
+                double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
+                graphContextMap.get("ACF").ifVisible(graph -> {
+                    double[] acfX = new double[acf.length];
+                    double[] acfY = new double[acf.length];
+                    for (int i = 0; i < acf.length; i++) {
+                        acfX[i] = graph.getXAxis().scale(i);
+                        acfY[i] = graph.getYAxis().scale(acf[i] / acf[0]);
+                    }
+                    acfPlot.getLine().getVectorList().setAll(acfX, acfY);
+                });
+                graphContextMap.get("Diff").ifVisible(graph -> {
+                    graph.setToVectorList(hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
+                });
+                double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0; // 心拍数ではありえない範囲のものをカットすることで精度があがる
+                Point hrPoint = new Point(hrWave.getStartTime(), hr);
+                logger.print(hrPoint);
+                heartRate.add(hrPoint);
+                graphContextMap.get("HR").setToVectorList(heartRate.stream(), hrPlot.getLine().getVectorList());
+                maxHRGide.setPosition(HrController.getMaxHR(age));
+                targetHRGide.setPosition(HrController.getMaxHR(age) * HrController.OPT_MET); // 最大心拍数に運動強度をかけたもの
+                hrEvent.accept(hr);
+            }
+
+        }
+    }
+
     public void execute() {
         Wave hrWave = source.getWave(hrCalcLength);
         if (graphContextMap.get("Wave").isVisible()) {
@@ -96,7 +143,7 @@ public class HrAnalyzer extends Analyzer {
             List<Vector> wave1 = tmpWave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax())
                     .replace(wavePlot.getXAxis()::scale, wavePlot.getYAxis()::scale)
                     .combine(Vector::new);
-                    // .to(tmpWave::from);
+            // .to(tmpWave::from);
             graphContextMap.get("Wave").ifVisible(context -> wavePlot.getLine().getVectorList().setAll(wave1));
         }
         if (source.available(hrCalcLength)) {
