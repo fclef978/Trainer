@@ -12,6 +12,9 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Scanner;
 
+/**
+ * 適当にサンプリングしてCSV出力するだけのサンプルプログラム
+ */
 public class Sampler {
     ADConverter adc = new GPG3100(1);
     SamplingSetting setting = adc.getSamplingSetting();

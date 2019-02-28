@@ -232,6 +232,11 @@ public class MasterController {
         stopAnalysis();
     }
 
+    /**
+     * 解析を一回実行します。
+     * 複数の解析をする場合は並列実行されます。
+     * そのため解析間に依存関係があると例外が発生される可能性があります。
+     */
     private void analyze() {
         getControllers().parallelStream().forEach(controller -> controller.getAnalyzer().execute());
     }

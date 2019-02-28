@@ -75,7 +75,7 @@ public abstract class Controller<T extends Analyzer> {
      *
      * @param keys キー
      */
-    public void addAllVisible(String... keys) {
+    protected void addAllVisible(String... keys) {
         for (String key : keys) {
             visible.put(key, new CheckBox(key));
         }

@@ -13,15 +13,40 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * データ処理とグラフ表示の制御を行うスーパークラスです。
+ * グラフ作成のテンプレートを持ちます。
+ */
 public abstract class Analyzer {
+    /**
+     * グラフの親ペイン
+     */
     protected Pane masterPane;
+    /**
+     * 解析する信号の発生源になるWaveBuffer
+     */
     protected WaveBuffer source;
-    protected List<Pane> panes = new ArrayList<>();
+    /**
+     * グラフのラッパのPane枠線のスタイルシート
+     */
     protected String borderStyle;
+    /**
+     * このAnalyzerの名前
+     */
     protected String title;
+    /**
+     * GraphContextのMap
+     * 実装先でこのフィールドに表示したいグラフのGraphContextを追加してください。
+     * 描画順は追加順です。
+     */
     protected Map<String, GraphContext> graphContextMap = new LinkedHashMap<>();
-    protected boolean pause = false;
 
+    /**
+     * コンストラクタです。
+     *
+     * @param masterPane グラフの親ペイン
+     * @param title      このAnalyzerの名前
+     */
     protected Analyzer(Pane masterPane, String title) {
         this.masterPane = masterPane;
         this.title = title;
@@ -33,24 +58,63 @@ public abstract class Analyzer {
         borderStyle = "border:solid 3px " + colorCode + ";";
     }
 
+    /**
+     * 解析の開始を可能にします。
+     * execute()を呼び出し始める前にこのメソッドを呼び出してください。
+     * このメソッドはexecute()を呼び出す前に必要な処理を実装してくだい。
+     *
+     * @param fs サンプリング周波数
+     * @param n  サンプリング数
+     */
     public abstract void start(double fs, int n);
 
+    /**
+     * 解析を停止します。
+     * また新たにstart()する前に呼び出してください。
+     * 必要な処理がある場合オーバーライドしてください。
+     */
     public void stop() {
-        masterPane.getChildren().removeAll(panes);
+        masterPane.getChildren().removeAll(getGraphWrappers());
     }
 
+    /**
+     * 個々のグラフの表示・非表示を設定します。
+     *
+     * @param visible 個々のグラフの表示・非表示設定を含むMap
+     *                キーは実装先のgraphContextMap依存し、このMapが実装先に無いキーを含むと例外をスローします。
+     *                trueなら表示しfalseなら非表示になります。
+     * @return このAnalyzer
+     */
     public Analyzer setVisible(Map<String, Boolean> visible) {
         visible.keySet().forEach(key -> graphContextMap.get(key).setVisible(visible.get(key)));
         return this;
     }
 
+    /**
+     * 解析の本体のメソッドです。
+     * このメソッドが呼び出されると解析が一回実行されます。
+     * このメソッドを周期的に実行することでリアルタイム解析が可能になります。
+     * 普段はControllerのanalyse()メソッドを通じてMasterControllerから周期的に呼び出されています。
+     */
     public abstract void execute();
 
+    /**
+     * 解析する信号の発生源になるWaveBufferをセットします。
+     * このAnalyzerのstart()を呼び出す前にWaveBufferのstart()を呼び出しておいてください。
+     *
+     * @param source 解析する信号の発生源になるWaveBuffer
+     */
     public void setSource(WaveBuffer source) {
         this.source = source;
     }
 
-    public Pane createWrapperPane(int size) {
+    /**
+     * グラフのラッパになるPaneを作成するユーティリティメソッドです。
+     * @param size Paneの横方向のサイズ倍率
+     *             標準は25%でその整数倍が指定できます。
+     * @return 作成したグラフのラッパになるPane
+     */
+    protected Pane createWrapperPane(int size) {
         int width = 25 * size;
         Pane ret = new StackPane("height:100%;margin-x:0;margin-y:0;");
         ret.getStyle().put("width", width + "%");
@@ -79,15 +143,27 @@ public abstract class Analyzer {
         graphContextMap.put(chart.getTitle(), new GraphContext(chart, createWrapperPane(1), false));
     }
 
-    protected List<Pane> getGraphWrappers() {
+    /**
+     * graphContextMapに含まれるGraphContextのラッパPaneを全て持ったCollectionを返すユーティリティメソッドです。
+     * @return graphContextMapに含まれるGraphContextのラッパPaneを全て持った
+     */
+    public Collection<Pane> getGraphWrappers() {
         return graphContextMap.values().stream().map(GraphContext::getWrapper).collect(Collectors.toList());
     }
 
-    public List<Chart> getCharts() {
+    /**
+     * graphContextMapに含まれるGraphContextのChartを全て持ったCollectionを返すユーティリティメソッドです。
+     * @return graphContextMapに含まれるGraphContextのChartを全て持ったCollection
+     */
+    public Collection<Chart> getCharts() {
         return graphContextMap.values().stream().map(GraphContext::getChart).collect(Collectors.toList());
     }
 
-    protected double getTime() {
+    /**
+     * 現在の秒数をミリ秒単位で返します。
+     * @return 現在の秒数[ms]
+     */
+    protected static double getTime() {
         return System.currentTimeMillis() / 1000.0;
     }
 
@@ -102,13 +178,7 @@ public abstract class Analyzer {
     }
 
     public void setPause(boolean pause) {
-        this.pause = pause;
         graphContextMap.values().forEach(graphContext -> graphContext.setPause(pause));
-    }
-
-    public void inversePause() {
-        this.pause = !this.pause;
-        graphContextMap.values().forEach(GraphContext::inversePause);
     }
 
     public void shot(String filename) {

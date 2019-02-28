@@ -62,7 +62,6 @@ public class HrAnalyzer extends Analyzer {
         diffChart.getPlots().add(diffPlot);
         putNewGraphContext("Diff", diffChart);
 
-        panes.addAll(getGraphWrappers());
         getCharts().forEach(Chart::updateLegend);
     }
 

@@ -76,7 +76,6 @@ public class MmgAnalyzer extends Analyzer {
         rmsChart.getPlots().add(rmsPlot);
         putNewGraphContext(rmsChart);
 
-        panes.addAll(getGraphWrappers());
         getCharts().forEach(Chart::updateLegend);
 
         waveXMax = 0.1;
