@@ -5,11 +5,12 @@ import nitnc.kotanilab.trainer.fft.wrapper.Complex;
 import java.util.function.UnaryOperator;
 
 /**
- * 二次元で実数の点データです。
+ * 二次元で実数の点データのクラスです。
  */
-public class Point extends AbstractPoint<Double, Double>{
+public class Point extends AbstractPoint<Double, Double> {
     /**
      * コンストラクタです。
+     *
      * @param x xの値
      * @param y yの値
      */
@@ -20,6 +21,7 @@ public class Point extends AbstractPoint<Double, Double>{
     /**
      * 指定した数だけxをずらします。
      * x += val
+     *
      * @param val ずらす量
      */
     public void shiftX(Double val) {

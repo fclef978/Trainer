@@ -9,6 +9,7 @@ public class PointOfSpectrum extends ComplexPoint {
 
     /**
      * コンストラクタです。
+     *
      * @param x 周波数[Hz]
      * @param y 複素数の振幅
      */
@@ -20,7 +21,7 @@ public class PointOfSpectrum extends ComplexPoint {
         PointOfSpectrum other = null;
 
         try {
-            other = new  PointOfSpectrum(x, y);
+            other = new PointOfSpectrum(x, y);
         } catch (Exception e) {
             e.printStackTrace();
         }

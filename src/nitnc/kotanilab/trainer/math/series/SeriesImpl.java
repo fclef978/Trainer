@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * @param <X>
- * @param <Y>
- * @param <E>
+ * Seriesの実装スーパークラスです。
+ *
+ * @param <X> 点データのX軸のクラス
+ * @param <Y> 点データのY軸のクラス
+ * @param <E> 点データのクラス
  */
 public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E extends AbstractPoint<? extends X, ? extends Y>> implements Series<X, Y, E> {
 
@@ -23,8 +25,9 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 空の系列データを作ります。
-     * @param yMax y最大値
-     * @param yMin y最小値
+     *
+     * @param yMax  y最大値
+     * @param yMin  y最小値
      * @param xUnit x単位
      * @param yUnit y単位
      */
@@ -35,6 +38,7 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 空の系列データを作ります。物理的情報も空になります。
+     *
      * @param yMax y最大値
      * @param yMin y最小値
      */
@@ -44,9 +48,10 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 浅いコピーですでにある系列データから新しい系列データを作ります。
-     * @param c 元になるコレクション
-     * @param yMax y最大値
-     * @param yMin y最小値
+     *
+     * @param c     元になるコレクション
+     * @param yMax  y最大値
+     * @param yMin  y最小値
      * @param xUnit x単位
      * @param yUnit y単位
      */
@@ -57,9 +62,10 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 指定した長さで領域を確保した新しい系列データを作ります。
-     * @param n 長さ
-     * @param yMax y最大値
-     * @param yMin y最小値
+     *
+     * @param n     長さ
+     * @param yMax  y最大値
+     * @param yMin  y最小値
      * @param xUnit x単位
      * @param yUnit y単位
      */
@@ -70,8 +76,9 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 初期化処理です。コンストラクタから呼び出されるため適宜オーバーライドしてください。
-     * @param yMax y最大値
-     * @param yMin y最小値
+     *
+     * @param yMax  y最大値
+     * @param yMin  y最小値
      * @param xUnit x単位
      * @param yUnit y単位
      */
@@ -82,12 +89,24 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
         this.yUnit = yUnit;
     }
 
+    /**
+     * 点データのX値のみを持つListを返します。
+     * 順番はこのSeriesの順番を保持します。
+     *
+     * @return 点データのX値のみを持つList
+     */
     public List<X> getXList() {
         List<X> ret = new ArrayList<>(this.size());
         this.forEach(point -> ret.add(point.getX()));
         return ret;
     }
 
+    /**
+     * 点データのY値のみを持つListを返します。
+     * 順番はこのSeriesの順番を保持します。
+     *
+     * @return 点データのY値のみを持つList
+     */
     public List<Y> getYList() {
         List<Y> ret = new ArrayList<>(this.size());
         this.forEach(point -> ret.add(point.getY()));

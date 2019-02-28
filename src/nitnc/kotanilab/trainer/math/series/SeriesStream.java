@@ -9,8 +9,9 @@ import java.util.function.*;
 
 /**
  * 系列データを高速に処理するためのクラスです。
+ * X,Y値ともにDoubleである必要があります。
  *
- * @param <Y>
+ * @param <Y> Y軸のクラス
  */
 public class SeriesStream<Y extends Comparable<Y>> {
 
@@ -20,6 +21,11 @@ public class SeriesStream<Y extends Comparable<Y>> {
     private int end;       // 終了インデックス
     private Series series;
 
+    /**
+     * Seriesから作成します。
+     *
+     * @param series StreamのもとになるSeries
+     */
     public SeriesStream(Series<?, Y, ? extends AbstractPoint<?, ? extends Y>> series) {
         this.series = new SeriesImpl<Double, Y, AbstractPoint<Double, Y>>(series.getYMax(), series.getYMin(), series.getXUnit(), series.getYUnit());
         int len = series.size();
@@ -42,6 +48,14 @@ public class SeriesStream<Y extends Comparable<Y>> {
         this.end = stream.end;
     }
 
+    /**
+     * 指定されたこのSeriesStreamを別のオブジェクトに変換する関数を用いてこのSeriesStreamを別のオブジェクトに変換します。
+     * メソッドチェーンでつなぐことができます。
+     *
+     * @param function このSeriesStreamを別のオブジェクトに変換する関数
+     * @param <T>      変換されるクラス
+     * @return 変換されたオブジェクト
+     */
     public <T> T to(Function<SeriesStream<Y>, T> function) {
         return function.apply(this);
     }
@@ -49,7 +63,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     /**
      * 中央値を返します。合計値が0の場合はサポートしません。
      *
-     * @return 中央周波数のPointオブジェクト
+     * @return 中央周波数のPoint
      */
     public static Point getMedian(SeriesStream<Double> stream) {
         BiFunction<Double, Double, Point> function = Point::new;
@@ -71,9 +85,9 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
-     * 振幅最大の周波数を返します。
+     * 最頻値を返します。
      *
-     * @return ピークのPointオブジェクト
+     * @return 最頻値のPoint
      */
     public static Point getPeek(SeriesStream<Double> stream) {
         if (stream.isEmpty()) return null;
@@ -87,16 +101,25 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return new Point(stream.xs[maxPos], stream.gy(maxPos));
     }
 
+    /**
+     * Xの最大値から指定した範囲外の点をすべて削除します。
+     * @param range 残す範囲
+     * @return このSeriesStream
+     */
     public SeriesStream<Y> lastCutX(double range) {
-        if(isEmpty()) return this;
+        if (isEmpty()) return this;
         double lastX = xs[end];
         double limit = lastX - range;
         cutDown(limit);
         return this;
     }
 
+    /**
+     * Xの最小値が0になるようにすべてのX値をシフトします
+     * @return このSeriesStream
+     */
     public SeriesStream<Y> zeroX() {
-        if(isEmpty()) return this;
+        if (isEmpty()) return this;
         double bias = xs[begin];
         eachIndex(i -> {
             xs[i] -= bias;
@@ -106,7 +129,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     public SeriesStream<Y> zeroX(double last) {
-        if(isEmpty()) return this;
+        if (isEmpty()) return this;
         double bias = last - xs[end];
         eachIndex(i -> {
             xs[i] += bias;
@@ -257,7 +280,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
         if (count() < 2) return null;
         SeriesStream<Z> ret = new SeriesStream<>(this);
         for (int i = begin; i <= end - 1; i++) {
-            ret.ys[i] = function.apply(xs[i], xs[i+1]).apply(gy(i), gy(i+1));
+            ret.ys[i] = function.apply(xs[i], xs[i + 1]).apply(gy(i), gy(i + 1));
         }
         ret.end--;
         return ret;

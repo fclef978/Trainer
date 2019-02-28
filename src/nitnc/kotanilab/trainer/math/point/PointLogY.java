@@ -29,6 +29,7 @@ public class PointLogY extends Point {
 
     /**
      * デシベルを計算します。
+     * エネルギーの場合は半分にしてください。
      *
      * @param y         計算する値
      * @param baseLevel 対数にする際の基準値

@@ -4,8 +4,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.UnaryOperator;
 
 /**
- * 二次元点データのための抽象クラスです。
- * このクラスはイミュータブルでなければなりません。
+ * 二次原点データのためのスーパークラスです。
+ * @param <X> X軸のクラス
+ * @param <Y> Y軸のクラス
  */
 public abstract class AbstractPoint<X, Y> implements Cloneable {
 

@@ -5,7 +5,7 @@ import nitnc.kotanilab.trainer.fft.wrapper.Complex;
 import java.util.function.ToDoubleFunction;
 
 /**
- * y軸が複素数になる二次元点データクラスです。
+ * x軸が実数、y軸が複素数になる二次元点データクラスです。
  */
 public class ComplexPoint extends AbstractPoint<Double, Complex> {
 

@@ -9,7 +9,11 @@ import java.util.function.Consumer;
 /**
  * 二次元の系列データを表すインターフェースです。
  * java.util.Listと似たメソッドをいくつか持ちます。
- * Created by Hirokazu SUZUKI on 2018/07/31.
+ * 最大値などの情報も持ちます。
+ *
+ * @param <X> 点データのX軸のクラス
+ * @param <Y> 点データのY軸のクラス
+ * @param <E> 点データのクラス
  */
 public interface Series<X extends Comparable<X>, Y extends Comparable<Y>, E extends AbstractPoint<? extends X, ? extends Y>> {
 

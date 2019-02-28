@@ -3,12 +3,12 @@ package nitnc.kotanilab.trainer.math.point;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Created by Hirokazu SUZUKI on 2018/07/16.
  * Waveの点を表すクラスです。
  */
 public class PointOfWave extends Point {
     /**
      * コンストラクタです。
+     *
      * @param x 時間[s]
      * @param y 振幅
      */
@@ -17,7 +17,7 @@ public class PointOfWave extends Point {
     }
 
     @Override
-    public PointOfWave clone(){
+    public PointOfWave clone() {
         PointOfWave other = null;
 
         try {
