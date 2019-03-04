@@ -159,7 +159,7 @@ public class Children {
     /**
      * このChildrenをソースとして使用して、逐次的なStreamを返します。
      *
-     * @return
+     * @return このChildrenのStream
      */
     public Stream<Node> stream() {
         return nodes.stream();

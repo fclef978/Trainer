@@ -95,7 +95,7 @@ public interface GPG3100Library extends Library {
      * @param nDevice AdOpen 関数でオープンしたデバイス番号を指定してください。
      * @param lOffset サンプリングバッファ内のサンプリングデータを取得開始するオフセットアドレスを指定します。アドレスは件数単位で指定します。-1 を指定した場合、最新の ulSmplNum 件数分のデータを取得できます。
      * @param ulSmplNum サンプリングバッファから取得するサンプリングデータ件数が格納されている変数へのポインタを指定します。希望する件数を指定して本関数を呼び出します。本関数呼び出し後、実際に取得したデータ件数が格納されます。
-     * @param pSmplData
+     * @param pSmplData サンプリングバッファから取得するサンプリングデータを格納するためのバッファへのポインタを指定します。
      * @return 成否
      */
     int AdReadSamplingBuffer(int nDevice, long lOffset, LongByReference ulSmplNum, Pointer pSmplData);
@@ -139,7 +139,7 @@ public interface GPG3100Library extends Library {
      * @param fSmplFreq 予約：0 を指定してください。
      * @param ulEClkEdge 予約：0 を指定してください。
      * @param ulFastMode 予約：0 を指定してください。
-     * @return
+     * @return 成否
      */
     int AdMemTriggerSampling(int nDevice, long ulChCount, Pointer SmplChReq, long ulSmplNum, long ulRepeatCount, long ulTrigEdge, float fSmplFreq, long ulEClkEdge, long ulFastMode);
 
@@ -164,6 +164,7 @@ public interface GPG3100Library extends Library {
      * @param ulAdSmplStatus AD サンプリング状態を格納する変数へのポインタです。
      * @param ulAdSMplCount サンプリング済み件数を格納する変数へのポインタです。アナログ入力サンプリングのサンプリング済み件数を格納します。
      * @param ulAdAvailCount サンプリング残件数を格納する変数へのポインタです。アナログ入力サンプリングのサンプリングデータの残件数を格納します。
+     * @return 成否
      */
     int AdGetStatus(int uDevice, LongByReference ulAdSmplStatus, LongByReference ulAdSMplCount, LongByReference ulAdAvailCount);
 

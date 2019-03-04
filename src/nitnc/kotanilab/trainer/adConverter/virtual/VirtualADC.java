@@ -1,12 +1,13 @@
-package nitnc.kotanilab.trainer.math;
+package nitnc.kotanilab.trainer.adConverter.virtual;
 
 import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.ConverterSpec;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
-import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
+import nitnc.kotanilab.trainer.math.Unit;
+import nitnc.kotanilab.trainer.math.WaveBuffer;
+import nitnc.kotanilab.trainer.util.PeriodicTask;
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
 import nitnc.kotanilab.trainer.math.series.Wave;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ public class VirtualADC implements ADConverter {
      * コンストラクタです。
      *
      * @param max       最大値
+     * @param min       最小値
      * @param functions 発生する関数です。チャンネルの出力になります。
      */
     @SafeVarargs

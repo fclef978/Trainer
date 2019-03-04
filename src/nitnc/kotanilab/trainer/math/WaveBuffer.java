@@ -30,9 +30,10 @@ public class WaveBuffer {
     /**
      * コンストラクタです。
      *
-     * @param samplingFrequency サンプリング周波数
      * @param yMax              最大値
+     * @param min               最小値
      * @param yUnit             y軸単位
+     * @param samplingFrequency サンプリング周波数
      */
     public WaveBuffer(double yMax, double yMin, Unit yUnit, double samplingFrequency) {
         this.samplingFrequency = samplingFrequency;
@@ -44,8 +45,9 @@ public class WaveBuffer {
     /**
      * Y軸単位を任意単位で作成します。
      *
-     * @param samplingFrequency サンプリング周波数
      * @param max               最大値
+     * @param min               最小値
+     * @param samplingFrequency サンプリング周波数
      */
     public WaveBuffer(double max, double min, double samplingFrequency) {
         this(max, min, Unit.arb("amplitude"), samplingFrequency);
@@ -97,19 +99,6 @@ public class WaveBuffer {
                 wave.add(new PointOfWave((count - tmp) / samplingFrequency, iterator.next()));
             count++;
         }
-
-        /*
-        int count = size - 1;
-        for (int i = 0; i < size; i++) {
-            wave.add(null);
-        }
-        while (iterator.hasNext()) {
-            if (count == -1) {
-                break;
-            }
-            wave.setAll(count, new PointOfWave(count-- / samplingFrequency, iterator.next()));
-        }
-        */
 
         return wave;
     }

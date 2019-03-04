@@ -6,7 +6,7 @@ import nitnc.kotanilab.trainer.gl.chart.*;
 import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
-import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
+import nitnc.kotanilab.trainer.util.PeriodicTask;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointLogY;

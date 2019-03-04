@@ -64,6 +64,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     /**
      * 指定したSeriesStreamの中央値を返します。合計値が0の場合はサポートしません。
      *
+     * @param stream 中央値を求めたいSeriesStream
      * @return 中央周波数のPoint
      */
     public static Point getMedian(SeriesStream<Double> stream) {
@@ -88,6 +89,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     /**
      * 指定したSeriesStreamの最頻値を返します。
      *
+     * @param stream 最頻値を求めたいSeriesStream
      * @return 最頻値のPoint
      */
     public static Point getPeek(SeriesStream<Double> stream) {

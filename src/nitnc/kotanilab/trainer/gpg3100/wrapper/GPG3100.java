@@ -7,7 +7,7 @@ import com.sun.jna.ptr.LongByReference;
 import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.ConverterSpec;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
-import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
+import nitnc.kotanilab.trainer.util.PeriodicTask;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
 import nitnc.kotanilab.trainer.math.Unit;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * GPG3100のラッパクラスです。

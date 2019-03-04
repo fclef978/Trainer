@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.gl.util;
+package nitnc.kotanilab.trainer.util;
 
 import nitnc.kotanilab.trainer.util.Dbg;
 
@@ -31,19 +31,22 @@ public class PeriodicTask {
      * 指定した周期で周期実行を準備します。
      * 実行内容は後で設定します。
      *
-     * @param period 周期[ms]
+     * @param period   周期 単位はtimeUnit依存
+     * @param timeUnit periodのTimeUnit
      */
     public PeriodicTask(long period, TimeUnit timeUnit) {
-        this(() -> {}, period, timeUnit);
+        this(() -> {
+        }, period, timeUnit);
     }
 
     /**
      * 指定した周期と実行内容で周期実行を準備します。
      *
      * @param callback 実行内容
-     * @param period   周期[ms]
+     * @param period   周期 単位はtimeUnit依存
+     * @param timeUnit periodのTimeUnit
      */
-    public PeriodicTask(Runnable callback, long period,TimeUnit timeUnit) {
+    public PeriodicTask(Runnable callback, long period, TimeUnit timeUnit) {
         if (service == null) service = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
         setCallback(callback);
         this.period = period;

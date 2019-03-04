@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.gl.util;
+package nitnc.kotanilab.trainer.util;
 
 import java.util.Objects;
 import java.util.function.BiFunction;

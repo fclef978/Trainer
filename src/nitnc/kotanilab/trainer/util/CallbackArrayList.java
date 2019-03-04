@@ -6,6 +6,7 @@ import java.util.function.UnaryOperator;
 
 /**
  * データの追加、削除時に指定したコールバック演算子を対象のオブジェクト適用するArrayListです。
+ *
  * @param <T> このリスト内に存在する要素の型
  */
 public class CallbackArrayList<T> extends ArrayList<T> {
@@ -14,6 +15,7 @@ public class CallbackArrayList<T> extends ArrayList<T> {
 
     /**
      * 指定された初期容量で空のリストを作成します。
+     *
      * @param initialCapacity リストの初期容量
      */
     public CallbackArrayList(int initialCapacity) {
@@ -29,6 +31,7 @@ public class CallbackArrayList<T> extends ArrayList<T> {
 
     /**
      * 指定されたコレクションの要素が含まれているリストを、要素がコレクションのイテレータによって返される順序で作成します。
+     *
      * @param c 要素がリストに配置されるコレクション
      */
     public CallbackArrayList(Collection<? extends T> c) {
@@ -42,7 +45,8 @@ public class CallbackArrayList<T> extends ArrayList<T> {
     /**
      * データ追加時のコールバックを設定します。
      * このコールバックはadd(),addAll(),set()時に実行されます。
-     * @param addCallback
+     *
+     * @param addCallback データ追加時のコールバック
      */
     public void setAddCallback(UnaryOperator<T> addCallback) {
         this.addCallback = addCallback;
@@ -55,7 +59,8 @@ public class CallbackArrayList<T> extends ArrayList<T> {
     /**
      * データ削除時のコールバックを設定します。
      * このコールバックはremove(),removeAll(),clear()時に実行されます。
-     * @param removeCallback
+     *
+     * @param removeCallback データ削除時のコールバック
      */
     public void setRemoveCallback(UnaryOperator<T> removeCallback) {
         this.removeCallback = removeCallback;

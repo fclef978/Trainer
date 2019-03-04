@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.math.point;
+package nitnc.kotanilab.trainer.math.analysis;
 
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
@@ -63,7 +63,7 @@ public class GraphContext {
     /**
      * 軸の設定ブロックをセットします。
      *
-     * @param plotSetter 軸の設定ブロック (xAxis, yAxis) -> {}
+     * @param plotSetter 軸の設定ブロック 引数は(xAxis, yAxis)
      */
     public void setAxisSetter(BiConsumer<? super Axis, ? super Axis> plotSetter) {
         this.axisSetter = plotSetter;

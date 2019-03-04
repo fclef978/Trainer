@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.math;
+package nitnc.kotanilab.trainer.adConverter.virtual;
 
 
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
@@ -60,10 +60,10 @@ public class FunctionGenerator {
     /**
      * 任意の周波数、振幅、切片で時間[s]を引数とする正弦波と余弦波の積オブジェクトを生成します。
      *
-     * @param freq
-     * @param amp
-     * @param bias
-     * @return
+     * @param freq 周波数
+     * @param amp  振幅
+     * @param bias 切片
+     * @return 正弦波と余弦波の積
      */
     public static UnaryOperator<Double> cosSin(double freq, double amp, double bias) {
         return t -> amp * Math.sin(2.0 * Math.PI * freq * t) * Math.cos(2.0 * Math.PI * freq / 5.0 * t) + bias;
@@ -101,6 +101,7 @@ public class FunctionGenerator {
      * で、値以外の行は含まれてはいけません。
      * 渡されたX値に、より近いX値を持つデータ点のY値が返ります。補完は行われません。
      * そのため、CSVデータのサンプル間隔よりも短いX値の間隔で結果の関数を呼び出さないでください。
+     *
      * @param filename ファイル名
      *                 絶対パスまたは実行場所からの相対パス
      * @return 指定されたCSVファイルをもとにする関数
@@ -144,6 +145,7 @@ public class FunctionGenerator {
 
     /**
      * コンストラクタです。
+     *
      * @param function Xを受け取りYを返す関数
      */
     public FunctionGenerator(UnaryOperator<Double> function) {
@@ -165,6 +167,7 @@ public class FunctionGenerator {
      * 点データの形で値を生成します。
      * 呼び出された時の時間から基準時間を引いた値が関数に渡り、実際の時間に関数の値が準拠します。
      * 初回呼び出し時やreset()が呼ばれた直後は基準時間がそのときの時間になり、関数に渡る値が0になります。
+     *
      * @return 点データ
      */
     public PointOfWave generate() {

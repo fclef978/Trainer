@@ -17,9 +17,9 @@ public class Border extends Child {
     private Map<String, BorderSetting> settingMap = new HashMap<>();
 
     /**
-     * 枠線の各辺のBorderSettingを持つMapです。
+     * 枠線の各辺のBorderSettingを持つMapを返します。
      * キーはnitnc.kotanilab.trainer.gl.style.Border.positionArrayにあるtop,left,right,borderです。
-     * @return
+     * @return 枠線の各辺のBorderSettingを持つMap
      */
     public Map<String, BorderSetting> getSettingMap() {
         return settingMap;

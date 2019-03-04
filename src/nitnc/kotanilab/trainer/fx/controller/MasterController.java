@@ -11,12 +11,7 @@ import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.fx.setting.MasterSetting;
 import nitnc.kotanilab.trainer.fx.setting.Saver;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
-import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
-import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
-import nitnc.kotanilab.trainer.math.FunctionGenerator;
-import nitnc.kotanilab.trainer.math.VirtualADC;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
-import nitnc.kotanilab.trainer.util.Utl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +21,7 @@ import java.util.stream.Stream;
 
 /**
  * メイン画面のコントローラです。
+ * Controllerの管理も行います。
  */
 public class MasterController {
     private Pane root = new VBox();
@@ -256,7 +252,7 @@ public class MasterController {
     /**
      * 現在登録されているコントローラのリストを返します。
      *
-     * @return
+     * @return 現在登録されているコントローラのリスト
      */
     public List<Controller> getControllers() {
         return new ArrayList<>(analysisTable.getItems());

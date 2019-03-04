@@ -17,6 +17,7 @@ public class Wave extends Signal<Double, Point> implements Regenerable<Wave, Dou
      * @param max               最大値
      * @param min               最小値
      * @param yUnit             y軸単位
+     * @param startTime         サンプリング開始時刻
      */
     public Wave(double max, double min, Unit yUnit, double samplingFrequency, double startTime) {
         super(max, min, Unit.sec(), yUnit, samplingFrequency, startTime);
@@ -25,8 +26,10 @@ public class Wave extends Signal<Double, Point> implements Regenerable<Wave, Dou
     /**
      * コンストラクタ
      *
-     * @param samplingFrequency サンプリング周波数
      * @param max               最大値
+     * @param min               最小値
+     * @param samplingFrequency サンプリング周波数
+     * @param startTime         サンプリング開始時刻
      */
     public Wave(double max, double min, double samplingFrequency, double startTime) {
         this(max, min, Unit.arb("amplitude"), samplingFrequency, startTime);
@@ -38,7 +41,9 @@ public class Wave extends Signal<Double, Point> implements Regenerable<Wave, Dou
      * @param initCapacity      初期化サイズ
      * @param samplingFrequency サンプリング周波数
      * @param max               最大値
+     * @param min               最小値
      * @param yUnit             y軸単位
+     * @param startTime         サンプリング開始時刻
      */
     public Wave(int initCapacity, double max, double min, Unit yUnit, double samplingFrequency, double startTime) {
         super(initCapacity, max, min, Unit.sec(), yUnit, samplingFrequency, startTime);
