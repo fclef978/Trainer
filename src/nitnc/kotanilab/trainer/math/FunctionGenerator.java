@@ -1,25 +1,17 @@
 package nitnc.kotanilab.trainer.math;
 
-/**
- * Created by Hirokazu SUZUKI on 2018/07/30.
- */
-
 
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
-import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.ToDoubleFunction;
 import java.util.function.UnaryOperator;
 
 /**
- * Created by Hirokazu SUZUKI on 2018/07/16.
- * 関数発生クラス
+ * 任意の関数から実際の時間をX値として値を生成するクラスです。
  */
 public class FunctionGenerator {
 
@@ -36,11 +28,11 @@ public class FunctionGenerator {
     }
 
     /**
-     * 任意の周波数、振幅、切片で時間[s]を引数とするサイン関数オブジェクトを生成します。
+     * 任意の複数の周波数が重畳された、振幅、切片で時間[s]を引数とするサイン関数オブジェクトを生成します。
      *
-     * @param freq 周波数
      * @param amp  振幅
      * @param bias 切片
+     * @param freq 周波数
      * @return サイン波
      */
     public static UnaryOperator<Double> sin(double amp, double bias, double... freq) {
@@ -82,24 +74,10 @@ public class FunctionGenerator {
      *
      * @param amp  振幅
      * @param bias 切片
-     * @return 矩形波
+     * @return ランダム波
      */
     public static UnaryOperator<Double> rand(double amp, double bias) {
         return t -> amp * 2.0 * (Math.random() - 0.5) + bias;
-    }
-
-    public static UnaryOperator<Double> randSin(double freq, double amp, double bias) {
-        return t -> amp * (Math.sin(2.0 * Math.PI * freq * t) + (Math.random() - 0.5) / 5.0) + bias;
-    }
-
-    public static UnaryOperator<Double> noiseSin(double freq, double amp, double bias) {
-        return t -> {
-            double y = Math.sin(2.0 * Math.PI * freq * t);
-            for (int i = 0; i < 10; i++) {
-                y += Math.sin(2.0 * Math.PI * freq * (5 + i + Math.random()) * t);
-            }
-            return amp * y + bias;
-        };
     }
 
     /**
@@ -107,7 +85,7 @@ public class FunctionGenerator {
      *
      * @param amp  振幅
      * @param bias 切片
-     * @return 矩形波
+     * @return ホワイトノイズ
      */
     public static UnaryOperator<Double> white(double amp, double bias) {
         return t -> {
@@ -117,54 +95,16 @@ public class FunctionGenerator {
     }
 
     /**
-     * 任意の振幅、切片で時間[s]を引数とするホワイトノイズオブジェクトを生成します。
-     *
-     * @param amp  振幅
-     * @param bias 切片
-     * @return 矩形波
+     * 指定されたCSVファイルを読み込んでそのデータをもとにする関数を返します。
+     * CSVの形式は、
+     * 時間[s],値\n
+     * で、値以外の行は含まれてはいけません。
+     * 渡されたX値に、より近いX値を持つデータ点のY値が返ります。補完は行われません。
+     * そのため、CSVデータのサンプル間隔よりも短いX値の間隔で結果の関数を呼び出さないでください。
+     * @param filename ファイル名
+     *                 絶対パスまたは実行場所からの相対パス
+     * @return 指定されたCSVファイルをもとにする関数
      */
-    public static UnaryOperator<Double> white(double freq, int num, double amp, double bias) {
-        double[] phase = new double[num];
-        for (int i = 0; i < phase.length; i++) {
-            phase[i] = 2 * Math.PI * Math.random();
-        }
-        return t -> {
-            double y = 0;
-            for (int i = 0; i < num; i++) {
-                double f = freq * (double) i / (double) num;
-                y += Math.sin(2.0 * Math.PI * f * t + phase[i]);
-            }
-            return amp * y / num + bias;
-        };
-    }
-
-    /**
-     * 任意の振幅、切片で時間[s]を引数とするホワイトノイズオブジェクトを生成します。
-     *
-     * @param amp  振幅
-     * @param bias 切片
-     * @return 矩形波
-     */
-    public static UnaryOperator<Double> white(int min, int max, double amp, double bias) {
-        int n = 10 * (max - min);
-        double[] phase = new double[n];
-        for (int i = 0; i < phase.length; i++) {
-            phase[i] = 2 * Math.PI * Math.random();
-        }
-        return t -> {
-            double y = 0;
-            int k = 0;
-            for (int i = min; i < max; i++) {
-                for (int j = 1; j < 10; j++) {
-                    double f = j * Math.pow(10, i);
-                    y += Math.sin(2.0 * Math.PI * f * t + phase[k]);
-                    k++;
-                }
-            }
-            return amp * y / n + bias;
-        };
-    }
-
     public static UnaryOperator<Double> csv(String filename) {
         UnaryOperator<Double> ret;
         try {
@@ -202,22 +142,31 @@ public class FunctionGenerator {
     private UnaryOperator<Double> function;
     private boolean first = true;
 
+    /**
+     * コンストラクタです。
+     * @param function Xを受け取りYを返す関数
+     */
     public FunctionGenerator(UnaryOperator<Double> function) {
         this.function = function;
     }
 
-    public void start() {
+    private void start() {
         startTime = System.nanoTime();
     }
 
-    public void stop() {
-        startTime = -1;
+    /**
+     * 関数に渡されるXを次のgenerate()呼び出し時に0にリセットします。
+     */
+    public void reset() {
+        first = true;
     }
 
-    public boolean isOscillating() {
-        return !(startTime == -1);
-    }
-
+    /**
+     * 点データの形で値を生成します。
+     * 呼び出された時の時間から基準時間を引いた値が関数に渡り、実際の時間に関数の値が準拠します。
+     * 初回呼び出し時やreset()が呼ばれた直後は基準時間がそのときの時間になり、関数に渡る値が0になります。
+     * @return 点データ
+     */
     public PointOfWave generate() {
         if (first) {
             start();

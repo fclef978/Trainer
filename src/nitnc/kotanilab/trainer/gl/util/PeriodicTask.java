@@ -23,7 +23,8 @@ public class PeriodicTask {
     protected Runnable callback;
     protected Timer timer;
     protected TimerTask task;
-    protected int period;
+    protected long period;
+    protected TimeUnit timeUnit;
     protected ScheduledFuture<?> future;
 
     /**
@@ -32,8 +33,8 @@ public class PeriodicTask {
      *
      * @param period 周期[ms]
      */
-    public PeriodicTask(int period) {
-        this(() -> {}, period);
+    public PeriodicTask(long period, TimeUnit timeUnit) {
+        this(() -> {}, period, timeUnit);
     }
 
     /**
@@ -42,10 +43,11 @@ public class PeriodicTask {
      * @param callback 実行内容
      * @param period   周期[ms]
      */
-    public PeriodicTask(Runnable callback, int period) {
+    public PeriodicTask(Runnable callback, long period,TimeUnit timeUnit) {
         if (service == null) service = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
         setCallback(callback);
         this.period = period;
+        this.timeUnit = timeUnit;
     }
 
     /**

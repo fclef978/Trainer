@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 /**
  * 二次元の系列データを表すインターフェースです。
  * java.util.Listと似たメソッドをいくつか持ちます。
- * 最大値などの情報も持ちます。
+ * 最大値などの情報を持ち、X値についてソートされていなければなりませんｎ。
  *
  * @param <X> 点データのX軸のクラス
  * @param <Y> 点データのY軸のクラス
@@ -33,6 +33,7 @@ public interface Series<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 指定された点データをこの系列データの末尾に追加します。
+     * 追加される点データのX値はこの系列データの末尾の点データのX値より大きくなければいけません。
      *
      * @param e この系列データに追加される点データ
      * @return true
@@ -41,6 +42,7 @@ public interface Series<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * 指定された点データをこの系列リストの最初に挿入します。
+     * 追加される点データのX値はこの系列データの最初の点データのX値より小さくなければいけません。
      *
      * @param e この系列データに追加される点データ
      */
@@ -48,6 +50,7 @@ public interface Series<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * この系列データ内の指定された位置にある点データを、指定された点データに置き換えます。
+     * 追加される点データのX値は置き換えられる点データの前後のX値の範囲でなければいけません。
      *
      * @param index 置換される点データのインデックス
      * @param e     指定された位置に格納される点データ

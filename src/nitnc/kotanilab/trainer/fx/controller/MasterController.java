@@ -207,7 +207,6 @@ public class MasterController {
 
     private void stopAnalysis() {
         if (getAnalysisNumber() == 0) return;
-        // analysisTask.stop();
         adc.stop();
         buffers.forEach(WaveBuffer::stop);
         stopButton.setDisable(true);

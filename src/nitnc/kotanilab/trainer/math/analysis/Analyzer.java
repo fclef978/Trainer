@@ -1,6 +1,6 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
-import nitnc.kotanilab.trainer.fx.controller.GraphContext;
+import nitnc.kotanilab.trainer.math.point.GraphContext;
 import nitnc.kotanilab.trainer.gl.chart.*;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
@@ -10,7 +10,6 @@ import nitnc.kotanilab.trainer.math.Unit;
 
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +59,7 @@ public abstract class Analyzer {
 
     /**
      * 解析の開始を可能にします。
-     * execute()を呼び出し始める前にこのメソッドを呼び出してください。
+     * load()を呼び出し始める前にこのメソッドを呼び出してください。
      * このメソッドはexecute()を呼び出す前に必要な処理を実装してくだい。
      *
      * @param fs サンプリング周波数
@@ -159,22 +158,12 @@ public abstract class Analyzer {
         return System.currentTimeMillis() / 1000.0;
     }
 
-    protected double previousX = 0.0;
-
-    protected boolean isPassedInterval(double interval) {
-        return getTime() - previousX > interval;
-    }
-
-    protected void updatePreviousTime() {
-        previousX = getTime();
-    }
-
+    /**
+     * グラフの更新を一時停止するかどうかを設定します。
+     * @param pause trueなら一時停止、falseなら再生
+     */
     public void setPause(boolean pause) {
         graphContextMap.values().forEach(graphContext -> graphContext.setPause(pause));
-    }
-
-    public void shot(String filename) {
-
     }
 
     private static Color[] lineColors = {
@@ -201,13 +190,11 @@ public abstract class Analyzer {
     protected static Chart createWaveChart(String name, double xMax, Unit yUnit, double yMin, double yMax) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
         Axis yAxis = new Axis(yUnit.toString(), yMin, yMax, (yMax - yMin) / 10.0);
-        xAxis.setReverse(true);
         return new Chart(name, xAxis, yAxis);
     }
 
     protected static Chart createWaveChart(String name, double xMax, Unit yUnit, double yRange) {
         Axis xAxis = new Axis("Time[sec]", 0.0, xMax, xMax / 10.0);
-        xAxis.setReverse(true);
         return new Chart(name, xAxis, new Axis(yUnit.toString(), -yRange, yRange, yRange / 5.0));
     }
 

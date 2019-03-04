@@ -6,11 +6,19 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
+/**
+ * データをCSV形式でファイルに保存するクラスです。
+ */
 public class CsvLogger {
     private String filename;
     private FileWriter fw;
     private PrintWriter pw;
 
+    /**
+     * 指定したファイル名で作成します。
+     *
+     * @param filename CSVのファイル名
+     */
     public CsvLogger(String filename) {
         this.filename = filename;
         try {
@@ -21,6 +29,13 @@ public class CsvLogger {
         }
     }
 
+    /**
+     * 指定された複数のオブジェクトをtoString()して一行に書き込みます。
+     * オブジェクトはコンマでつながれ、最後に改行されます。
+     *
+     * @param vs 一行に書き込むオブジェクト
+     * @return 書き込みに成功したらtrue
+     */
     public boolean print(Object... vs) {
         try {
             for (Object v : vs) {
@@ -35,6 +50,14 @@ public class CsvLogger {
         return true;
     }
 
+    /**
+     * 指定されたPointを書き込みます。
+     * X,Y\n
+     * のように書き込まれます。
+     *
+     * @param point 書き込むPoint
+     * @return 書き込みに成功したらtrue
+     */
     public boolean print(Point point) {
         try {
             pw.print(point.getX());
@@ -47,6 +70,10 @@ public class CsvLogger {
         return true;
     }
 
+    /**
+     * ファイルを閉じます。
+     * ファイナライザでも呼び出されますが、書き込みが終わったら呼び出してください。
+     */
     public void close() {
         try {
             pw.close();

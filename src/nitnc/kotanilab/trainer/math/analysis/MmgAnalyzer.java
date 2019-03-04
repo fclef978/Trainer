@@ -18,32 +18,90 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
 
+/**
+ * 筋音図の解析を行うAnalyzerです。
+ * 継承することで筋電図への転用が可能です。
+ */
 public class MmgAnalyzer extends Analyzer {
 
+    /**
+     * 中央周波数のSeries
+     */
     protected RealSeries<Point> mdfSeries;
+    /**
+     * 最大周波数のSeries
+     */
     protected RealSeries<Point> pfSeries;
+    /**
+     * RMSのSeries
+     */
     protected RealSeries<Point> rmsSeries;
+    /**
+     * FFTオブジェクト
+     */
     protected Fft fft;
+    /**
+     * FFTのサンプル数
+     */
     protected int number;
+    /**
+     * 波形グラフのX最大値
+     */
     protected double waveXMax;
+    /**
+     * 波形グラフのY最大値
+     */
     protected double waveYMax;
+    /**
+     * 波形グラフのY最小値
+     */
     protected double waveYMin;
     private CsvLogger logger;
-    List<DoubleUnaryOperator> filters = new ArrayList<>();
-    protected DoubleConsumer mfCallback = v -> {
+    /**
+     * デジタルフィルタのList
+     */
+    protected List<DoubleUnaryOperator> filters = new ArrayList<>();
+    /**
+     * 解析した中央周波数を受け取るコールバック
+     */
+    protected DoubleConsumer mdfCallback = v -> {
     };
+    /**
+     * 波形のPlot
+     */
     protected LinePlot wavePlot;
+    /**
+     * スペクトラムのPlot
+     */
     protected LinePlot spectrumPlot;
+    /**
+     * 中央周波数のPlot
+     */
     protected LinePlot mdfPlot;
+    /**
+     * 最大周波数のPlot
+     */
     protected LinePlot pfPlot;
+    /**
+     * RMSのPlot
+     */
     protected LinePlot rmsPlot;
+    /**
+     * 中央周波数のGideLine
+     */
     protected GideLine mdfGide = new GideLine("MF", 0.0, Color.RED, 2.0, true);
-    private PeriodicTask waveTask = new PeriodicTask(this::waveCallback, 30);
-    private PeriodicTask freqTask = new PeriodicTask(this::freqCallback, 1000);
+    private PeriodicTask waveTask = new PeriodicTask(this::waveAnalyze, 30, TimeUnit.MILLISECONDS);
+    private PeriodicTask freqTask = new PeriodicTask(this::freqAnalyze, 1000, TimeUnit.MILLISECONDS);
 
+    /**
+     * コンストラクタです。
+     *
+     * @param masterPane グラフの親ペイン
+     */
     public MmgAnalyzer(Pane masterPane) {
         this(masterPane, "MMG",
                 createWaveChart("Wave", 1, new Unit("Acceleration", "m/s/s"), 5),
@@ -53,12 +111,22 @@ public class MmgAnalyzer extends Analyzer {
         );
         filters.addAll(Arrays.asList(
                 x -> (x - 2.5) / 1.0,
-                IirFilter.execute("bpf0.001-0.2.txt"),
-                IirFilter.execute("bef0.048-0.052.txt")
+                IirFilter.load("bpf0.001-0.2.txt"),
+                IirFilter.load("bef0.048-0.052.txt")
         ));
         spectrumPlot.getLine().setThick(2.0);
     }
 
+    /**
+     * サブクラス向けのコンストラクです。
+     *
+     * @param masterPane    グラフの親ペイン
+     * @param name          Analyzerの名前
+     * @param waveChart     波形のChart
+     * @param spectrumChart スペクトラムのChart
+     * @param freqChart     周波数解析のChart
+     * @param rmsChart      RMSのChart
+     */
     protected MmgAnalyzer(Pane masterPane, String name, Chart waveChart, Chart spectrumChart, Chart freqChart, Chart rmsChart) {
         super(masterPane, name);
 
@@ -89,7 +157,7 @@ public class MmgAnalyzer extends Analyzer {
     @Override
     public void start(double fs, int n) {
         source.setXMax(fs * n);
-        source.addCallback(filters);
+        source.addAllCallback(filters);
         graphContextMap.get("Wave").setAxisSetter((x, y) -> {
             x.setMax(waveXMax);
             x.setSize(waveXMax / 10);
@@ -105,13 +173,12 @@ public class MmgAnalyzer extends Analyzer {
         });
         graphContextMap.values().forEach(graphContext -> graphContext.confirm(masterPane));
 
-        mdfSeries = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
-        pfSeries = new ShiftedSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz(), 60);
-        rmsSeries = new ShiftedSeries<>(5.0, 0.0, Unit.sec(), Unit.v(), 10);
+        mdfSeries = new RealSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz());
+        pfSeries = new RealSeries<>(fs / 2, 0.0, Unit.sec(), Unit.hz());
+        rmsSeries = new RealSeries<>(5.0, 0.0, Unit.sec(), Unit.v());
 
         number = n;
         fft = new OouraFft(n);
-        updatePreviousTime();
         logger = new CsvLogger(title + ".csv");
         waveTask.start();
         freqTask.start();
@@ -124,45 +191,44 @@ public class MmgAnalyzer extends Analyzer {
         freqTask.stop();
         mdfSeries.clear();
         pfSeries.clear();
-        Arrays.asList(wavePlot, spectrumPlot, mdfPlot, pfPlot, rmsPlot).forEach(plot ->plot.getLine().getVectorList().clear());
+        Arrays.asList(wavePlot, spectrumPlot, mdfPlot, pfPlot, rmsPlot).forEach(plot -> plot.getLine().getVectorList().clear());
         logger.close();
     }
-    private void waveCallback() {
-        if (graphContextMap.get("Wave").isVisible()) {
+
+    /**
+     * 波形表示のメソッド
+     */
+    private void waveAnalyze() {
+        graphContextMap.get("Wave").ifVisible(context -> {
             Wave wave = source.getWave(1.0);
-            graphContextMap.get("Wave").ifVisible(context ->
-                    context.setToVectorList(
-                            wave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax()),
-                            wavePlot.getLine().getVectorList()
-                    )
-            );
-        }
+            context.setToVectorListRealTime(wave.stream(), wavePlot.getLine().getVectorList());
+        });
     }
-    private void freqCallback() {
+
+    /**
+     * 周波数解析のメソッド
+     */
+    private void freqAnalyze() {
         if (source.available(number)) {
             Wave tmpWave = source.getWave(number);
             Wave wave = tmpWave.stream().to(tmpWave::from);
-            // fft処理
             tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency()).replaceYByIndex(Wave::hamming, (a, b) -> a * b).to(wave::from);
-            Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
-            Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
-            // スペクトラムのdB化
-            // Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
+            Signal<Double, Point> spectrum = fft.dft(tmpWave).getPowerSpectrum();
             graphContextMap.get("Spectrum").ifVisible(context ->
                     context.setToVectorList(spectrum.stream().replaceY(y ->
                             PointLogY.dB(y, spectrum.getYMax())), spectrumPlot.getLine().getVectorList()));
 
             Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
             logger.print(medianPoint);
-            mfCallback.accept(medianPoint.getY());
+            mdfCallback.accept(medianPoint.getY());
             mdfSeries.add(medianPoint);
             pfSeries.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
 
             mdfGide.setPosition(medianPoint.getY());
 
             graphContextMap.get("Frequency").ifVisible(context -> {
-                context.setToVectorList(mdfSeries.stream(), mdfPlot.getLine().getVectorList());
-                context.setToVectorList(pfSeries.stream(), pfPlot.getLine().getVectorList());
+                context.setToVectorListRealTime(mdfSeries.stream(), mdfPlot.getLine().getVectorList());
+                context.setToVectorListRealTime(pfSeries.stream(), pfPlot.getLine().getVectorList());
             });
 
             Wave rmsWave = source.getWave(3.0);
@@ -170,59 +236,17 @@ public class MmgAnalyzer extends Analyzer {
             double rms = Math.sqrt(sqAve);
             rmsSeries.add(new Point(rmsWave.getStartTime(), rms));
             graphContextMap.get("RMS").ifVisible(context ->
-                    context.setToVectorList(rmsSeries.stream(), rmsPlot.getLine().getVectorList()));
-        }
-    }
-
-    public void execute() {
-        if (graphContextMap.get("Wave").isVisible()) {
-            Wave wave = source.getWave(1.0);
-            graphContextMap.get("Wave").ifVisible(context ->
-                    context.setToVectorList(
-                            wave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax()),
-                            wavePlot.getLine().getVectorList()
-                    )
+                    context.setToVectorListRealTime(rmsSeries.stream(), rmsPlot.getLine().getVectorList())
             );
         }
-        if (source.available(number) && isPassedInterval(1.0)) {
-            Wave tmpWave = source.getWave(number);
-            Wave wave = tmpWave.stream().to(tmpWave::from);
-            // fft処理
-            tmpWave = wave.stream().fill(fft.getLength(), 0.0, 1 / wave.getSamplingFrequency()).replaceYByIndex(Wave::hamming, (a, b) -> a * b).to(wave::from);
-            Signal<Double, Point> tmpSpectrum = fft.dft(tmpWave).getPowerSpectrum();
-            Signal<Double, Point> spectrum = tmpSpectrum.stream().toSeries(Point::new, tmpSpectrum::from);
-            // スペクトラムのdB化
-            // Signal<Double, PointLogY> powerSpectrum = spectrum.stream().toSeries((x, y) -> new PointLogY(x, y, spectrum.getYMax()), spectrum::fromLogY);
-            graphContextMap.get("Spectrum").ifVisible(context ->
-                    context.setToVectorList(spectrum.stream().replaceY(y ->
-                            PointLogY.dB(y, spectrum.getYMax())), spectrumPlot.getLine().getVectorList()));
-
-            Point medianPoint = new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getMedian).getX());
-            logger.print(medianPoint);
-            mfCallback.accept(medianPoint.getY());
-            mdfSeries.add(medianPoint);
-            pfSeries.add(new Point(wave.getStartTime(), spectrum.stream().to(SeriesStream::getPeek).getX()));
-
-            mdfGide.setPosition(medianPoint.getY());
-
-            graphContextMap.get("Frequency").ifVisible(context -> {
-                context.setToVectorList(mdfSeries.stream(), mdfPlot.getLine().getVectorList());
-                context.setToVectorList(pfSeries.stream(), pfPlot.getLine().getVectorList());
-            });
-
-            Wave rmsWave = source.getWave(3.0);
-            double sqAve = rmsWave.stream().replaceY(y -> y * y).reduce((a, b) -> a + b) / rmsWave.size();
-            double rms = Math.sqrt(sqAve);
-            rmsSeries.add(new Point(rmsWave.getStartTime(), rms));
-            graphContextMap.get("RMS").ifVisible(context ->
-                    context.setToVectorList(rmsSeries.stream(), rmsPlot.getLine().getVectorList()));
-
-
-            updatePreviousTime();
-        }
     }
 
-    public void setMfCallback(DoubleConsumer mfCallback) {
-        this.mfCallback = mfCallback;
+    /**
+     * 中央周波数が求まった際に実行されるコールバックを設定します。
+     *
+     * @param mdfCallback 解析した中央周波数を受け取るコールバック
+     */
+    public void setMdfCallback(DoubleConsumer mdfCallback) {
+        this.mdfCallback = mdfCallback;
     }
 }

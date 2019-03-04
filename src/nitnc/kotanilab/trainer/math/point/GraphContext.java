@@ -1,4 +1,4 @@
-package nitnc.kotanilab.trainer.fx.controller;
+package nitnc.kotanilab.trainer.math.point;
 
 import nitnc.kotanilab.trainer.gl.chart.Axis;
 import nitnc.kotanilab.trainer.gl.chart.Chart;
@@ -107,6 +107,17 @@ public class GraphContext {
      */
     public void setToVectorList(SeriesStream<Double> stream, VectorList vectorList) {
         vectorList.setAll(toVectorList(stream));
+    }
+
+    /**
+     * 処理途中のSeriesStreamを指定したVectorListに登録するユーティリティメソッドです。
+     * グラフの右端を基準に描画するようにSeriesStreamを自動でシフトします。
+     *
+     * @param stream     登録する処理途中のSeriesStream
+     * @param vectorList 登録されるVectorList
+     */
+    public void setToVectorListRealTime(SeriesStream<Double> stream, VectorList vectorList) {
+        vectorList.setAll(toVectorList(stream.lastCutX(getXAxis().getRange()).shiftMaxX(getXAxis().getMax())));
     }
 
     public Chart getChart() {

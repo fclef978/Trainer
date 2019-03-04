@@ -10,6 +10,7 @@ import java.util.function.*;
 /**
  * 系列データを高速に処理するためのクラスです。
  * X,Y値ともにDoubleである必要があります。
+ * SeriesがそうであるようにXについてソートされています。
  *
  * @param <Y> Y軸のクラス
  */
@@ -49,7 +50,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
-     * 指定されたこのSeriesStreamを別のオブジェクトに変換する関数を用いてこのSeriesStreamを別のオブジェクトに変換します。
+     * 指定されたSeriesStreamを別のオブジェクトに変換する関数を用いてこのSeriesStreamを別のオブジェクトに変換する終端操作です。
      * メソッドチェーンでつなぐことができます。
      *
      * @param function このSeriesStreamを別のオブジェクトに変換する関数
@@ -61,7 +62,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
-     * 中央値を返します。合計値が0の場合はサポートしません。
+     * 指定したSeriesStreamの中央値を返します。合計値が0の場合はサポートしません。
      *
      * @return 中央周波数のPoint
      */
@@ -85,7 +86,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
-     * 最頻値を返します。
+     * 指定したSeriesStreamの最頻値を返します。
      *
      * @return 最頻値のPoint
      */
@@ -102,7 +103,8 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
-     * Xの最大値から指定した範囲外の点をすべて削除します。
+     * Xの最大値から指定した範囲外の点をすべて削除する中間操作です。
+     *
      * @param range 残す範囲
      * @return このSeriesStream
      */
@@ -110,15 +112,16 @@ public class SeriesStream<Y extends Comparable<Y>> {
         if (isEmpty()) return this;
         double lastX = xs[end];
         double limit = lastX - range;
-        cutDown(limit);
+        cutDownX(limit);
         return this;
     }
 
     /**
-     * Xの最小値が0になるようにすべてのX値をシフトします
+     * Xの最小値が0になるようにすべてのX値をシフトする中間操作です。
+     *
      * @return このSeriesStream
      */
-    public SeriesStream<Y> zeroX() {
+    public SeriesStream<Y> zeroMinX() {
         if (isEmpty()) return this;
         double bias = xs[begin];
         eachIndex(i -> {
@@ -128,9 +131,15 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
-    public SeriesStream<Y> zeroX(double last) {
+    /**
+     * Xの最大値が指定した値になるようにすべてのX値をシフトする中間操作です。
+     *
+     * @param value Xの最大値にしたい値
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> shiftMaxX(double value) {
         if (isEmpty()) return this;
-        double bias = last - xs[end];
+        double bias = value - xs[end];
         eachIndex(i -> {
             xs[i] += bias;
             return true;
@@ -138,10 +147,21 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
+    /**
+     * このSeriesStreamのデータ点数を返す終端操作です。
+     *
+     * @return このSeriesStreamのデータ点数
+     */
     public int count() {
         return end - begin + 1;
     }
 
+    /**
+     * 指定された累積関数を用いてこのSeriesStreamのリダクションを行い結果を返す終端操作です。
+     *
+     * @param accumulator 累積関数
+     * @return リダクションの結果
+     */
     public Y reduce(BinaryOperator<Y> accumulator) {
         if (isEmpty()) return null;
         else if (count() < 2) return gy(0);
@@ -152,11 +172,22 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return ret;
     }
 
+    /**
+     * このSeriesStreamが空かどうかを返す終端操作です。
+     *
+     * @return このSeriesStreamが空ならtrue、そうでないならfalse
+     */
     public boolean isEmpty() {
         return begin > end;
     }
 
-    public SeriesStream<Y> cutDown(double x) {
+    /**
+     * 指定した下限値以下のX値を持つ要素を全て削除する中間操作です。
+     *
+     * @param x X値の下限値
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> cutDownX(double x) {
         eachIndex(i -> {
             if (isEmpty()) {
                 return false;
@@ -170,7 +201,13 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
-    public SeriesStream<Y> cutUp(double x) {
+    /**
+     * 指定した上限値以上のX値を持つ要素を全て削除する中間操作です。
+     *
+     * @param x X値の上限値
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> cutUpX(double x) {
         eachIndexInv(i -> {
             if (isEmpty()) {
                 return false;
@@ -184,16 +221,39 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
+    /**
+     * 指定したインデックス以上の要素を全て削除する中間操作です。
+     *
+     * @param i インデックス上限値
+     * @return このSeriesStream
+     */
     public SeriesStream<Y> cutUp(int i) {
         end = i;
         return this;
     }
 
-    public SeriesStream<Y> cut(double l, double b) {
-        return this.cutDown(l).cutUp(b);
+    /**
+     * 指定した範囲外のX値を持つ要素を全て削除する中間操作です。
+     *
+     * @param lower X値の下限値
+     * @param upper X値の上限値
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> cut(double lower, double upper) {
+        return this.cutDownX(lower).cutUpX(upper);
     }
 
-    public SeriesStream<Y> fill(int number, Y value, double period) {
+    /**
+     * 指定したデータ点数になるまで指定したY値でデータを追加する中間操作です。
+     * 追加されるデータのX値は、このSeriesStreamの最後の要素のX値から指定した刻み幅で一定で増えます。
+     * 既に指定したデータ点数以上のデータ点数がある場合はなにもしません。
+     *
+     * @param number  データ点数
+     * @param yValue  埋めるY値
+     * @param xPeriod Xの刻み幅
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> fill(int number, Y yValue, double xPeriod) {
         if (count() >= number) return this;
         expand(number);
         int size = count();
@@ -201,13 +261,19 @@ public class SeriesStream<Y extends Comparable<Y>> {
         if (count() == 0) lastX = 0.0;
         else lastX = xs[end];
         repeat(number - size, i -> {
-            xs[i + size] = lastX + period * (i + 1);
-            ys[i + size] = value;
+            xs[i + size] = lastX + xPeriod * (i + 1);
+            ys[i + size] = yValue;
         });
         end = begin + number - 1;
         return this;
     }
 
+    /**
+     * 指定した述語に一致しないデータを削除する中間操作です。
+     *
+     * @param predicate 各要素を含めるべきか判定する目的で各要素に適用する述語
+     * @return 新しいSeriesStream
+     */
     public SeriesStream<Y> filter(Predicate<? super Y> predicate) {
         SeriesStream<Y> ret = new SeriesStream<>(this);
         int[] j = {0};
@@ -222,6 +288,13 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return ret;
     }
 
+    /**
+     * 指定した演算子を適用した結果で置換する中間操作です。
+     *
+     * @param xOperator Xの演算子
+     * @param yOperator Yの演算子
+     * @return このSeriesStream
+     */
     public SeriesStream<Y> replace(UnaryOperator<Double> xOperator, UnaryOperator<Y> yOperator) {
         eachIndex(i -> {
             ys[i] = yOperator.apply(gy(i));
@@ -231,6 +304,12 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
+    /**
+     * Y値を指定した演算子を適用した結果で置換する中間操作です。
+     *
+     * @param operator Yの演算子
+     * @return このSeriesStream
+     */
     public SeriesStream<Y> replaceY(UnaryOperator<Y> operator) {
         eachIndex(i -> {
             ys[i] = operator.apply(gy(i));
@@ -239,6 +318,13 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
+    /**
+     * Y値を指定したデータのインデックスによる演算子を適用した結果で置換する中間操作です。
+     *
+     * @param coefficient データのインデックスとこのSeriesStreamのデータ点数を受け取り係数を返す関数
+     * @param replacer    Y値と係数を受け取り置き換えるY値を作成する関数
+     * @return このSeriesStream
+     */
     public SeriesStream<Y> replaceYByIndex(ToDoubleBiFunction<Integer, Integer> coefficient, BiFunction<Y, Double, Y> replacer) {
         int size = count();
         eachIndex(i -> {
@@ -248,22 +334,27 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return this;
     }
 
+    /**
+     * 指定したX値とY値を受け取り新しいオブジェクトを返す関数を用いて新しいオブジェクトのListを返す終端操作です。
+     *
+     * @param combiner X値とY値を受け取り新しいオブジェクトを返す関数
+     * @param <E>      X値とY値を結合した新しいオブジェクトのクラス
+     * @return 新しいオブジェクトのList
+     */
     public <E> List<E> combine(BiFunction<Double, ? super Y, ? extends E> combiner) {
         List<E> ret = new ArrayList<>(count());
-        each((x, y) -> ret.add(combiner.apply(x, y)));
+        forEach((x, y) -> ret.add(combiner.apply(x, y)));
         return ret;
     }
 
-    public <S extends Series, E extends AbstractPoint> S toSeries(BiFunction<Double, ? super Y, ? extends E> pointGenerator, Function<List<E>, S> seriesConstructor) {
-        return seriesConstructor.apply(combine(pointGenerator));
-    }
-
     /**
-     * @param mapper
-     * @param <Z>
-     * @return
+     * 指定した関数を適用した結果から構成される新しいSeriesStreamを返す中間操作です。
+     *
+     * @param mapper 各要素に適用する非干渉でステートレスな関数
+     * @param <Z>    新しいSeriesStreamの要素の型
+     * @return 新しいSeriesStream
      */
-    public <Z extends Comparable<Z>> SeriesStream<Z> map(Function<Y, Z> mapper) {
+    public <Z extends Comparable<Z>> SeriesStream<Z> mapY(Function<Y, Z> mapper) {
         SeriesStream<Z> ret = new SeriesStream<>(this);
         ret.eachIndex(i -> {
             ret.ys[i] = mapper.apply(this.gy(i));
@@ -272,38 +363,50 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return ret;
     }
 
+    public static BiFunction<Double, Double, BiFunction<Double, Double, Double>> differentiater
+            = (x1, x2) -> (y1, y2) -> (y2 - y1) / (x2 - x1);
+
     public static BiFunction<Double, Double, BiFunction<Double, Double, Double>> differentiate() {
         return (x1, x2) -> (y1, y2) -> (y2 - y1) / (x2 - x1);
     }
 
-    public <Z extends Comparable<Z>> SeriesStream<Z> biMapXY(BiFunction<Double, Double, BiFunction<Y, Y, Z>> function) {
+    /**
+     * カリー化された、連続する二つのXの値と連続する二つのYの値を受け取り新しいY値を返す関数を適用した結果から構成される新しいSeriesStreamを返す中間操作です。
+     * 微分や積分に使用できます。
+     *
+     * @param function カリー化された、連続する二つのXの値と連続する二つのYの値を受け取り新しいY値を返す関数
+     * @param <Z>      新しいSeriesStreamの要素の型
+     * @return 新しいSeriesStream
+     */
+    public <Z extends Comparable<Z>> SeriesStream<Z> mapYByXY(BiFunction<Double, Double, BiFunction<Y, Y, Z>> function) {
         if (count() < 2) return null;
         SeriesStream<Z> ret = new SeriesStream<>(this);
         for (int i = begin; i <= end - 1; i++) {
             ret.ys[i] = function.apply(xs[i], xs[i + 1]).apply(gy(i), gy(i + 1));
         }
-        ret.end--;
+        ret.end -= 1;
         return ret;
     }
 
-    public void each(BiConsumer<Double, ? super Y> action) {
+    /**
+     * この系列データの各X,Yに対して指定されたアクションを、すべてのデータが処理されるか、アクションが例外をスローするまで実行します。
+     *
+     * @param action 各X,Yに対して実行されるアクション
+     */
+    public void forEach(BiConsumer<Double, ? super Y> action) {
         eachIndex(i -> {
             action.accept(xs[i], gy(i));
             return true;
         });
     }
 
-    public static void print(Object x, Object y) {
-        System.out.println("X=" + x + ",Y=" + y);
-    }
-
-    public static void repeat(int n, IntConsumer action) {
+    private static void repeat(int n, IntConsumer action) {
         for (int i = 0; i < n; i++) {
             action.accept(i);
         }
     }
 
-    public static void repeat(int begin, int end, IntConsumer action) {
+    private static void repeat(int begin, int end, IntConsumer action) {
         for (int i = begin; i <= end; i++) {
             action.accept(i);
         }
@@ -324,10 +427,11 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
+     * Y配列から値をキャストして取得
      * mapの残りカスでキャストミスするかも
      *
-     * @param i
-     * @return
+     * @param i インデックス
+     * @return Y値
      */
     @SuppressWarnings("unchecked")
     private Y gy(int i) {

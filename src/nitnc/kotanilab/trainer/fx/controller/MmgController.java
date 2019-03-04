@@ -56,7 +56,7 @@ public class MmgController extends Controller<MmgAnalyzer> {
             setting = new MgSetting();
         }
         filed = new Indicator();
-        analyzer.setMfCallback(mf -> filed.setMf(mf));
+        analyzer.setMdfCallback(mf -> filed.setMf(mf));
         indicator.getChildren().add(filed.getWrapper());
     }
 

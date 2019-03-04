@@ -7,6 +7,9 @@ import nitnc.kotanilab.trainer.math.Unit;
 
 import java.util.Arrays;
 
+/**
+ * センサがマイクの場合の筋音図の解析を行うAnalyzerです。
+ */
 public class MmgMicAnalyzer extends MmgAnalyzer {
 
     public MmgMicAnalyzer(Pane masterPane) {
@@ -19,10 +22,9 @@ public class MmgMicAnalyzer extends MmgAnalyzer {
         waveYMax = 2;
         waveYMin = -waveYMax;
         waveXMax = 0.1;
-        filters.addAll(Arrays.asList(/*
-                IirFilter.execute("bpf0.001-0.2.txt"),
-                IirFilter.execute("bef0.048-0.052.txt")*/
-                IirFilter.execute("lpf0.1.txt")
+        filters.addAll(Arrays.asList(
+                IirFilter.load("bpf0.001-0.2.txt"),
+                IirFilter.load("bef0.048-0.052.txt")
         ));
     }
 

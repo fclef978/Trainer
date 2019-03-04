@@ -2,13 +2,15 @@ package nitnc.kotanilab.trainer.math.series;
 
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.Collection;
 
 /**
- * 一番最初の要素のxの値が0になるようにずらして値を管理する系列データです。
- * TODO かなり重い
- * @param <E>
+ * 一番最初の要素のX値が0になるようにすべての要素のX値をずらして管理する系列データです。
+ * 要素数が多くなると動作が重くなるため一定の範囲外のX値を持つ要素を自動で削除します。
+ *
+ * @param <E> 点データのクラス
  */
 public class ShiftedSeries<E extends Point> extends RealSeries<E> {
 
@@ -16,27 +18,63 @@ public class ShiftedSeries<E extends Point> extends RealSeries<E> {
     private double base = 0; /// 前回分
     private final Object lock = new Object();
 
+    /**
+     * 空で作成します。
+     *
+     * @param yMax  y最大値
+     * @param yMin  y最小値
+     * @param xUnit x単位
+     * @param yUnit y単位
+     * @param xMax  保持するX値の最大値
+     */
     public ShiftedSeries(Double yMax, Double yMin, Unit xUnit, Unit yUnit, double xMax) {
         super(yMax, yMin, xUnit, yUnit);
         this.xMax = xMax;
     }
 
+    /**
+     * 空で作成します。物理的情報も空になります。
+     *
+     * @param yMax y最大値
+     * @param yMin y最小値
+     * @param xMax 保持するX値の最大値
+     */
     public ShiftedSeries(Double yMax, Double yMin, double xMax) {
         super(yMax, yMin);
         this.xMax = xMax;
     }
 
+    /**
+     * 浅いコピーですでにある系列データから新しい系列データを作ります。
+     *
+     * @param c     元になるコレクション
+     * @param yMax  y最大値
+     * @param yMin  y最小値
+     * @param xUnit x単位
+     * @param yUnit y単位
+     * @param xMax  保持するX値の最大値
+     */
     public ShiftedSeries(Collection<? extends E> c, Double yMax, Double yMin, Unit xUnit, Unit yUnit, double xMax) {
         super(c, yMax, yMin, xUnit, yUnit);
         this.xMax = xMax;
     }
 
+    /**
+     * 指定した長さで領域を確保した新しい系列データを作ります。
+     *
+     * @param n     長さ
+     * @param yMax  y最大値
+     * @param yMin  y最小値
+     * @param xUnit x単位
+     * @param yUnit y単位
+     * @param xMax  保持するX値の最大値
+     */
     public ShiftedSeries(int n, Double yMax, Double yMin, Unit xUnit, Unit yUnit, double xMax) {
         super(n, yMax, yMin, xUnit, yUnit);
         this.xMax = xMax;
     }
 
-    protected E copy(E e) {
+    private E copy(E e) {
         E point;
         try {
             point = (E) e.clone();
@@ -62,19 +100,6 @@ public class ShiftedSeries<E extends Point> extends RealSeries<E> {
         return true;
     }
 
-    public void setAll(RealSeries<? extends E> series) {
-        if (series.size() == 0) return;
-        synchronized (lock) {
-            this.clear();
-        }
-        series.forEach(point -> this.add(this.copy(point)));
-        double tmp = this.get(this.size() - 1).getX();
-        this.forEach(point -> {
-            point.shiftX(-tmp);
-            point.inverseSignX();
-        });
-    }
-
     @Override
     public E get(int index) {
         synchronized (lock) {
@@ -88,7 +113,7 @@ public class ShiftedSeries<E extends Point> extends RealSeries<E> {
         base = 0;
     }
 
-    public double getxMax() {
+    public double getXMax() {
         return xMax;
     }
 }

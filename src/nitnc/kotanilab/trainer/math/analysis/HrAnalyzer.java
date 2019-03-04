@@ -9,7 +9,6 @@ import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.gl.util.PeriodicTask;
-import nitnc.kotanilab.trainer.gl.util.Vector;
 import nitnc.kotanilab.trainer.main.ACF;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
@@ -18,9 +17,12 @@ import nitnc.kotanilab.trainer.util.CsvLogger;
 
 import java.awt.*;
 import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.DoubleConsumer;
 
+/**
+ * 心拍数解析を行うAnalyzerです。
+ */
 public class HrAnalyzer extends Analyzer {
     private Fft fft;
     private int hrCalcLength = 512;
@@ -35,10 +37,15 @@ public class HrAnalyzer extends Analyzer {
     private GideLine maxHRGide = new GideLine("Maximal", HrController.getMaxHR(age), Color.RED, 1.0, false);
     private GideLine targetHRGide = new GideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), 1.0, false);
 
-    private ShiftedSeries<Point> heartRate = new ShiftedSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"), 60.0);
-    private PeriodicTask waveTask = new PeriodicTask(this::waveCallback, 30);
-    private PeriodicTask hrTask = new PeriodicTask(this::hrCallback, 1000);
+    private RealSeries<Point> heartRate = new RealSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"));
+    private PeriodicTask waveTask = new PeriodicTask(this::waveCallback, 30, TimeUnit.MILLISECONDS);
+    private PeriodicTask hrTask = new PeriodicTask(this::hrCallback, 1000, TimeUnit.MILLISECONDS);
 
+    /**
+     * コンストラクタです。
+     *
+     * @param masterPane グラフの親ペイン
+     */
     public HrAnalyzer(Pane masterPane) {
         super(masterPane, "HR");
 
@@ -72,7 +79,7 @@ public class HrAnalyzer extends Analyzer {
     public void start(double fs, int n) {
         source.setXMax(10.0);
         source.setDecimationNumber(16);
-        source.addCallback(IirFilter.execute("bpf0.0001-0.01.txt"));
+        source.addCallback(IirFilter.load("bpf0.0001-0.01.txt"));
         graphContextMap.get("Wave").setAxisSetter((x, y) -> {
             x.setMax(hrCalcLength / source.getSamplingFrequency());
             x.setSize(hrCalcLength / source.getSamplingFrequency() / 8.0);
@@ -94,40 +101,41 @@ public class HrAnalyzer extends Analyzer {
         logger.close();
     }
 
+    /**
+     * 波形表示のメソッド
+     */
     private void waveCallback() {
-        Wave hrWave = source.getWave(hrCalcLength);
-        if (graphContextMap.get("Wave").isVisible()) {
-            Wave tmpWave = source.getWave(hrCalcLength);
-            List<Vector> wave1 = tmpWave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax())
-                    .replace(wavePlot.getXAxis()::scale, wavePlot.getYAxis()::scale)
-                    .combine(Vector::new);
-            // .to(tmpWave::from);
-            graphContextMap.get("Wave").ifVisible(context -> wavePlot.getLine().getVectorList().setAll(wave1));
-        }
+        graphContextMap.get("Wave").ifVisible(context -> {
+            Wave wave = source.getWave(hrCalcLength);
+            context.setToVectorListRealTime(wave.stream(), wavePlot.getLine().getVectorList());
+        });
     }
 
+    /**
+     * 心拍数解析のメソッド
+     */
     private void hrCallback() {
         Wave hrWave = source.getWave(hrCalcLength);
         if (source.available(hrCalcLength)) {
             if (graphContextMap.get("HR").isVisible()) {
                 double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
-                graphContextMap.get("ACF").ifVisible(graph -> {
+                graphContextMap.get("ACF").ifVisible(context -> {
                     double[] acfX = new double[acf.length];
                     double[] acfY = new double[acf.length];
                     for (int i = 0; i < acf.length; i++) {
-                        acfX[i] = graph.getXAxis().scale(i);
-                        acfY[i] = graph.getYAxis().scale(acf[i] / acf[0]);
+                        acfX[i] = context.getXAxis().scale(i);
+                        acfY[i] = context.getYAxis().scale(acf[i] / acf[0]);
                     }
                     acfPlot.getLine().getVectorList().setAll(acfX, acfY);
                 });
                 graphContextMap.get("Diff").ifVisible(graph -> {
-                    graph.setToVectorList(hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
+                    graph.setToVectorList(hrWave.stream().mapYByXY(SeriesStream.differentiate()).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
                 });
                 double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0; // 心拍数ではありえない範囲のものをカットすることで精度があがる
                 Point hrPoint = new Point(hrWave.getStartTime(), hr);
                 logger.print(hrPoint);
                 heartRate.add(hrPoint);
-                graphContextMap.get("HR").setToVectorList(heartRate.stream(), hrPlot.getLine().getVectorList());
+                graphContextMap.get("HR").setToVectorListRealTime(heartRate.stream(), hrPlot.getLine().getVectorList());
                 maxHRGide.setPosition(HrController.getMaxHR(age));
                 targetHRGide.setPosition(HrController.getMaxHR(age) * HrController.OPT_MET); // 最大心拍数に運動強度をかけたもの
                 hrEvent.accept(hr);
@@ -136,51 +144,20 @@ public class HrAnalyzer extends Analyzer {
         }
     }
 
-    public void execute() {
-        Wave hrWave = source.getWave(hrCalcLength);
-        if (graphContextMap.get("Wave").isVisible()) {
-            Wave tmpWave = source.getWave(hrCalcLength);
-            List<Vector> wave1 = tmpWave.stream().lastCutX(wavePlot.getXAxis().getRange()).zeroX(wavePlot.getXAxis().getMax())
-                    .replace(wavePlot.getXAxis()::scale, wavePlot.getYAxis()::scale)
-                    .combine(Vector::new);
-            // .to(tmpWave::from);
-            graphContextMap.get("Wave").ifVisible(context -> wavePlot.getLine().getVectorList().setAll(wave1));
-        }
-        if (source.available(hrCalcLength)) {
-            if (isPassedInterval(1.0)) {
-                if (graphContextMap.get("HR").isVisible()) {
-                    double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
-                    graphContextMap.get("ACF").ifVisible(graph -> {
-                        double[] acfX = new double[acf.length];
-                        double[] acfY = new double[acf.length];
-                        for (int i = 0; i < acf.length; i++) {
-                            acfX[i] = graph.getXAxis().scale(i);
-                            acfY[i] = graph.getYAxis().scale(acf[i] / acf[0]);
-                        }
-                        acfPlot.getLine().getVectorList().setAll(acfX, acfY);
-                    });
-                    graphContextMap.get("Diff").ifVisible(graph -> {
-                        graph.setToVectorList(hrWave.stream().biMapXY(SeriesStream.differentiate()).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
-                    });
-                    double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0; // 心拍数ではありえない範囲のものをカットすることで精度があがる
-                    Point hrPoint = new Point(hrWave.getStartTime(), hr);
-                    logger.print(hrPoint);
-                    heartRate.add(hrPoint);
-                    graphContextMap.get("HR").setToVectorList(heartRate.stream(), hrPlot.getLine().getVectorList());
-                    maxHRGide.setPosition(HrController.getMaxHR(age));
-                    targetHRGide.setPosition(HrController.getMaxHR(age) * HrController.OPT_MET); // 最大心拍数に運動強度をかけたもの
-                    hrEvent.accept(hr);
-                }
-
-                updatePreviousTime();
-            }
-        }
-    }
-
+    /**
+     * 心拍数が求まった際に実行されるコールバックを設定します。
+     *
+     * @param hrEvent 心拍数が求まった際に実行されるコールバック
+     */
     public void setHrEvent(DoubleConsumer hrEvent) {
         this.hrEvent = hrEvent;
     }
 
+    /**
+     * 最大心拍数計算用の年齢を設定します。
+     *
+     * @param age ユーザの年齢
+     */
     public void setAge(int age) {
         this.age = age;
     }

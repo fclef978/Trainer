@@ -10,8 +10,8 @@ import java.util.function.DoubleUnaryOperator;
 
 /**
  * 波形を保持するバッファです。
+ * データの前処理やデシメーションに対応します。
  * スレッドセーフです(たぶん)
- * Created by Hirokazu SUZUKI on 2018/07/31.
  */
 public class WaveBuffer {
 
@@ -42,7 +42,7 @@ public class WaveBuffer {
     }
 
     /**
-     * コンストラクタです。
+     * Y軸単位を任意単位で作成します。
      *
      * @param samplingFrequency サンプリング周波数
      * @param max               最大値
@@ -51,13 +51,22 @@ public class WaveBuffer {
         this(max, min, Unit.arb("amplitude"), samplingFrequency);
     }
 
+    /**
+     * バッファから指定した秒数分取り出します。
+     * 指定した秒数に足りない場合は少ないまま返ります。
+     *
+     * @param sec 取り出したい秒数
+     * @return 取り出したWave
+     */
     public Wave getWave(double sec) {
         return getWave((int) Math.round(sec * samplingFrequency));
     }
 
     /**
      * バッファから任意の長さでWaveをとりだします。
+     * 指定した長さに足りない場合は少ないまま返ります。
      *
+     * @param number 取り出したい長さ
      * @return 取り出したWave
      */
     public Wave getWave(int number) {
@@ -105,19 +114,28 @@ public class WaveBuffer {
         return wave;
     }
 
+    /**
+     * put()が呼び出される際に追加される値に対して適用される演算子を追加します。
+     * 演算子の実行順序は演算子の追加順です。
+     *
+     * @param callback put()が呼び出される際に追加される値に対して適用される演算子
+     */
     public void addCallback(DoubleUnaryOperator callback) {
         callbacks.add(callback);
     }
 
-    public void addCallback(DoubleUnaryOperator... callbacks) {
-        this.callbacks.addAll(Arrays.asList(callbacks));
-    }
-
-    public void addCallback(List<DoubleUnaryOperator> callbacks) {
+    /**
+     * 指定されたListに含まれるput()が呼び出される際に追加される値に対して適用される演算子を全て追加します。
+     * Listの順番どおりに追加されます。
+     * 演算子の実行順序は演算子の追加順です。
+     *
+     * @param callbacks put()が呼び出される際に追加される値に対して適用される演算子を含むList
+     */
+    public void addAllCallback(List<DoubleUnaryOperator> callbacks) {
         this.callbacks.addAll(callbacks);
     }
 
-    private int decimationCounter = 0;
+    private int decimationCount = 0;
 
     /**
      * キューにデータを挿入します。
@@ -130,10 +148,10 @@ public class WaveBuffer {
         for (DoubleUnaryOperator callback : callbacks) {
             val = callback.applyAsDouble(val);
         }
-        if (decimationCounter % decimationNumber == 0) {
+        if (decimationCount % decimationNumber == 0) {
             queue.put(val);
         }
-        decimationCounter++;
+        decimationCount++;
     }
 
     /**
@@ -165,17 +183,31 @@ public class WaveBuffer {
         return queue.size() >= length;
     }
 
+    /**
+     * バッファリングを開始します。
+     * put()やgetWave()を呼ぶ前に呼び出してください。
+     */
     public void start() {
         isStart = true;
-        decimationCounter = 0;
+        decimationCount = 0;
     }
 
+    /**
+     * バッファリングを終了します。
+     * 再利用する際は必ずサンプリング終了後に呼び出してください。
+     */
     public void stop() {
         isStart = false;
         totalCount = 0;
         queue.clear();
     }
 
+    /**
+     * データの間引き(デシメーション)点数を設定します。デフォルトは1(データ点数1/1、すなわち間引きなし)です。
+     * 間引きをかける場合は間引き後のナイキスト周波数以下の周波数成分を事前にカットする必要があるため、コールバックに対応したローパスフィルタを追加してください。
+     *
+     * @param decimationNumber 間引き点数
+     */
     public void setDecimationNumber(int decimationNumber) {
         this.decimationNumber = decimationNumber;
         this.samplingFrequency /= decimationNumber;
@@ -187,6 +219,7 @@ public class WaveBuffer {
 
     /**
      * キューに貯めておく最大秒数をセットします。
+     * デフォルトは10秒です。
      *
      * @param xMax キューに貯めておく最大秒数
      */

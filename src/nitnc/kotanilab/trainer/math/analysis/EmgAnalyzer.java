@@ -7,8 +7,16 @@ import nitnc.kotanilab.trainer.math.Unit;
 
 import java.util.Arrays;
 
+/**
+ * 筋電図の解析を行うAnalyzerです。
+ */
 public class EmgAnalyzer extends MmgAnalyzer {
 
+    /**
+     * コンストラクタです。
+     *
+     * @param masterPane グラフの親ペイン
+     */
     public EmgAnalyzer(Pane masterPane) {
         super(masterPane, "EMG",
                 createWaveChart("Wave",1, Unit.v(), 3),
@@ -19,8 +27,8 @@ public class EmgAnalyzer extends MmgAnalyzer {
         waveYMax = 3.0;
         waveYMin = -waveYMax;
         filters.addAll(Arrays.asList(
-                IirFilter.execute("bpf0.001-0.2.txt"),
-                IirFilter.execute("bef0.048-0.052.txt")
+                IirFilter.load("bpf0.001-0.2.txt"),
+                IirFilter.load("bef0.048-0.052.txt")
         ));
     }
 

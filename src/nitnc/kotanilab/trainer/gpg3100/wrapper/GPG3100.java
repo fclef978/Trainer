@@ -17,6 +17,7 @@ import nitnc.kotanilab.trainer.gpg3100.jnaNative.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -237,7 +238,7 @@ public class GPG3100 implements ADConverter {
     private class BufferTask extends PeriodicTask {
 
         private BufferTask(int period, Runnable callback) {
-            super(callback, period < 1 ? 1 : period);
+            super(callback, period < 1 ? 1 : period, TimeUnit.MILLISECONDS);
         }
 
     }

@@ -62,7 +62,7 @@ public class Main extends Application {
                 () -> new VirtualADC(5, -5,
                         FunctionGenerator.csv("source.csv"),
                         FunctionGenerator.sin(1.0, 2.5, 10, 50, 100, 300),
-                        //FunctionGenerator.white(0 , 2, 2.0, 2.5),
+                        //FunctionGenerator.rangeSin(0 , 2, 2.0, 2.5),
                         //FunctionGenerator.randSin(10.0, 1.0, 0.0)
                         FunctionGenerator.sin(3, 2.0, 0.0)
                         //FunctionGenerator.sin(0.5, 0.0, 1, 5)

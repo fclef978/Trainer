@@ -1,16 +1,18 @@
 package nitnc.kotanilab.trainer.math.analysis;
 
-import nitnc.kotanilab.trainer.math.series.Wave;
-import nitnc.kotanilab.trainer.util.Dbg;
-
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.UnaryOperator;
 
+/**
+ * デジタルフィルタのIIRフィルタをDoubleUnaryOperatorの形式で作成するクラスです。
+ * 下のURLのサイトで作成して結果をtxtファイルにコピペして使用してください。
+ * http://dsp.jpn.org/dfdesign/iir/i_bef.shtml
+ * double型配列から作成することも可能です。
+ */
 public class IirFilter {
     private static final int X0 = 0;
     private static final int X1 = 1;
@@ -25,7 +27,14 @@ public class IirFilter {
     private static final int B2 = 4;
     private static final int K = 5;
 
-    public static DoubleUnaryOperator execute(double[] coefficient) {
+    /**
+     * 単一のセクションのIIRフィルタを作成します。
+     *
+     * @param coefficient フィルタ係数
+     *                    順番は作成サイトの並びと同じです。
+     * @return 作成したIIRフィルタ
+     */
+    public static DoubleUnaryOperator load(double[] coefficient) {
         coefficient[B1] *= -1;
         coefficient[B2] *= -1;
         double[] reg = {0, 0, 0, 0, 0};
@@ -44,10 +53,17 @@ public class IirFilter {
         };
     }
 
-    public static DoubleUnaryOperator execute(double[]... coefficients) {
+    /**
+     * 複数のセクションを持つIIRフィルタを作成します。
+     *
+     * @param coefficients フィルタ係数
+     *                     *                    順番は作成サイトの並びと同じです。
+     * @return 作成したIIRフィルタ
+     */
+    public static DoubleUnaryOperator load(double[]... coefficients) {
         List<DoubleUnaryOperator> sections = new ArrayList<>(coefficients.length);
         for (double[] coefficient : coefficients) {
-            sections.add(execute(coefficient));
+            sections.add(load(coefficient));
         }
         return x -> {
             double[] y = {x};
@@ -56,7 +72,16 @@ public class IirFilter {
         };
     }
 
-    public static DoubleUnaryOperator execute(String filename) {
+    /**
+     * ファイルに保存された係数を読み込んで作成します。
+     * ファイル名は使用者が管理しますが、ファイルの保存場所はfilter/以下にしてください。
+     * 推奨するファイル名は、"フィルタの種類(bpf,lefなど)パスバンド終端正規化周波数(-パスバンド始端正規化周波数).txt"です。
+     *
+     * @param filename フィルタ係数が保存されたファイル名
+     *                 プレフィックスの./filter/が自動的に付与されるのでfilter/からの相対パスで指定してください。
+     * @return 作成したIIRフィルタ
+     */
+    public static DoubleUnaryOperator load(String filename) {
         List<Double> tmpList = new ArrayList<>();
         try {
             FileReader fr = new FileReader("./filter/" + filename);
@@ -86,6 +111,6 @@ public class IirFilter {
             coefficients[i][K] = tmpList.get(6 * i);
         }
 
-        return execute(coefficients);
+        return load(coefficients);
     }
 }

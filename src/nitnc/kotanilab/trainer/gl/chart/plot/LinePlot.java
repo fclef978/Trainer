@@ -29,7 +29,7 @@ public class LinePlot extends Plot {
      * @param name 名前
      */
     public LinePlot(String name) {
-        this(name, Color.getHSBColor((float) Math.random(), 1.0f, 0.5f), 1.0);
+        this(name, Color.getHSBColor((float) Math.random(), 1.0f, 1.0f), 1.0);
     }
 
     /**
