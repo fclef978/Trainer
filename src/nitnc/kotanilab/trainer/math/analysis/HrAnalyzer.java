@@ -129,7 +129,7 @@ public class HrAnalyzer extends Analyzer {
                     acfPlot.getLine().getVectorList().setAll(acfX, acfY);
                 });
                 graphContextMap.get("Diff").ifVisible(graph -> {
-                    graph.setToVectorList(hrWave.stream().mapYByXY(SeriesStream.differentiate()).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
+                    graph.setToVectorList(hrWave.stream().mapYByXY(SeriesStream.differentiater).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
                 });
                 double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0; // 心拍数ではありえない範囲のものをカットすることで精度があがる
                 Point hrPoint = new Point(hrWave.getStartTime(), hr);

@@ -31,7 +31,7 @@ public class WaveBuffer {
      * コンストラクタです。
      *
      * @param yMax              最大値
-     * @param min               最小値
+     * @param yMin               最小値
      * @param yUnit             y軸単位
      * @param samplingFrequency サンプリング周波数
      */

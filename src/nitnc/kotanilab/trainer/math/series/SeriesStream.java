@@ -365,12 +365,11 @@ public class SeriesStream<Y extends Comparable<Y>> {
         return ret;
     }
 
-    public static BiFunction<Double, Double, BiFunction<Double, Double, Double>> differentiater
+    /**
+     * mapYByXYに渡して微分をする関数です。
+     */
+    public static final BiFunction<Double, Double, BiFunction<Double, Double, Double>> differentiater
             = (x1, x2) -> (y1, y2) -> (y2 - y1) / (x2 - x1);
-
-    public static BiFunction<Double, Double, BiFunction<Double, Double, Double>> differentiate() {
-        return (x1, x2) -> (y1, y2) -> (y2 - y1) / (x2 - x1);
-    }
 
     /**
      * カリー化された、連続する二つのXの値と連続する二つのYの値を受け取り新しいY値を返す関数を適用した結果から構成される新しいSeriesStreamを返す中間操作です。
