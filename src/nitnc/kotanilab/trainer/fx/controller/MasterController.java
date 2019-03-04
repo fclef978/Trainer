@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 import nitnc.kotanilab.trainer.adConverter.ADConverter;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.fx.setting.MasterSetting;
-import nitnc.kotanilab.trainer.fx.setting.Saver;
+import nitnc.kotanilab.trainer.util.Saver;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
 

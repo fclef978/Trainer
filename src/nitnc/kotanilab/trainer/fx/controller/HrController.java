@@ -7,7 +7,7 @@ import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.fx.setting.HrSetting;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.analysis.HrAnalyzer;
-import nitnc.kotanilab.trainer.fx.setting.Saver;
+import nitnc.kotanilab.trainer.util.Saver;
 
 /**
  * 心拍数のControllerです。

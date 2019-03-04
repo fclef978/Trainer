@@ -60,7 +60,7 @@ public class Main extends Application {
         root = new VBox();
         ADConverter adc = Utl.doByOS(
                 () -> new VirtualADC(5, -5,
-                        FunctionGenerator.csv("source.csv"),
+                        FunctionGenerator.csv("./csv/source.csv"),
                         FunctionGenerator.sin(1.0, 2.5, 10, 50, 100, 300),
                         //FunctionGenerator.rangeSin(0 , 2, 2.0, 2.5),
                         //FunctionGenerator.randSin(10.0, 1.0, 0.0)

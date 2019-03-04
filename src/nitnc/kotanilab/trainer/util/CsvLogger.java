@@ -10,19 +10,19 @@ import java.io.PrintWriter;
  * データをCSV形式でファイルに保存するクラスです。
  */
 public class CsvLogger {
-    private String filename;
     private FileWriter fw;
     private PrintWriter pw;
+    private static final String prefix = "./csv/";
 
     /**
      * 指定したファイル名で作成します。
      *
      * @param filename CSVのファイル名
+     *                 "./csv/"がプレフィックスとして自動的に付くため、csv/からの相対パスを指定してください。
      */
     public CsvLogger(String filename) {
-        this.filename = filename;
         try {
-            fw = new FileWriter(filename, false);
+            fw = new FileWriter(prefix+filename, false);
             pw = new PrintWriter(new BufferedWriter(fw));
         } catch (Exception e) {
             e.printStackTrace();

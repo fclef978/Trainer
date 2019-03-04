@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
-import nitnc.kotanilab.trainer.fx.setting.Saver;
+import nitnc.kotanilab.trainer.util.Saver;
 
 import java.util.function.Consumer;
 

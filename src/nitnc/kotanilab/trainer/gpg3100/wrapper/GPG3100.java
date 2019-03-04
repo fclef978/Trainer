@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * GPG3100のラッパクラスです。
+ * 詳しくはGPG3100のドキュメントを参照してください。
  */
 public class GPG3100 implements ADConverter {
 

@@ -93,7 +93,7 @@ public class MmgAnalyzer extends Analyzer {
     /**
      * 中央周波数のGideLine
      */
-    protected GideLine mdfGide = new GideLine("MF", 0.0, Color.RED, 2.0, true);
+    protected GideLine mdfGide = new GideLine("MDF", 0.0, Color.RED, 2.0, true);
     private PeriodicTask waveTask = new PeriodicTask(this::waveAnalyze, 30, TimeUnit.MILLISECONDS);
     private PeriodicTask freqTask = new PeriodicTask(this::freqAnalyze, 1000, TimeUnit.MILLISECONDS);
 

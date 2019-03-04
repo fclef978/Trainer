@@ -8,7 +8,7 @@ import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.fx.util.PositiveIntField;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
 import nitnc.kotanilab.trainer.math.analysis.MmgAnalyzer;
-import nitnc.kotanilab.trainer.fx.setting.Saver;
+import nitnc.kotanilab.trainer.util.Saver;
 
 /**
  * MMGのControllerです。
