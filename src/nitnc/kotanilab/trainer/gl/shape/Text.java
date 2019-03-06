@@ -2,16 +2,34 @@ package nitnc.kotanilab.trainer.gl.shape;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.awt.TextRenderer;
+import com.jogamp.opengl.util.gl2.GLUT;
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureData;
+import com.jogamp.opengl.util.texture.TextureIO;
 import nitnc.kotanilab.trainer.gl.node.Child;
 import nitnc.kotanilab.trainer.gl.util.Vector;
+import nitnc.kotanilab.trainer.util.Dbg;
+import sun.font.FontDesignMetrics;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
+import java.io.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.Arrays;
 
 /**
  * 文字オブジェクトです。
  * 文字色はStyleのcolorプロパティを参照します。
+ * awtに依存しているためandroidはサポート外
  * TODO 文字サイズやフォント等もスタイルシート参照にする。
  */
 public class Text extends Child {
@@ -26,6 +44,7 @@ public class Text extends Child {
     protected String str;
     protected Vector vector;
     protected boolean vertical;
+    private Font font = DEFAULT_FONT;
 
     /**
      * デフォルトFontオブジェクトを用いて作成します。
@@ -69,21 +88,15 @@ public class Text extends Child {
         gl.glEnable(GL.GL_LINE_SMOOTH);
 
         tr.beginRendering(width, height);
-        tr.setColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1.0f);
-        if (vertical) {
-            gl.glMatrixMode(GL2.GL_MODELVIEW);
-            gl.glLoadIdentity();
-            gl.glPushMatrix();
-            gl.glRotated(90, 0.0, 0.0, 1.0);
-            render(str, vector, width, height);
-            tr.endRendering();
-            tr.flush();
-            gl.glPopMatrix();
-        } else {
-            render(str, vector, width, height);
-            tr.endRendering();
-            tr.flush();
-        }
+        tr.setColor(color);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glPushMatrix();
+        if (vertical) gl.glRotatef(90, 0, 0, 1);
+        else gl.glRotatef(0, 0, 0, 1);
+        render(str, vector, width, height);
+        tr.endRendering();
+
+        gl.glPopMatrix();
         gl.glDisable(GL.GL_BLEND);
         gl.glDisable(GL.GL_LINE_SMOOTH);
     }
@@ -118,6 +131,7 @@ public class Text extends Child {
      * @param y   縦軸描画位置[px]
      */
     protected void drawString(String str, double x, double y) {
+
         tr.draw(str, (int) Math.round(x), (int) Math.round(y));
     }
 

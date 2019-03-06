@@ -22,6 +22,7 @@ public abstract class Child extends Node {
 
     @Override
     public void draw() {
+        super.draw();
         gl = parent.getDrawable().getGL().getGL2();
         drawingProcess();
     }

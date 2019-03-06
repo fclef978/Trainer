@@ -10,9 +10,11 @@ import nitnc.kotanilab.trainer.fx.stage.UserSettingStage;
 import nitnc.kotanilab.trainer.gl.node.Window;
 import nitnc.kotanilab.trainer.gl.pane.HPane;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gpg3100.wrapper.GPG3100;
 import nitnc.kotanilab.trainer.adConverter.virtual.FunctionGenerator;
 import nitnc.kotanilab.trainer.adConverter.virtual.VirtualADC;
+import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.Utl;
 
 /**
@@ -39,8 +41,11 @@ public class Main extends Application {
 
         System.out.println("ウィンドウセットアップ");
         window = new Window("Chart", 1600, 300);
+        Dbg.p();
         masterPane = new HPane("size:100% 100%;margin:0 0;");
+        Dbg.p();
         window.getChildren().add(masterPane);
+        Dbg.p();
 
 
         window.launch();

@@ -5,6 +5,7 @@ import com.jogamp.opengl.GLAutoDrawable;
 import nitnc.kotanilab.trainer.gl.util.Position;
 import nitnc.kotanilab.trainer.gl.style.Style;
 import nitnc.kotanilab.trainer.gl.util.Vector;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
 
@@ -37,7 +38,8 @@ public abstract class Node {
     /**
      * 描画
      */
-    public abstract void draw();
+    public void draw(){
+    }
 
     /**
      * スタイルシートを返します。
@@ -134,8 +136,7 @@ public abstract class Node {
      * @param vector 頂点座標
      */
     protected void setVertex(Vector vector) {
-        Vector absVector = calcAbsVector(vector);
-        gl.glVertex2d(absVector.getX(), absVector.getY());
+        gl.glVertex2d(vector.getX(), vector.getY());
     }
 
     /**
@@ -145,8 +146,7 @@ public abstract class Node {
      * @param y y座標
      */
     protected void setVertex(double x, double y) {
-        Vector absVector = calcAbsVector(new Vector(x, y));
-        gl.glVertex2d(absVector.getX(), absVector.getY());
+        gl.glVertex2d(x, y);
     }
 
     /**
@@ -168,18 +168,6 @@ public abstract class Node {
     }
 
     /**
-     * 相対座標(現在の親に対する座標)から絶対座標(ルートノードに対する座標、すなわち描画に使用する座標)を計算します。
-     *
-     * @param rltVector 相対座標
-     * @return 絶対座標
-     */
-    protected Vector calcAbsVector(Vector rltVector) {
-        Position position = parent.getPosition();
-        return new Vector(rltVector.getX() * position.getXScale() + position.getXOffset(),
-                rltVector.getY() * position.getYScale() + position.getYOffset());
-    }
-
-    /**
      * 座標と最大ピクセル数(ウィンドウ幅・高さ)からその座標でのピクセル数を計算します。
      *
      * @param pos 座標
@@ -188,6 +176,17 @@ public abstract class Node {
      */
     protected static int calcPx(double pos, double max) {
         return (int) Math.round(((pos + 1.0) * max / 2.0));
+    }
+
+    /**
+     * 指定されたVectorを現在の座標変換行列を用いてウィンドウからの絶対座標に変換します。
+     * @param vector 変換するVector
+     * @return ウィンドウからの絶対座標のVector
+     */
+    protected Vector calcAbsVector(Vector vector) {
+        float[] mat = new float[16];
+        gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, mat, 0);
+        return new Vector(vector.getX() * mat[0] + mat[12], vector.getY() * mat[5] + mat[13]);
     }
 
     /**

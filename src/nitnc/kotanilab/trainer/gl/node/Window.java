@@ -8,6 +8,7 @@ import com.jogamp.opengl.util.Animator;
 import nitnc.kotanilab.trainer.gl.pane.StackPane;
 import nitnc.kotanilab.trainer.gl.shape.BackGround;
 import nitnc.kotanilab.trainer.gl.util.Position;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -39,8 +40,11 @@ public class Window extends StackPane implements GLEventListener {
      * @param height 高さ[px]
      */
     public Window(String name, int width, int height) {
+        Dbg.p();
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        Dbg.p();
         window = GLWindow.create(caps); // 遅い
+        Dbg.p();
         window.setTitle(name);
         window.setSize(width, height);
 
@@ -56,7 +60,6 @@ public class Window extends StackPane implements GLEventListener {
 
         window.addGLEventListener(this);
 
-        position = new Position();
         children.add(bg);
     }
 
@@ -122,6 +125,7 @@ public class Window extends StackPane implements GLEventListener {
     @Override
     public void display(GLAutoDrawable drawable) {
         this.drawable = drawable;
+        drawable.getGL().getGL2().glLoadIdentity();
         draw();
         if (shotFrag) {
             imaging("castStream.png", drawable);

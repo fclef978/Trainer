@@ -19,6 +19,7 @@ public class Border extends Child {
     /**
      * 枠線の各辺のBorderSettingを持つMapを返します。
      * キーはnitnc.kotanilab.trainer.gl.style.Border.positionArrayにあるtop,left,right,borderです。
+     *
      * @return 枠線の各辺のBorderSettingを持つMap
      */
     public Map<String, BorderSetting> getSettingMap() {
@@ -28,17 +29,17 @@ public class Border extends Child {
     @Override
     protected void drawingProcess() {
         // 桁落ちして表示がバグる
-        double xStart = -1.0 * parent.getPosition().getXScale() + parent.getPosition().getXOffset();
-        double yStart = -1.0 * parent.getPosition().getYScale() + parent.getPosition().getYOffset();
-        double xEnd = 1.0 * parent.getPosition().getXScale() + parent.getPosition().getXOffset();
-        double yEnd = 1.0 * parent.getPosition().getYScale() + parent.getPosition().getYOffset();
+        double xStart = -1.0;
+        double yStart = -1.0;
+        double xEnd = 1.0;
+        double yEnd = 1.0;
         settingMap.keySet().forEach(key -> {
             BorderSetting borderSetting = settingMap.get(key);
             double width = borderSetting.getWidth();
-            double xCorrStart = (1.0 - width / Math.floor(getWindowWidth() * parent.getPosition().getXScale())) * parent.getPosition().getXScale() + parent.getPosition().getXOffset();
-            double xCorrEnd = -(1.0 - width / Math.floor(getWindowWidth() * parent.getPosition().getXScale())) * parent.getPosition().getXScale() + parent.getPosition().getXOffset();
-            double yCorrStart = (1.0 - width / Math.floor(getWindowHeight() * parent.getPosition().getYScale())) * parent.getPosition().getYScale() + parent.getPosition().getYOffset();
-            double yCorrEnd = -(1.0 - width / Math.ceil(getWindowHeight() * parent.getPosition().getYScale())) * parent.getPosition().getYScale() + parent.getPosition().getYOffset();
+            double xCorrStart = (1.0 - width / Math.floor(getWindowWidth()));
+            double xCorrEnd = -(1.0 - width / Math.floor(getWindowWidth()));
+            double yCorrStart = (1.0 - width / Math.floor(getWindowHeight()));
+            double yCorrEnd = -(1.0 - width / Math.ceil(getWindowHeight()));
             if (!borderSetting.getStyle().equals("none")) {
                 if (borderSetting.getStyle().equals("solid")) {
                     setThickness(width);

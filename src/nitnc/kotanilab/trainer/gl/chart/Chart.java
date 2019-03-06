@@ -119,6 +119,11 @@ public class Chart extends StackPane {
         synchronized (lock) {
             super.draw();
         }
+    }
+
+    @Override
+    public void drawingProcess() {
+        super.drawingProcess();
         imaging();
     }
 
