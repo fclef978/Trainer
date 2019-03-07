@@ -1,9 +1,12 @@
 package nitnc.kotanilab.trainer.gl.pane;
 
+import com.jogamp.opengl.GL2;
 import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.util.Position;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -11,8 +14,6 @@ import java.util.List;
  */
 public class HPane extends Pane {
 
-    private int count = 0;
-    private List<Position> list = new ArrayList<>();
 
     /**
      * コンストラクタです。
@@ -31,31 +32,20 @@ public class HPane extends Pane {
 
     @Override
     public void drawingProcess() {
-        count = 0;
-        list.clear();
         double totalWidth = children.stream().mapToDouble(Node::getWidth).sum();
         final double[] previousWidth = {0};
         children.forEach(child -> {
-            double center = child.getWidth() / 2.0;
-            double left = previousWidth[0] + center;
-            double right = totalWidth - previousWidth[0] - center;
-            Position curr = new Position(getStyle());
-            curr.setXOffset(left - right);
-            curr.scale(parent.getPosition());
-            list.add(curr);
-            previousWidth[0] += center * 2;
+            double center = child.getWidth();
+            double offset = 2.0 * previousWidth[0] + center - totalWidth;
+            previousWidth[0] += center;
+            gl.glMatrixMode(GL2.GL_MODELVIEW);
+            gl.glPushMatrix();
+            gl.glTranslatef((float) offset, 0, 0.0f);
+            child.draw();
+            gl.glPopMatrix();
         });
-        children.forEach(Node::draw);
 
         // this.position = new Position(parent.getPosition(), getStyle());
 
-    }
-
-    @Override
-    public Position getPosition() {
-        if (count >= list.size()) {
-            return position;
-        }
-        return list.get(count++);
     }
 }

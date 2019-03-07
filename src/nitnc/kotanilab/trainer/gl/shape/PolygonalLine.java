@@ -18,9 +18,10 @@ public class PolygonalLine extends Child {
 
     /**
      * コンストラクタです。
+     *
      * @param vectorList 折れ線の座標のリスト
-     * @param color 折れ線の色
-     * @param thick 折れ線の太さ
+     * @param color      折れ線の色
+     * @param thick      折れ線の太さ
      */
     public PolygonalLine(VectorList vectorList, Color color, double thick) {
         this.vectorList = vectorList;
@@ -34,8 +35,7 @@ public class PolygonalLine extends Child {
         setMode(GL_LINE_STRIP);
         setColor(color);
         // setするときにparentScaleがnullになる
-        VectorList vectorList = this.vectorList;
-        vectorList.forEach(this::setVertex);
+        this.vectorList.forEach(this::setVertex);
         end();
     }
 

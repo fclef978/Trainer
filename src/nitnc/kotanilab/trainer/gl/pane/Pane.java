@@ -1,11 +1,13 @@
 package nitnc.kotanilab.trainer.gl.pane;
 
+import com.jogamp.opengl.GL2;
 import nitnc.kotanilab.trainer.gl.node.Node;
 import nitnc.kotanilab.trainer.gl.node.Parent;
 import nitnc.kotanilab.trainer.gl.shape.Border;
 import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.awt.*;
+import java.util.Objects;
 
 /**
  * 子を持ちレイアウト可能な親ノードです。
@@ -39,7 +41,11 @@ public abstract class Pane extends Parent {
     @Override
     public void draw() {
         super.draw();
-
+        gl = getDrawable().getGL().getGL2();
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glPushMatrix();
+        gl.glTranslatef((float) style.get("margin-x").getValueAsRatio(), (float) style.get("margin-y").getValueAsRatio(), 0.0f);
+        gl.glScalef((float) style.get("width").getValueAsRatio(),(float) style.get("height").getValueAsRatio(),1.0f);
         drawingProcess();
 
         for (String key : nitnc.kotanilab.trainer.gl.style.Border.positionArray) {
@@ -54,5 +60,6 @@ public abstract class Pane extends Parent {
         border.setParent(this);
         border.draw();
         border.removeParent();
+        gl.glPopMatrix();
     }
 }

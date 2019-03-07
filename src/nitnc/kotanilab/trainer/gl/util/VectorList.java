@@ -106,7 +106,9 @@ public class VectorList {
      */
     public void forEach(Consumer<? super Vector> action) {
         synchronized (list) {
-            list.forEach(action);
+            for (int i = 0; i < list.size(); i++) {
+                action.accept(list.get(i));
+            }
         }
     }
 }
