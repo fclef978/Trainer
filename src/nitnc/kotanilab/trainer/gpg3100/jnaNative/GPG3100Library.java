@@ -9,6 +9,7 @@ import com.sun.jna.ptr.LongByReference;
 /**
  * JNAのインターフェースです。
  * unsignedは全てsignedになっていることに注意する必要があります。
+ * TODO PCI-3135の他の機能も使いたい場合、スレッドセーフかつシングルトンにしないといけない。
  */
 public interface GPG3100Library extends Library {
     /** インスタンス */
