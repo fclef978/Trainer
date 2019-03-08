@@ -8,8 +8,9 @@ import nitnc.kotanilab.trainer.gl.chart.Chart;
 import nitnc.kotanilab.trainer.gl.chart.plot.GideLine;
 import nitnc.kotanilab.trainer.gl.chart.plot.LinePlot;
 import nitnc.kotanilab.trainer.gl.pane.Pane;
+import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.PeriodicTask;
-import nitnc.kotanilab.trainer.main.ACF;
+import nitnc.kotanilab.trainer.math.ACF;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.series.*;
@@ -38,8 +39,21 @@ public class HrAnalyzer extends Analyzer {
     private GideLine targetHRGide = new GideLine("Target", HrController.getMaxHR(age) * HrController.OPT_MET, Color.GREEN.darker(), 1.0, false);
 
     private RealSeries<Point> heartRate = new RealSeries<>(200.0, 30.0, Unit.sec(), Unit.arb("HR"));
-    private PeriodicTask waveTask = new PeriodicTask(this::waveCallback, 30, TimeUnit.MILLISECONDS);
-    private PeriodicTask hrTask = new PeriodicTask(this::hrCallback, 1000, TimeUnit.MILLISECONDS);
+    private PeriodicTask waveTask = new PeriodicTask(()->{
+        try {
+            this.waveCallback();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }, 30, TimeUnit.MILLISECONDS);
+
+    private PeriodicTask hrTask = new PeriodicTask(()->{
+        try {
+            this.hrCallback();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }, 1000, TimeUnit.MILLISECONDS);
 
     /**
      * コンストラクタです。
@@ -60,8 +74,9 @@ public class HrAnalyzer extends Analyzer {
         putNewGraphContext("HR", hrChart);
 
         acfPlot = new LinePlot("ACF");
+        double acfTime = hrCalcLength / 2.0 / 1000. * 16.;
         Chart acfChart = createChart("ACF",
-                new Axis("Value", 0.0, hrCalcLength / 2, hrCalcLength / 20),
+                new Axis("Value", 0.0, acfTime, Math.round(acfTime / 5)),
                 new Axis("Value", -1.0, 1.0, 0.5)
         );
         acfChart.getPlots().add(acfPlot);
@@ -115,11 +130,15 @@ public class HrAnalyzer extends Analyzer {
      * 心拍数解析のメソッド
      */
     private void hrCallback() {
-        Wave hrWave = source.getWave(hrCalcLength);
         if (source.available(hrCalcLength)) {
             if (graphContextMap.get("HR").isVisible()) {
-                double[] acf = ACF.wienerKhinchin(fft, hrWave.getYList());
+                Wave hrWave = source.getWave(hrCalcLength);
+                Wave acf = ACF.wienerKhinchin(fft, hrWave);
+                double acfMax = acf.get(0).getY();
+                Wave acfStream = acf.stream().cutAfter(acf.size() / 2).replaceY(y -> y / acfMax).to(acf::from);
                 graphContextMap.get("ACF").ifVisible(context -> {
+                    context.setToVectorList(acfStream.stream(), acfPlot.getLine().getVectorList());
+                    /*
                     double[] acfX = new double[acf.length];
                     double[] acfY = new double[acf.length];
                     for (int i = 0; i < acf.length; i++) {
@@ -127,11 +146,14 @@ public class HrAnalyzer extends Analyzer {
                         acfY[i] = context.getYAxis().scale(acf[i] / acf[0]);
                     }
                     acfPlot.getLine().getVectorList().setAll(acfX, acfY);
+                    */
                 });
                 graphContextMap.get("Diff").ifVisible(graph -> {
                     graph.setToVectorList(hrWave.stream().mapYByXY(SeriesStream.differentiater).replaceY(y -> y / 10), diffPlot.getLine().getVectorList());
                 });
-                double hr = hrWave.getSamplingFrequency() / ACF.pickPeekIndex(acf) * 60.0; // 心拍数ではありえない範囲のものをカットすることで精度があがる
+                Point period = acfStream.stream().cutAboveX(2.).filterBySurroundY(SeriesStream.peekPicker).reduce(Math::max, Point::new);
+                Dbg.p(period);
+                double hr = 60.0 / period.getX();
                 Point hrPoint = new Point(hrWave.getStartTime(), hr);
                 logger.print(hrPoint);
                 heartRate.add(hrPoint);

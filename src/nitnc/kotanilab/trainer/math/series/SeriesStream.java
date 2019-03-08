@@ -2,6 +2,7 @@ package nitnc.kotanilab.trainer.math.series;
 
 import nitnc.kotanilab.trainer.math.point.AbstractPoint;
 import nitnc.kotanilab.trainer.math.point.Point;
+import nitnc.kotanilab.trainer.util.Dbg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.function.*;
 /**
  * 系列データを高速に処理するためのクラスです。
  * X,Y値ともにDoubleである必要があります。
- * SeriesがそうであるようにXについてソートされています。
+ * XについてソートされたSeriesから生成しないと予期せぬ挙動を起こします。
+ * このクラスはjava.util.stream.Streamに似ていますが、中間処理は即実行され独立したデータソースを持ちます。
  *
  * @param <Y> Y軸のクラス
  */
@@ -24,6 +26,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
 
     /**
      * Seriesから作成します。
+     * X値についてソートされていなければなりません。
      *
      * @param series StreamのもとになるSeries
      */
@@ -114,7 +117,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
         if (isEmpty()) return this;
         double lastX = xs[end];
         double limit = lastX - range;
-        cutDownX(limit);
+        cutBelowX(limit);
         return this;
     }
 
@@ -159,7 +162,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
     }
 
     /**
-     * 指定された累積関数を用いてこのSeriesStreamのリダクションを行い結果を返す終端操作です。
+     * 指定された累積関数を用いてこのSeriesStreamのY値に対してリダクションを行い結果を返す終端操作です。
      *
      * @param accumulator 累積関数
      * @return リダクションの結果
@@ -172,6 +175,31 @@ public class SeriesStream<Y extends Comparable<Y>> {
             ret = accumulator.apply(ret, gy(i));
         }
         return ret;
+    }
+
+    /**
+     * 指定された累積関数を用いてこのSeriesStreamのリダクションを行いリダクション結果のX値とY値を結合させる関数の結果を返す終端操作です。
+     *
+     * @param accumulator 累積関数
+     * @param combiner    X値とY値を結合させる関数
+     * @param <T>         combinerの返り値の型
+     * @return combinerの返り値
+     */
+    public <T> T reduce(BinaryOperator<Y> accumulator, BiFunction<Double, Y, T> combiner) {
+        if (isEmpty()) return null;
+        else if (count() < 2) return combiner.apply(xs[0], gy(0));
+
+        double retX = xs[begin];
+        Y tmp = gy(begin);
+        Y retY = accumulator.apply(gy(begin), gy(begin + 1));
+        if (tmp.hashCode() != retY.hashCode()) retX = xs[begin + 1];
+
+        for (int i = begin + 2; i <= end; i++) {
+            Y tmp2 = retY;
+            retY = accumulator.apply(retY, gy(i));
+            if (tmp2.hashCode() != retY.hashCode()) retX = xs[i];
+        }
+        return combiner.apply(retX, retY);
     }
 
     /**
@@ -189,7 +217,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
      * @param x X値の下限値
      * @return このSeriesStream
      */
-    public SeriesStream<Y> cutDownX(double x) {
+    public SeriesStream<Y> cutBelowX(double x) {
         eachIndex(i -> {
             if (isEmpty()) {
                 return false;
@@ -209,7 +237,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
      * @param x X値の上限値
      * @return このSeriesStream
      */
-    public SeriesStream<Y> cutUpX(double x) {
+    public SeriesStream<Y> cutAboveX(double x) {
         eachIndexInv(i -> {
             if (isEmpty()) {
                 return false;
@@ -229,8 +257,19 @@ public class SeriesStream<Y extends Comparable<Y>> {
      * @param i インデックス上限値
      * @return このSeriesStream
      */
-    public SeriesStream<Y> cutUp(int i) {
+    public SeriesStream<Y> cutAfter(int i) {
         end = i;
+        return this;
+    }
+
+    /**
+     * 指定したインデックス以下の要素を全て削除する中間操作です。
+     *
+     * @param i インデックス下限値
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> cutBefore(int i) {
+        begin = i;
         return this;
     }
 
@@ -242,7 +281,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
      * @return このSeriesStream
      */
     public SeriesStream<Y> cut(double lower, double upper) {
-        return this.cutDownX(lower).cutUpX(upper);
+        return this.cutBelowX(lower).cutAboveX(upper);
     }
 
     /**
@@ -274,20 +313,60 @@ public class SeriesStream<Y extends Comparable<Y>> {
      * 指定した述語に一致しないデータを削除する中間操作です。
      *
      * @param predicate 各要素を含めるべきか判定する目的で各要素に適用する述語
-     * @return 新しいSeriesStream
+     * @return このSeriesStream
      */
-    public SeriesStream<Y> filter(Predicate<? super Y> predicate) {
-        SeriesStream<Y> ret = new SeriesStream<>(this);
+    public SeriesStream<Y> filterY(Predicate<? super Y> predicate) {
         int[] j = {0};
         this.eachIndex(i -> {
             if (predicate.test(this.gy(i))) {
-                ret.ys[j[0]] = this.gy(i);
-                ret.end = j[0];
+                this.ys[j[0]] = this.ys[i];
+                this.xs[j[0]] = this.xs[i];
                 j[0]++;
             }
             return true;
         });
-        return ret;
+        this.begin = 0;
+        this.end = j[0];
+        return this;
+    }
+
+    public static BiFunction<Double, Double, Predicate<Double>> peekPicker =
+            (a, c) -> b -> b.compareTo(a) > 0 && b.compareTo(c) > 0;
+
+    /**
+     * 指定したデータとその前後のデータを受け取るカリー化された述語に一致しないデータを削除する中間操作です。
+     *
+     * @param predicate 各要素を含めるべきか判定する目的で各要素に適用する述語
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> filterBySurroundY(BiFunction<Y, Y, Predicate<Y>> predicate) {
+        int j = 0;
+        for (int i = begin + 1; i <= end - 1; i++) {
+            if (predicate.apply(gy(i - 1), gy(i + 1)).test(gy(i))) {
+                Dbg.p(this.ys[i],this.xs[i]);
+                this.ys[j] = this.ys[i];
+                this.xs[j] = this.xs[i];
+                j++;
+            }
+        }
+        this.begin = 0;
+        this.end = j - 1;
+        return this;
+    }
+
+
+    /**
+     * この系列データの各X,Yに対して指定されたアクションを、すべてのデータが処理されるか、アクションが例外をスローするまで実行します。
+     *
+     * @param action 各X,Yに対して実行されるアクション
+     * @return このSeriesStream
+     */
+    public SeriesStream<Y> peek(BiConsumer<Double, ? super Y> action) {
+        eachIndex(i -> {
+            action.accept(xs[i], gy(i));
+            return true;
+        });
+        return this;
     }
 
     /**
@@ -308,6 +387,7 @@ public class SeriesStream<Y extends Comparable<Y>> {
 
     /**
      * Y値を指定した演算子を適用した結果で置換する中間操作です。
+     * map()と比べて新しいオブジェクトを作成せず値を置換するため高速です。
      *
      * @param operator Yの演算子
      * @return このSeriesStream

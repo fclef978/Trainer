@@ -5,6 +5,7 @@ import nitnc.kotanilab.trainer.adConverter.ConverterSpec;
 import nitnc.kotanilab.trainer.adConverter.SamplingSetting;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
+import nitnc.kotanilab.trainer.util.Dbg;
 import nitnc.kotanilab.trainer.util.PeriodicTask;
 import nitnc.kotanilab.trainer.math.point.PointOfWave;
 import nitnc.kotanilab.trainer.math.series.Wave;
@@ -84,20 +85,26 @@ public class VirtualADC implements ADConverter {
         double fs = setting.getSamplingFrequency();
         List<Integer> channelList = setting.getChannelList();
         final List<WaveBuffer> waves = new CopyOnWriteArrayList<>();
+        List<FunctionGenerator> functionList = new ArrayList<>();
+        int chMax = channelList.stream().mapToInt(x->x).max().getAsInt();
 
         for (int i = 0; i < channelList.size(); i++) {
-            FunctionGenerator function = new FunctionGenerator(functions.get((channelList.get(i) - 1) % functions.size()));
-            final WaveBuffer wave = new WaveBuffer(max, min, Unit.v(), fs);
-            osc = new PeriodicTask(() -> {
-                try {
-                    wave.put(function.generate().getY());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }, Math.round(1000 / fs), TimeUnit.MILLISECONDS);
-            osc.start();
+            FunctionGenerator function = new FunctionGenerator(functions.get(i % functions.size()));
+            WaveBuffer wave = new WaveBuffer(max, min, Unit.v(), fs);
+            functionList.add(function);
             waves.add(wave);
         }
+        osc = new PeriodicTask(() -> {
+            try {
+                for (int i = 0; i < channelList.size(); i++) {
+                    if (waves.get(i) != null)
+                       waves.get(i).put(functionList.get(i).generate().getY());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, Math.round(1000 / fs), TimeUnit.MILLISECONDS);
+        osc.start();
 
         return waves;
     }

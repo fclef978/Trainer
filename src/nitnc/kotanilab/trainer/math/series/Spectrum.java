@@ -4,6 +4,7 @@ import nitnc.kotanilab.trainer.fft.wrapper.Complex;
 import nitnc.kotanilab.trainer.math.Unit;
 import nitnc.kotanilab.trainer.math.point.ComplexPoint;
 import nitnc.kotanilab.trainer.math.point.Point;
+import nitnc.kotanilab.trainer.math.point.PointOfSpectrum;
 
 import java.util.List;
 
@@ -39,12 +40,19 @@ public class Spectrum extends Signal<Complex, ComplexPoint> {
 
     /**
      * このSpectrumのパワースペクトラムを返します。
+     * スペクトラムの後ろ半分の複素共役な部分は削除されます。
      *
      * @return このSpectrumのパワースペクトラム
      */
     public Signal<Double, Point> getPowerSpectrum() {
-        List<Point> tmp = stream().cutUp(this.size() / 2 + 1).combine((x, y) -> new Point(x, y.getPower()));
+        List<Point> tmp = stream().cutAfter(this.size() / 2 + 1).combine((x, y) -> new Point(x, y.getPower()));
         return new Signal<>(tmp, yMax.getAbs(), yMin.getAbs(), xUnit, yUnit, samplingFrequency, startTime);
+    }
+
+    public Spectrum regenerate(SeriesStream<Complex> stream) {
+        Spectrum ret = new Spectrum(yMax,yMin,xUnit,yUnit,size(),samplingFrequency,startTime);
+        stream.forEach((x, y) -> ret.add(new PointOfSpectrum(x, y)));
+        return ret;
     }
 
 }

@@ -165,7 +165,7 @@ public class SeriesImpl<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     @Override
     public SeriesStream<Y> stream() {
-        return new SeriesStream<Y>(this);
+        return new SeriesStream<>(this);
     }
 
     @Override

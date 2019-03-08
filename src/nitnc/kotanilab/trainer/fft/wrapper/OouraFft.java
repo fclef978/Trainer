@@ -1,16 +1,10 @@
 package nitnc.kotanilab.trainer.fft.wrapper;
 
-import nitnc.kotanilab.trainer.main.ACF;
-import nitnc.kotanilab.trainer.math.point.Point;
 import nitnc.kotanilab.trainer.math.point.PointOfSpectrum;
+import nitnc.kotanilab.trainer.math.point.PointOfWave;
 import nitnc.kotanilab.trainer.math.series.Spectrum;
 import nitnc.kotanilab.trainer.math.series.Wave;
 import nitnc.kotanilab.trainer.fft.jnaNative.OouraFftLibrary;
-import nitnc.kotanilab.trainer.util.CsvLogger;
-import nitnc.kotanilab.trainer.util.Dbg;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * 大浦版FFTライブラリのラッパクラスです。
@@ -80,12 +74,10 @@ public class OouraFft implements Fft {
 
         double maxFrequency = wave.getSamplingFrequency() / 2.0;
         for (int i = 0; i < length; i++) {
-            output.add(
-                    new PointOfSpectrum(
-                            i * maxFrequency / (spectrumLength),
-                            new Complex(input[2 * i] / length * 2, input[2 * i + 1] / length * 2)
-                    )
-            );
+            double x = i * maxFrequency / (spectrumLength);
+            Complex y = new Complex(input[2 * i] / length * 2, input[2 * i + 1] / length * 2);
+            PointOfSpectrum point = new PointOfSpectrum(x, y);
+            output.add(point);
         }
 
         return output;
@@ -107,6 +99,28 @@ public class OouraFft implements Fft {
 
         for (int i = 0; i < length; i++) {
             output[i] = new Complex(input[2 * i] / 2, input[2 * i + 1] / 2);
+        }
+
+        return output;
+    }
+
+    @Override
+    public Wave idft(Spectrum spectrum) {
+        if (spectrum.size() != length)
+            throw new IllegalArgumentException("信号の長さが不正です " + spectrum.size() + " 必要数 " + length);
+        double[] input = new double[n];
+        Wave output = new Wave(spectrum, n);
+
+        for (int i = 0; i < length; i++) {
+            Complex y = spectrum.get(i).getY();
+            input[2 * i] = y.getRe();
+            input[2 * i + 1] = y.getRe();
+        }
+
+        instance.cdft(length * 2, 1, input, work, tri);
+
+        for (int i = 0; i < length; i++) {
+            output.add(new PointOfWave(i / spectrum.getSamplingFrequency(), input[2 * i]));
         }
 
         return output;

@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 /**
  * 二次元の系列データを表すインターフェースです。
  * java.util.Listと似たメソッドをいくつか持ちます。
- * 最大値などの情報を持ち、X値についてソートされていなければなりませんｎ。
+ * 最大値などの情報を持ちます。
  *
  * @param <X> 点データのX軸のクラス
  * @param <Y> 点データのY軸のクラス
@@ -89,6 +89,8 @@ public interface Series<X extends Comparable<X>, Y extends Comparable<Y>, E exte
 
     /**
      * この系列データをソースとして使用して、SeriesStreamを返します。
+     * このメソッドはXがDoubleでないSeriesで使用すると例外をスローします。
+     * このSeriesはX値についてソートされていなければなりません。
      *
      * @return この系列データ内の要素に対するSeriesStream
      */

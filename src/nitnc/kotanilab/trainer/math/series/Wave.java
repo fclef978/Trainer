@@ -49,11 +49,16 @@ public class Wave extends Signal<Double, Point> implements Regenerable<Wave, Dou
         super(initCapacity, max, min, Unit.sec(), yUnit, samplingFrequency, startTime);
     }
 
+    /**
+     * 指定したSpectrumの物理的情報やサンプリング情報を持つ空のWaveを作成します。
+     * @param spectrum 情報を持つSpectrum
+     * @param size 波形のデータの長さ
+     */
     public Wave(Spectrum spectrum, int size) {
         this(size, spectrum.getYMax().getAbs(), spectrum.getYMin().getAbs(), spectrum.getXUnit(), spectrum.getSamplingFrequency(), spectrum.getStartTime());
     }
 
-    public Wave from(SeriesStream<? extends Double> stream) {
+    public Wave from(SeriesStream<Double> stream) {
         Wave wave = new Wave(stream.count(), yMax, yMin, yUnit, samplingFrequency, startTime);
         stream.forEach((x, y) -> wave.add(new Point(x, y)));
         return wave;

@@ -78,7 +78,7 @@ public class IirFilter {
      * 推奨するファイル名は、"フィルタの種類(bpf,lefなど)パスバンド終端正規化周波数(-パスバンド始端正規化周波数).txt"です。
      *
      * @param filename フィルタ係数が保存されたファイル名
-     *                 プレフィックスの./filter/が自動的に付与されるのでfilter/からの相対パスで指定してください。
+     *                 プレフィックスの./filterY/が自動的に付与されるのでfilter/からの相対パスで指定してください。
      * @return 作成したIIRフィルタ
      */
     public static DoubleUnaryOperator load(String filename) {

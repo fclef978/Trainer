@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Trainer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Trainer_jar</output-path>
+    <root id="archive" name="Trainer.jar">
+      <element id="module-output" name="ADConverter" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/gluegen-rt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jna-4.5.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jogl-all.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

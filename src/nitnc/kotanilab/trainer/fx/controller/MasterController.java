@@ -13,8 +13,7 @@ import nitnc.kotanilab.trainer.util.Saver;
 import nitnc.kotanilab.trainer.fx.setting.UserSetting;
 import nitnc.kotanilab.trainer.math.WaveBuffer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,7 +50,7 @@ public class MasterController {
      * コンストラクタです。
      *
      * @param masterPane OpenGLの親ペイン
-     * @param adc ADConverter ADコンバータのオブジェクト
+     * @param adc        ADConverter ADコンバータのオブジェクト
      */
     public MasterController(nitnc.kotanilab.trainer.gl.pane.Pane masterPane, ADConverter adc) {
         this.masterPane = masterPane;
@@ -171,17 +170,17 @@ public class MasterController {
 
     private void startAnalysis() {
         List<Integer> channelList = getChannelList();
+        Collections.sort(channelList);
         double fs = getFs();
         if (channelList.size() == 0) return;
-
         samplingSetting.setAll(channelList, fs, fs);
         adc.setSamplingSetting(samplingSetting);
         buffers = adc.convertEternally();
-        for (int i = 0; i < buffers.size(); i++) {
-            Controller controller = analysisTable.getItems().get(i);
-            WaveBuffer waveBuffer = buffers.get(i);
+        int[] i = {0};
+        analysisTable.getItems().stream().sorted(Comparator.comparingInt(Controller::getChannel)).forEach(controller -> {
+            WaveBuffer waveBuffer = buffers.get(i[0]++);
             controller.getAnalyzer().setSource(waveBuffer);
-        }
+        });
         buffers.forEach(WaveBuffer::start);
 
         startButton.setDisable(true);
@@ -228,7 +227,7 @@ public class MasterController {
      * @return 使用するチャンネルのリスト
      */
     public List<Integer> getChannelList() {
-        return analysisTable.getItems().stream().map(Controller::getChannel).sorted().collect(Collectors.toList());
+        return analysisTable.getItems().stream().map(Controller::getChannel).collect(Collectors.toList());
     }
 
     /**

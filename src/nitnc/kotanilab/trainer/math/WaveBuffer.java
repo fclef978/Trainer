@@ -65,14 +65,14 @@ public class WaveBuffer {
     }
 
     /**
-     * バッファから任意の長さでWaveをとりだします。
-     * 指定した長さに足りない場合は少ないまま返ります。
+     * バッファから任意の最大データ長でWaveをとりだします。
+     * バッファに指定した長さ以上のデータがある場合はバッファの最後の値からmasNumber分のデータを持つWaveが返ります。
+     * 指定した長さに足りない場合は少ないまま返ります。そのため、available()を使って最小長がいくつになるか確認してください。
      *
-     * @param number 取り出したい長さ
+     * @param maxNumber 取り出す最大長
      * @return 取り出したWave
      */
-    public Wave getWave(int number) {
-
+    public Wave getWave(int maxNumber) {
         // キューの長さを制限する
         while (queue.size() > Math.ceil(xMax * samplingFrequency)) {
             try {
@@ -86,9 +86,9 @@ public class WaveBuffer {
         // イテレータを生成する。このイテレータは生成時点のキューの内容を元に作られる。
         // このとき、サイズは可能な限りイテレータ生成時点に近いタイミングでとらなければならない。
         int size = queue.size();
-        int tmp = size < number ? 0 : size - number;
+        int tmp = size < maxNumber ? 0 : size - maxNumber;
         double startTime = (size + totalCount) / samplingFrequency; // 数える用
-        Wave wave = new Wave(number, yMax, yMin, yUnit, samplingFrequency, startTime);
+        Wave wave = new Wave(maxNumber, yMax, yMin, yUnit, samplingFrequency, startTime);
         Iterator<Double> iterator = queue.iterator();
 
         int count = 0;
